@@ -1524,11 +1524,13 @@ let TARIFAS={
   lecSerial: {label:'Lectura de seriales',      unit:'/unidad',     cost:0.05},
   // DOCS
   dmceIn:   {label:'DMCE Entrada',              unit:'/documento',  cost:35.00},
-  dmceOut:  {label:'DMCE Salida',               unit:'/documento',  cost:25.00},
-  memorial: {label:'Memorial',                  unit:'/documento',  cost:15.00},
-  tiDoc:    {label:'TI — Transporte Interno',   unit:'/documento',  cost:15.00},
-  manejoIn: {label:'Manejo de entrada',         unit:'/mes',        cost:25.00},
-  manejoOut:{label:'Manejo de salida',          unit:'/mes',        cost:20.00},
+  dmceOut:   {label:'DMCE Salida',               unit:'/documento',  cost:25.00},
+  memorial:  {label:'Memorial',                  unit:'/documento',  cost:15.00},
+  tiDoc:     {label:'TI — Transporte Interno',   unit:'/documento',  cost:15.00},
+  manejoIn:  {label:'Manejo de entrada',         unit:'/mes',        cost:25.00},
+  manejoOut: {label:'Manejo de salida',          unit:'/mes',        cost:20.00},
+  etiquetado:{label:'Etiquetado',                unit:'/unidad',     cost:0.15},
+  lecSerial: {label:'Lectura de seriales',       unit:'/unidad',     cost:0.05},
 };
 
 // Costos base reales (sin margen) para calcular margen
@@ -1544,7 +1546,7 @@ const CB={
   carga40p:3.2500, carga20p:1.6250,
   carga40g:4.3875, carga20g:2.1938,
   paletSin:14.50, paletCon:17.80, etiquetado:0.08, lecSerial:0.03,
-  dmceIn:25, dmceOut:18, memorial:10, tiDoc:10, manejoIn:18, manejoOut:14,
+  dmceIn:25, dmceOut:18, memorial:10, tiDoc:10, manejoIn:18, manejoOut:14, etiquetado:0.08, lecSerial:0.03,
 };
 
 let RUTAS=[
@@ -3667,6 +3669,24 @@ function showAdminSections(){
 
 
 // ── TARIFAS BASE (admin) ──────────────────────────────────────────────────────
+
+// ── BENCHMARK DE MERCADO ──────────────────────────────────────────────────────
+const MARKET_BENCHMARK = {
+  desc40p:  {min:125,   max:250,  avg:191.67, fuentes:'Logisfashion $250, ZLC $125-200'},
+  desc20p:  {min:125,   max:180,  avg:152.50, fuentes:'Logisfashion $180, ZLC $125'},
+  desc40g:  {min:275,   max:350,  avg:325.00, fuentes:'CIF $350, GECA $350, Mishi $275'},
+  desc20g:  {min:200,   max:250,  avg:225.00, fuentes:'CIF $200, GECA $250, Mishi $225'},
+  recepBul: {min:0.80,  max:0.95, avg:0.88,   fuentes:'Logisfashion $0.95, ZLC $0.80/caja'},
+  almacPos: {min:10,    max:15,   avg:12.67,  fuentes:'CIF $10 mín $300, GECA $15, Mishi $13 mín $35'},
+  almacCBM: {min:0.70,  max:0.70, avg:0.70,   fuentes:'ZLC $0.70/CBM/día'},
+  almacBul: {min:0.52,  max:0.52, avg:0.52,   fuentes:'Logisfashion $0.52/caja'},
+  pickBul:  {min:0.90,  max:1.05, avg:0.97,   fuentes:'Logisfashion $1.05, ZLC $0.90'},
+  paletSin: {min:14,    max:14,   avg:14.00,  fuentes:'ZLC $14/pallet'},
+  dmceIn:   {min:50,    max:75,   avg:58.75,  fuentes:'CIF $55, GECA $75, Mishi $50, Logisfashion $55'},
+  dmceOut:  {min:25,    max:55,   avg:42.50,  fuentes:'CIF $55, GECA $55, Mishi $35, Logisfashion $25'},
+  manejoIn: {min:75,    max:130,  avg:93.33,  fuentes:'CIF $130, GECA $75, Mishi $75'},
+};
+
 const TARIFA_GROUPS = [
   { label:'📥 Inbound / Descarga',  keys:['desc40p','desc20p','desc40g','desc20g','recepPal','recepBul','putaway'] },
   { label:'📦 Almacenaje',           keys:['almacPos','almacM2','almacCBM','almacBul'] },
@@ -3826,4 +3846,4 @@ function updateTarifaBase(key, val) {
 </div>
 
 </body>
-</html>
+  </html>

@@ -555,6 +555,39 @@ body{background:var(--light);color:var(--ink);font-family:'Barlow',sans-serif;mi
 .est-cerrada{background:#EEEEF8;color:var(--blue)}
 .est-cancelada{background:#FFF0F0;color:#C0392B}
 
+
+/* ── USER MANAGEMENT ── */
+.usr-card{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:7px;transition:all .15s;background:var(--white)}
+.usr-card:hover{border-color:var(--blue)}
+.usr-card.inactive{opacity:.55;background:#F8F8F8}
+.usr-info{flex:1}
+.usr-name{font-weight:700;font-size:.85rem;color:var(--ink)}
+.usr-email{font-size:.68rem;color:#888;margin-top:2px}
+.usr-rol{display:inline-block;padding:2px 7px;border-radius:20px;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
+.usr-rol-admin{background:#EEEEF8;color:var(--blue)}
+.usr-rol-vendedor{background:#E8F7F2;color:#1A6045}
+.usr-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.usr-toggle{padding:4px 10px;border-radius:5px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.68rem;text-transform:uppercase;cursor:pointer;border:none;transition:all .15s}
+.usr-toggle-on{background:#FFF0F0;color:#C0392B}
+.usr-toggle-off{background:#E8F7F2;color:#1A6045}
+
+/* NEW USER FORM */
+.new-usr-form{background:#F8F8FC;border:1.5px dashed #C8C5E0;border-radius:var(--r);padding:14px;margin-top:10px;display:none}
+.new-usr-form.open{display:block;animation:fu .2s ease}
+.new-usr-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
+.new-usr-grid .fitem input{background:var(--white)}
+
+/* REPORTERIA */
+.rep-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 15px;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.rep-info{flex:1}
+.rep-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.92rem;text-transform:uppercase;color:var(--ink);margin-bottom:3px}
+.rep-desc{font-size:.68rem;color:#888;line-height:1.5}
+.rep-filters{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.rep-filters input,.rep-filters select{padding:6px 9px;border:1.5px solid var(--border);border-radius:5px;font-family:'Barlow',sans-serif;font-size:.75rem;outline:none;background:var(--white)}
+.rep-filters input:focus,.rep-filters select:focus{border-color:var(--blue)}
+.btn-xlsx{padding:8px 14px;background:var(--green);color:#fff;border:none;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;flex-shrink:0}
+.btn-xlsx:hover{background:#00a872;transform:translateY(-1px)}
+
 /* WATERMARK */
 .watermark{position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px 14px;background:rgba(255,255,255,.93);border-top:1px solid var(--border);font-size:.62rem;color:#aaa;letter-spacing:.04em;z-index:50;backdrop-filter:blur(4px)}
 .watermark strong{color:var(--blue);font-weight:700}
@@ -1215,7 +1248,138 @@ body{background:var(--light);color:var(--ink);font-family:'Barlow',sans-serif;mi
   <div class="asec">
     <div class="asec-hdr"><h3>Resumen de Costos por Cuenta</h3></div>
     <div class="asec-body" id="distribBody"></div>
+  
+  <!-- USER MANAGEMENT (admin only) -->
+  <div class="asec" id="userMgmtSection" style="display:none">
+    <div class="asec-hdr">
+      <h3>👥 Gestión de Usuarios</h3>
+      <div class="hdr-actions">
+        <button class="btn-sm btn-sm-g" onclick="toggleNewUserForm()">+ Nuevo usuario</button>
+      </div>
+    </div>
+    <div class="asec-body">
+      <!-- NEW USER FORM -->
+      <div class="new-usr-form" id="newUserForm">
+        <div style="font-size:.65rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Crear nuevo usuario</div>
+        <div class="new-usr-grid">
+          <div class="fitem"><label>Nombre completo</label>
+            <input type="text" id="newUsrNombre" placeholder="Ej. Juan Pérez" class="ainput">
+          </div>
+          <div class="fitem"><label>Email</label>
+            <input type="email" id="newUsrEmail" placeholder="juan@dpworld.com" class="ainput">
+          </div>
+          <div class="fitem"><label>Contraseña</label>
+            <input type="password" id="newUsrPass" placeholder="Mínimo 6 caracteres" class="ainput">
+          </div>
+          <div class="fitem"><label>Rol</label>
+            <select id="newUsrRol" class="ainput">
+              <option value="vendedor">Vendedor</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-g" style="flex:1;padding:9px" onclick="createUser()">✅ Crear usuario</button>
+          <button class="btn btn-s" style="padding:9px 16px" onclick="toggleNewUserForm()">Cancelar</button>
+        </div>
+        <div id="newUserMsg" style="margin-top:8px;font-size:.75rem;display:none"></div>
+      </div>
+
+      <!-- USER LIST -->
+      <div id="userList" style="margin-top:10px">
+        <div style="text-align:center;color:#aaa;padding:20px;font-size:.78rem">Cargando usuarios...</div>
+      </div>
+    </div>
   </div>
+
+  <!-- REPORTERÍA -->
+  <div class="asec" id="reporteriaSection" style="display:none">
+    <div class="asec-hdr"><h3>📊 Reportería</h3></div>
+    <div class="asec-body">
+      <div class="alert ainfo" style="margin-bottom:14px">
+        <div class="ai">📥</div>
+        <div><strong>Reportes descargables en Excel</strong>Filtra por fecha, vendedor o estado y descarga el reporte en formato .xlsx listo para análisis.</div>
+      </div>
+
+      <!-- REPORTE COTIZACIONES -->
+      <div class="rep-card">
+        <div class="rep-info">
+          <div class="rep-title">📋 Cotizaciones</div>
+          <div class="rep-desc">Todas las cotizaciones con cliente, vendedor, tipo, tarifa, costo, margen y estado.</div>
+          <div class="rep-filters">
+            <input type="date" id="repCotDesde" placeholder="Desde">
+            <input type="date" id="repCotHasta" placeholder="Hasta">
+            <select id="repCotVendedor" style="min-width:120px">
+              <option value="">Todos los vendedores</option>
+            </select>
+            <select id="repCotEstado">
+              <option value="">Todos los estados</option>
+              <option value="borrador">Borrador</option>
+              <option value="enviada">Enviada</option>
+              <option value="cerrada">Cerrada</option>
+              <option value="cancelada">Cancelada</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-xlsx" onclick="downloadRepCotizaciones()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Excel
+        </button>
+      </div>
+
+      <!-- REPORTE POR VENDEDOR -->
+      <div class="rep-card">
+        <div class="rep-info">
+          <div class="rep-title">👤 Resumen por vendedor</div>
+          <div class="rep-desc">Total cotizado, margen promedio, cantidad de cotizaciones y tasa de cierre por vendedor.</div>
+          <div class="rep-filters">
+            <input type="date" id="repVendDesde">
+            <input type="date" id="repVendHasta">
+          </div>
+        </div>
+        <button class="btn-xlsx" onclick="downloadRepVendedores()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Excel
+        </button>
+      </div>
+
+      <!-- REPORTE MARGEN -->
+      <div class="rep-card">
+        <div class="rep-info">
+          <div class="rep-title">💰 Análisis de margen</div>
+          <div class="rep-desc">Cotizaciones ordenadas por margen — identifica las más y menos rentables.</div>
+          <div class="rep-filters">
+            <input type="date" id="repMgnDesde">
+            <input type="date" id="repMgnHasta">
+            <select id="repMgnMin">
+              <option value="0">Todos los márgenes</option>
+              <option value="30">≥ 30% (óptimo)</option>
+              <option value="15">≥ 15% (aceptable)</option>
+              <option value="-1">Por debajo del mínimo</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-xlsx" onclick="downloadRepMargen()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Excel
+        </button>
+      </div>
+
+      <!-- REPORTE CUENTAS -->
+      <div class="rep-card">
+        <div class="rep-info">
+          <div class="rep-title">🏭 Cuentas & posiciones</div>
+          <div class="rep-desc">Estado actual de posiciones asignadas, costos fijos y reparto por cuenta.</div>
+        </div>
+        <button class="btn-xlsx" onclick="downloadRepCuentas()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Excel
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
 </div>
 
 <!-- EDIT MODAL -->
@@ -2628,6 +2792,7 @@ function renderAdmin(){
   renderCuentas();
   renderDistrib();
   renderProdTable();
+  showAdminSections();
 }
 
 // POSITIONS
@@ -3143,6 +3308,283 @@ async function saveInsightsAndConfirm() {
 const _origRenderAdmin = renderAdmin;
 // Already called via onLoginSuccess → loadInsights
 
+
+
+// ── USER MANAGEMENT ───────────────────────────────────────────────────────────
+function toggleNewUserForm(){
+  const form = document.getElementById('newUserForm');
+  form.classList.toggle('open');
+  if(form.classList.contains('open')){
+    document.getElementById('newUsrNombre').focus();
+    document.getElementById('newUserMsg').style.display='none';
+  }
+}
+
+async function createUser(){
+  const nombre = document.getElementById('newUsrNombre').value.trim();
+  const email  = document.getElementById('newUsrEmail').value.trim();
+  const pass   = document.getElementById('newUsrPass').value;
+  const rol    = document.getElementById('newUsrRol').value;
+  const msg    = document.getElementById('newUserMsg');
+
+  if(!nombre||!email||!pass){ showUserMsg('Completa todos los campos.','error'); return; }
+  if(pass.length<6){ showUserMsg('La contraseña debe tener mínimo 6 caracteres.','error'); return; }
+
+  showUserMsg('Creando usuario...','info');
+
+  try {
+    // 1. Create auth user via Supabase Admin API (using service role through signUp)
+    const { data: authData, error: authError } = await supa.auth.signUp({
+      email, password: pass,
+      options: { data: { nombre, rol } }
+    });
+    if(authError) throw authError;
+
+    // 2. Insert into usuarios table
+    const { error: dbError } = await supa.from('usuarios').insert([{
+      id: authData.user.id,
+      nombre, email, rol, activo: true
+    }]);
+    if(dbError) throw dbError;
+
+    showUserMsg('✅ Usuario creado correctamente.','success');
+    document.getElementById('newUsrNombre').value='';
+    document.getElementById('newUsrEmail').value='';
+    document.getElementById('newUsrPass').value='';
+    
+    // Refresh list
+    setTimeout(()=>{ loadUserList(); toggleNewUserForm(); }, 1500);
+
+  } catch(e) {
+    showUserMsg('Error: ' + (e.message||'No se pudo crear el usuario.'),'error');
+  }
+}
+
+function showUserMsg(msg, type){
+  const el = document.getElementById('newUserMsg');
+  el.style.display = 'block';
+  el.style.color = type==='error'?'#C0392B':type==='success'?'var(--green)':'var(--blue)';
+  el.textContent = msg;
+}
+
+async function loadUserList(){
+  const list = document.getElementById('userList');
+  if(!list) return;
+
+  const { data, error } = await supa.from('usuarios').select('*').order('creado_en');
+  if(error){ list.innerHTML='<div style="color:#C0392B;font-size:.75rem">Error cargando usuarios.</div>'; return; }
+  if(!data||!data.length){ list.innerHTML='<div style="color:#aaa;font-size:.75rem;padding:10px">No hay usuarios registrados.</div>'; return; }
+
+  list.innerHTML = data.map(u=>`
+    <div class="usr-card ${u.activo?'':'inactive'}" id="usr-${u.id}">
+      <div class="usr-info">
+        <div class="usr-name">${u.nombre}</div>
+        <div class="usr-email">${u.email}</div>
+        <span class="usr-rol usr-rol-${u.rol}">${u.rol}</span>
+      </div>
+      <div class="usr-actions">
+        <button class="usr-toggle ${u.activo?'usr-toggle-on':'usr-toggle-off'}"
+          onclick="toggleUserActive('${u.id}',${u.activo})">
+          ${u.activo?'Desactivar':'Activar'}
+        </button>
+      </div>
+    </div>`).join('');
+
+  // Populate vendedor filter in reports
+  const sel = document.getElementById('repCotVendedor');
+  if(sel){
+    sel.innerHTML = '<option value="">Todos los vendedores</option>' +
+      data.map(u=>`<option value="${u.id}">${u.nombre}</option>`).join('');
+  }
+}
+
+async function toggleUserActive(id, currentState){
+  const { error } = await supa.from('usuarios').update({ activo: !currentState }).eq('id', id);
+  if(!error) loadUserList();
+}
+
+// ── EXCEL REPORTS ─────────────────────────────────────────────────────────────
+// Uses SheetJS (XLSX) loaded from CDN
+
+function loadSheetJS(){
+  return new Promise((resolve, reject)=>{
+    if(window.XLSX){ resolve(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+function xlsxDownload(wb, filename){
+  XLSX.writeFile(wb, filename);
+}
+
+function fmCurrency(n){ return n ? parseFloat(n).toFixed(2) : 0; }
+function fmDate(d){ return d ? new Date(d).toLocaleDateString('es-PA') : ''; }
+function fmPct(n){ return n ? parseFloat(n).toFixed(1)+'%' : ''; }
+
+async function downloadRepCotizaciones(){
+  await loadSheetJS();
+  const filters = {
+    fecha_desde: document.getElementById('repCotDesde')?.value,
+    fecha_hasta: document.getElementById('repCotHasta')?.value,
+    estado: document.getElementById('repCotEstado')?.value,
+  };
+  const vendId = document.getElementById('repCotVendedor')?.value;
+  if(vendId) filters.vendedor_id = vendId;
+
+  const data = await loadCotizaciones(filters);
+  if(!data.length){ alert('No hay cotizaciones con esos filtros.'); return; }
+
+  const TIPO = {pallet:'Pallet In/Out',bulto:'Bulto In/Out',unit:'Unit In/Out',mixto:'Mixto'};
+
+  const rows = [
+    ['#','Número','Cliente','Vendedor','Tipo Operación','Tarifa Total (USD)','Costo Total (USD)','Margen %','Utilidad (USD)','Estado','Fecha Creación','Vigencia (días)']
+  ];
+  data.forEach((c,i)=>{
+    rows.push([
+      i+1, c.numero, c.cliente_nombre, c.vendedor_nombre||'',
+      TIPO[c.tipo_operacion]||c.tipo_operacion||'',
+      fmCurrency(c.total_tarifa), fmCurrency(c.total_costo),
+      fmPct(c.margen), fmCurrency(c.utilidad),
+      c.estado, fmDate(c.creado_en), c.vigencia||30
+    ]);
+  });
+
+  // Summary row
+  const totTarifa = data.reduce((s,c)=>s+parseFloat(c.total_tarifa||0),0);
+  const totCosto  = data.reduce((s,c)=>s+parseFloat(c.total_costo||0),0);
+  const avgMargen = data.reduce((s,c)=>s+parseFloat(c.margen||0),0)/data.length;
+  rows.push([]);
+  rows.push(['','TOTALES','','','',totTarifa.toFixed(2),totCosto.toFixed(2),avgMargen.toFixed(1)+'%',(totTarifa-totCosto).toFixed(2),'','','']);
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:4},{wch:14},{wch:25},{wch:18},{wch:14},{wch:16},{wch:16},{wch:10},{wch:14},{wch:12},{wch:14},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Cotizaciones');
+  xlsxDownload(wb, `DPWorld_Cotizaciones_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+async function downloadRepVendedores(){
+  await loadSheetJS();
+  const filters = {
+    fecha_desde: document.getElementById('repVendDesde')?.value,
+    fecha_hasta: document.getElementById('repVendHasta')?.value,
+  };
+  const data = await loadCotizaciones(filters);
+  if(!data.length){ alert('No hay datos para el período seleccionado.'); return; }
+
+  // Group by vendedor
+  const byVend = {};
+  data.forEach(c=>{
+    const v = c.vendedor_nombre||'Sin asignar';
+    if(!byVend[v]) byVend[v]={nombre:v,total:0,costo:0,count:0,cerradas:0,enviadas:0};
+    byVend[v].total += parseFloat(c.total_tarifa||0);
+    byVend[v].costo += parseFloat(c.total_costo||0);
+    byVend[v].count++;
+    if(c.estado==='cerrada') byVend[v].cerradas++;
+    if(c.estado==='enviada') byVend[v].enviadas++;
+  });
+
+  const rows = [
+    ['Vendedor','Cotizaciones','Total Cotizado (USD)','Costo Total (USD)','Margen Promedio %','Utilidad (USD)','Cerradas','Tasa Cierre %']
+  ];
+  Object.values(byVend).forEach(v=>{
+    const margen = v.total>0?(v.total-v.costo)/v.total*100:0;
+    rows.push([
+      v.nombre, v.count, v.total.toFixed(2), v.costo.toFixed(2),
+      margen.toFixed(1)+'%', (v.total-v.costo).toFixed(2),
+      v.cerradas, v.count>0?(v.cerradas/v.count*100).toFixed(1)+'%':'0%'
+    ]);
+  });
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:20},{wch:14},{wch:18},{wch:16},{wch:16},{wch:14},{wch:10},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Por Vendedor');
+  xlsxDownload(wb, `DPWorld_Vendedores_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+async function downloadRepMargen(){
+  await loadSheetJS();
+  const filters = {
+    fecha_desde: document.getElementById('repMgnDesde')?.value,
+    fecha_hasta: document.getElementById('repMgnHasta')?.value,
+  };
+  let data = await loadCotizaciones(filters);
+  const minMgn = parseFloat(document.getElementById('repMgnMin')?.value||0);
+  if(minMgn===-1) data = data.filter(c=>parseFloat(c.margen||0)<30);
+  else if(minMgn>0) data = data.filter(c=>parseFloat(c.margen||0)>=minMgn);
+  data.sort((a,b)=>parseFloat(b.margen||0)-parseFloat(a.margen||0));
+
+  if(!data.length){ alert('No hay cotizaciones con esos filtros.'); return; }
+
+  const rows = [
+    ['#','Número','Cliente','Vendedor','Tarifa (USD)','Costo (USD)','Margen %','Utilidad (USD)','Estado','Clasificación']
+  ];
+  data.forEach((c,i)=>{
+    const mgn = parseFloat(c.margen||0);
+    const cls = mgn>=30?'✅ Óptimo':mgn>=15?'⚠️ Aceptable':'❌ Bajo mínimo';
+    rows.push([
+      i+1, c.numero, c.cliente_nombre, c.vendedor_nombre||'',
+      fmCurrency(c.total_tarifa), fmCurrency(c.total_costo),
+      fmPct(c.margen), fmCurrency(c.utilidad), c.estado, cls
+    ]);
+  });
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:4},{wch:14},{wch:25},{wch:18},{wch:14},{wch:14},{wch:10},{wch:14},{wch:12},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Análisis Margen');
+  xlsxDownload(wb, `DPWorld_Margen_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+async function downloadRepCuentas(){
+  await loadSheetJS();
+  const totalCostos = ADMIN.costos.reduce((s,c)=>s+c.monto,0);
+  const usedPos = ADMIN.cuentas.reduce((s,c)=>s+c.pos,0);
+
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: Cuentas y posiciones
+  const rows1 = [['Cuenta','Posiciones','% del total','% reparto costos','Costo fijo asignado (USD)/mes']];
+  ADMIN.cuentas.forEach(c=>{
+    rows1.push([
+      c.nombre, c.pos,
+      ADMIN.totalPos>0?(c.pos/ADMIN.totalPos*100).toFixed(1)+'%':'0%',
+      c.pct.toFixed(1)+'%',
+      (totalCostos*c.pct/100).toFixed(2)
+    ]);
+  });
+  rows1.push([]);
+  rows1.push(['TOTAL',usedPos,'','100%',totalCostos.toFixed(2)]);
+  const ws1 = XLSX.utils.aoa_to_sheet(rows1);
+  ws1['!cols'] = [{wch:20},{wch:12},{wch:14},{wch:16},{wch:22}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Cuentas y Posiciones');
+
+  // Sheet 2: Costos fijos
+  const rows2 = [['Rubro','Categoría','Monto mensual (USD)']];
+  ADMIN.costos.forEach(c=>rows2.push([c.rubro, c.cat, c.monto]));
+  rows2.push([]);
+  rows2.push(['TOTAL COSTOS FIJOS','',totalCostos.toFixed(2)]);
+  const ws2 = XLSX.utils.aoa_to_sheet(rows2);
+  ws2['!cols'] = [{wch:30},{wch:16},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Costos Fijos');
+
+  xlsxDownload(wb, `DPWorld_Cuentas_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+// ── SHOW ADMIN SECTIONS BASED ON ROLE ────────────────────────────────────────
+function showAdminSections(){
+  const isAdmin = currentUserData?.rol === 'admin';
+  const userSection = document.getElementById('userMgmtSection');
+  const repSection  = document.getElementById('reporteriaSection');
+  if(userSection) userSection.style.display = isAdmin ? 'block' : 'none';
+  if(repSection)  repSection.style.display  = isAdmin ? 'block' : 'none';
+  if(isAdmin) loadUserList();
+}
+
 </script>
 
 <div class="watermark">🔒 Uso interno exclusivo · DP World Panamá 3PL &nbsp;|&nbsp; Consultas: <strong>Miguel Charris</strong></div>
@@ -3193,4 +3635,4 @@ const _origRenderAdmin = renderAdmin;
 </div>
 
 </body>
-      </html>
+  </html>

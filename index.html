@@ -829,79 +829,6 @@ body{background:var(--light);color:var(--ink);font-family:'Barlow',sans-serif;mi
   </div>
 
   <!-- STEP 3: CAPEX -->
-  <div class="step" id="step5">
-    <div class="slabel">Paso 5 de 6</div>
-    <div class="stitle">CAPEX / OPEX exclusivo</div>
-
-    <!-- LOGIC NOTE -->
-    <div class="alert ainfo" style="margin-bottom:14px">
-      <div class="ai">💡</div>
-      <div><strong>¿Dónde va cada costo?</strong>
-        Si el recurso es <strong>compartido entre cuentas</strong> → configúralo en Admin (costos fijos con reparto proporcional).
-        Si es <strong>exclusivo de esta cuenta</strong> → agrégalo aquí.
-        En ambos casos impacta el costo y el margen, no la tarifa al cliente.
-      </div>
-    </div>
-
-    <!-- CAPEX -->
-    <div class="toggle-box" style="margin-bottom:10px">
-      <label class="toggle-row">
-        <input type="checkbox" id="chkCapex" onchange="toggleCapex()" style="accent-color:var(--orange)">
-        <span class="toggle-label" style="color:var(--orange)">💰 Requiere inversión inicial (CAPEX)</span>
-      </label>
-      <div id="capexBody" style="display:none" class="toggle-body">
-        <div class="capex-grid">
-          <div class="fitem"><label>Monto total de inversión (USD)</label>
-            <input type="number" id="capexMonto" placeholder="0.00" min="0" oninput="calcCapex()">
-          </div>
-          <div class="fitem"><label>Período de amortización</label>
-            <select id="capexMeses" onchange="calcCapex()">
-              <option value="12" selected>12 meses (1 año)</option>
-              <option value="24">24 meses (2 años)</option>
-              <option value="36">36 meses (3 años)</option>
-            </select>
-          </div>
-          <div class="capex-result" id="capexResult" style="display:none">
-            <strong>CAPEX mensual imputado al costo: <span id="capexMensual">$0.00</span></strong><br>
-            Prorrateado en el período seleccionado. Impacta costo y margen, no la tarifa al cliente.
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- OPEX EXCLUSIVO -->
-    <div class="toggle-box">
-      <label class="toggle-row">
-        <input type="checkbox" id="chkOpex" onchange="toggleOpex()" style="accent-color:#9B59B6">
-        <span class="toggle-label" style="color:#9B59B6">👤 Requiere recursos OPEX exclusivos</span>
-      </label>
-      <div id="opexBody" style="display:none" class="toggle-body">
-        <div style="font-size:.68rem;color:#888;margin-bottom:12px">
-          Recursos 100% dedicados a esta cuenta — personal, equipos o servicios con costo mensual fijo.
-          Este costo impacta el margen real pero no se factura al cliente por separado.
-        </div>
-
-        <div style="font-size:.65rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px">👤 Personal exclusivo</div>
-        <div id="opexPersonalList" style="display:flex;flex-direction:column;gap:7px;margin-bottom:8px"></div>
-        <button class="btn-add-route" onclick="addOpexItem('personal')" style="margin-bottom:14px">+ Agregar persona</button>
-
-        <div style="font-size:.65rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px">🏗️ Equipos exclusivos</div>
-        <div id="opexEquipoList" style="display:flex;flex-direction:column;gap:7px;margin-bottom:8px"></div>
-        <button class="btn-add-route" onclick="addOpexItem('equipo')">+ Agregar equipo</button>
-
-        <div class="capex-result" id="opexResult" style="display:none;margin-top:12px;border-color:#C8A8E0;background:#F8F0FF">
-          <strong style="color:#6C3483">OPEX mensual exclusivo: <span id="opexTotal">$0.00</span></strong><br>
-          <span style="color:#6C3483">Personal + equipos dedicados. Impacta costo y margen, no la tarifa al cliente.</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="brow">
-      <button class="btn btn-s" onclick="goTo(4)">← Atrás</button>
-      <button class="btn btn-p" onclick="calcAndShow()">Ver cotización →</button>
-    </div>
-  </div>
-  <!-- STEP 3: FORECAST -->
   <div class="step" id="step3">
     <div class="slabel">Paso 3 de 6</div>
     <div class="stitle">Forecast mensual</div>
@@ -1120,9 +1047,85 @@ body{background:var(--light);color:var(--ink);font-family:'Barlow',sans-serif;mi
   </div>
 
   <!-- STEP 6: RESULT -->
+  <div class="step" id="step5">
+    <div class="slabel">Paso 5 de 6</div>
+    <div class="stitle">CAPEX / OPEX exclusivo</div>
+
+    <!-- LOGIC NOTE -->
+    <div class="alert ainfo" style="margin-bottom:14px">
+      <div class="ai">💡</div>
+      <div><strong>¿Dónde va cada costo?</strong>
+        Si el recurso es <strong>compartido entre cuentas</strong> → configúralo en Admin (costos fijos con reparto proporcional).
+        Si es <strong>exclusivo de esta cuenta</strong> → agrégalo aquí.
+        En ambos casos impacta el costo y el margen, no la tarifa al cliente.
+      </div>
+    </div>
+
+    <!-- CAPEX -->
+    <div class="toggle-box" style="margin-bottom:10px">
+      <label class="toggle-row">
+        <input type="checkbox" id="chkCapex" onchange="toggleCapex()" style="accent-color:var(--orange)">
+        <span class="toggle-label" style="color:var(--orange)">💰 Requiere inversión inicial (CAPEX)</span>
+      </label>
+      <div id="capexBody" style="display:none" class="toggle-body">
+        <div class="capex-grid">
+          <div class="fitem"><label>Monto total de inversión (USD)</label>
+            <input type="number" id="capexMonto" placeholder="0.00" min="0" oninput="calcCapex()">
+          </div>
+          <div class="fitem"><label>Período de amortización</label>
+            <select id="capexMeses" onchange="calcCapex()">
+              <option value="12" selected>12 meses (1 año)</option>
+              <option value="24">24 meses (2 años)</option>
+              <option value="36">36 meses (3 años)</option>
+            </select>
+          </div>
+          <div class="capex-result" id="capexResult" style="display:none">
+            <strong>CAPEX mensual imputado al costo: <span id="capexMensual">$0.00</span></strong><br>
+            Prorrateado en el período seleccionado. Impacta costo y margen, no la tarifa al cliente.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPEX EXCLUSIVO -->
+    <div class="toggle-box">
+      <label class="toggle-row">
+        <input type="checkbox" id="chkOpex" onchange="toggleOpex()" style="accent-color:#9B59B6">
+        <span class="toggle-label" style="color:#9B59B6">👤 Requiere recursos OPEX exclusivos</span>
+      </label>
+      <div id="opexBody" style="display:none" class="toggle-body">
+        <div style="font-size:.68rem;color:#888;margin-bottom:12px">
+          Recursos 100% dedicados a esta cuenta — personal, equipos o servicios con costo mensual fijo.
+          Este costo impacta el margen real pero no se factura al cliente por separado.
+        </div>
+
+        <div style="font-size:.65rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px">👤 Personal exclusivo</div>
+        <div id="opexPersonalList" style="display:flex;flex-direction:column;gap:7px;margin-bottom:8px"></div>
+        <button class="btn-add-route" onclick="addOpexItem('personal')" style="margin-bottom:14px">+ Agregar persona</button>
+
+        <div style="font-size:.65rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px">🏗️ Equipos exclusivos</div>
+        <div id="opexEquipoList" style="display:flex;flex-direction:column;gap:7px;margin-bottom:8px"></div>
+        <button class="btn-add-route" onclick="addOpexItem('equipo')">+ Agregar equipo</button>
+
+        <div class="capex-result" id="opexResult" style="display:none;margin-top:12px;border-color:#C8A8E0;background:#F8F0FF">
+          <strong style="color:#6C3483">OPEX mensual exclusivo: <span id="opexTotal">$0.00</span></strong><br>
+          <span style="color:#6C3483">Personal + equipos dedicados. Impacta costo y margen, no la tarifa al cliente.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="brow">
+      <button class="btn btn-s" onclick="goTo(4)">← Atrás</button>
+      <button class="btn btn-p" onclick="calcAndShow()">Ver cotización →</button>
+    </div>
+  </div>
+  <!-- STEP 3: FORECAST -->
   <div class="step" id="step6">
     <div class="slabel">Paso 6 de 6</div>
     <div class="stitle">Cotización generada</div>
+    <button class="btn btn-s" style="width:100%;margin-bottom:14px;font-size:.78rem" onclick="goTo(5)">
+      ← Atrás
+    </button>
 
     <!-- GASTO FIJO SELECTOR -->
     <div class="gf-box" id="gfBox" style="display:none">
@@ -3862,4 +3865,4 @@ async function saveCostosFijos() {
 </div>
 
 </body>
-</html>
+                </html>

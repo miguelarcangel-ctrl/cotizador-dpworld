@@ -1302,12 +1302,15 @@ body{background:var(--light);color:var(--ink);font-family:'Barlow',sans-serif;mi
         <table class="prod-tbl" id="tarifasBaseTbl">
           <thead>
             <tr>
-              <th style="min-width:160px">Servicio</th>
-              <th style="min-width:80px">Unidad</th>
-              <th class="r" style="min-width:80px">Costo base</th>
-              <th class="r" style="min-width:80px">Margen %</th>
-              <th class="r" style="min-width:90px">Tarifa estándar</th>
-              <th class="r" style="min-width:80px">Margen real %</th>
+              <th style="min-width:150px">Servicio</th>
+              <th style="min-width:70px">Unidad</th>
+              <th class="r" style="min-width:75px">Costo base</th>
+              <th class="r" style="min-width:65px">Mín. mercado</th>
+              <th class="r" style="min-width:65px">Máx. mercado</th>
+              <th class="r" style="min-width:65px">Avg. mercado</th>
+              <th class="r" style="min-width:85px">Tarifa DP World</th>
+              <th class="r" style="min-width:75px">Margen %</th>
+              <th style="min-width:110px">Posición</th>
             </tr>
           </thead>
           <tbody id="tarifasBaseTblBody"></tbody>
@@ -3673,46 +3676,68 @@ const TARIFA_GROUPS = [
 ];
 
 function renderTarifasBase() {
-  syncProdToTarifas(); // Ensure CB is up to date
+  syncProdToTarifas();
   const mgn = getGlobalMGN();
   const tbody = document.getElementById('tarifasBaseTblBody');
   if (!tbody) return;
 
-  let html = '';
+  const fm = (n,dec=2) => n!=null ? '$'+parseFloat(n).toFixed(dec) : '—';
+
+  let rows = '';
   TARIFA_GROUPS.forEach(g => {
-    html += `<tr><td colspan="6" style="background:#F0EFF8;padding:7px 10px;font-size:.62rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.07em">${g.label}</td></tr>`;
+    rows += `<tr><td colspan="9" style="background:#F0EFF8;padding:7px 10px;font-size:.62rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.07em;border-top:2px solid #C8C5E0">${g.label}</td></tr>`;
     g.keys.forEach(k => {
       const t = TARIFAS[k];
       if (!t) return;
       const cb = CB[k] || 0;
-      const margenReal = t.cost > 0 ? ((t.cost - cb) / t.cost * 100) : 0;
-      const margenCls = margenReal >= 30 ? 'color:var(--green)' : margenReal >= 15 ? 'color:var(--orange)' : 'color:#E8003D';
-      const suggestedTarifa = cb > 0 ? (cb * (1 + mgn)).toFixed(2) : t.cost.toFixed(2);
-      
-      html += `<tr>
-        <td style="font-size:.78rem;font-weight:600">${t.label}</td>
-        <td style="font-size:.72rem;color:#888">${t.unit}</td>
-        <td class="r">
-          <span class="cost-pill" style="font-size:.72rem">
-            ${cb > 0 ? '$' + cb.toFixed(4) : '<em style="color:#bbb">desde prod.</em>'}
+      const bm = MARKET_BENCHMARK[k] || null;
+      const margenReal = t.cost > 0 && cb > 0 ? ((t.cost - cb) / t.cost * 100) : null;
+      const margenCls = margenReal==null?'color:#bbb':margenReal>=30?'color:var(--green)':margenReal>=15?'color:var(--orange)':'color:#E8003D';
+
+      // Market position indicator
+      let posIcon = '—', posStyle = 'color:#bbb', posTitle = 'Sin benchmark';
+      if (bm) {
+        if (t.cost > bm.max) {
+          posIcon = '▲ Por encima'; posStyle = 'color:#9B59B6;font-weight:700';
+          posTitle = `Encima del mercado (máx: ${fm(bm.max)})`;
+        } else if (t.cost < bm.min) {
+          posIcon = '▼ Por debajo'; posStyle = 'color:var(--orange);font-weight:700';
+          posTitle = `Debajo del mínimo (mín: ${fm(bm.min)})`;
+        } else {
+          posIcon = '✓ En mercado'; posStyle = 'color:var(--green);font-weight:700';
+          posTitle = `Dentro del rango (${fm(bm.min)} — ${fm(bm.max)})`;
+        }
+      }
+
+      rows += `<tr style="border-bottom:1px solid var(--border)">
+        <td style="font-size:.78rem;font-weight:600;padding:8px 10px">${t.label}</td>
+        <td style="font-size:.68rem;color:#888;padding:8px 6px;white-space:nowrap">${t.unit}</td>
+        <td class="r" style="padding:8px 6px">
+          <span class="cost-pill" style="font-size:.7rem">
+            ${cb > 0 ? '$'+cb.toFixed(cb<1?4:2) : '<em style="color:#bbb;font-style:italic">—</em>'}
           </span>
         </td>
-        <td class="r" style="font-size:.75rem;color:#888">${(mgn*100).toFixed(0)}%</td>
-        <td class="r">
-          <input type="number" class="prod-input r md" value="${t.cost.toFixed(2)}" min="0" step="0.01"
-            style="width:85px;font-weight:700;color:var(--blue)"
-            id="tb_${k}"
-            oninput="updateTarifaBase('${k}',this.value)"
-            title="Tarifa sugerida: $${suggestedTarifa}">
+        <td class="r" style="font-size:.72rem;color:#aaa;padding:8px 6px">${bm ? fm(bm.min, bm.min<1?2:0) : '—'}</td>
+        <td class="r" style="font-size:.72rem;color:#aaa;padding:8px 6px">${bm ? fm(bm.max, bm.max<1?2:0) : '—'}</td>
+        <td class="r" style="font-size:.72rem;color:#888;padding:8px 6px">${bm ? fm(bm.avg, bm.avg<1?2:0) : '—'}</td>
+        <td style="padding:8px 6px">
+          <input type="number" class="prod-input r" value="${t.cost.toFixed(t.cost<1?3:2)}" 
+            min="0" step="${t.cost<1?'0.01':'1'}"
+            style="width:80px;font-weight:700;color:var(--blue);text-align:right"
+            id="tb_${k}" oninput="updateTarifaBase('${k}',this.value)">
         </td>
-        <td class="r" style="font-size:.78rem;font-weight:700;${margenCls}" id="tbmgn_${k}">
-          ${margenReal.toFixed(1)}%
+        <td class="r" style="font-size:.75rem;font-weight:700;padding:8px 6px;${margenCls}" id="tbmgn_${k}">
+          ${margenReal!=null ? margenReal.toFixed(1)+'%' : '—'}
+        </td>
+        <td style="padding:8px 8px;font-size:.68rem;font-weight:700;${posStyle}" 
+            title="${posTitle}" id="tbpos_${k}">
+          ${posIcon}
         </td>
       </tr>`;
     });
   });
 
-  tbody.innerHTML = html;
+  tbody.innerHTML = rows;
 }
 
 function updateTarifaBase(key, val) {
@@ -3722,13 +3747,31 @@ function updateTarifaBase(key, val) {
     if (!S._manualTarifas) S._manualTarifas = {};
     S._manualTarifas[key] = true;
   }
-  // Update margin display
+  // Update margin
   const cb = CB[key] || 0;
-  const margenReal = newVal > 0 ? ((newVal - cb) / newVal * 100) : 0;
-  const el = document.getElementById('tbmgn_' + key);
-  if (el) {
-    el.textContent = margenReal.toFixed(1) + '%';
-    el.style.color = margenReal >= 30 ? 'var(--green)' : margenReal >= 15 ? 'var(--orange)' : '#E8003D';
+  const margenReal = newVal > 0 && cb > 0 ? ((newVal - cb) / newVal * 100) : null;
+  const mgnEl = document.getElementById('tbmgn_' + key);
+  if (mgnEl) {
+    mgnEl.textContent = margenReal != null ? margenReal.toFixed(1)+'%' : '—';
+    mgnEl.style.color = margenReal==null?'#bbb':margenReal>=30?'var(--green)':margenReal>=15?'var(--orange)':'#E8003D';
+  }
+  // Update market position indicator
+  const bm = MARKET_BENCHMARK[key];
+  const posEl = document.getElementById('tbpos_' + key);
+  if (posEl && bm) {
+    if (newVal > bm.max) {
+      posEl.textContent = '▲ Por encima';
+      posEl.style.color = '#9B59B6';
+      posEl.title = `Encima del máximo de mercado ($${bm.max})`;
+    } else if (newVal < bm.min) {
+      posEl.textContent = '▼ Por debajo';
+      posEl.style.color = 'var(--orange)';
+      posEl.title = `Debajo del mínimo de mercado ($${bm.min})`;
+    } else {
+      posEl.textContent = '✓ En mercado';
+      posEl.style.color = 'var(--green)';
+      posEl.title = `Dentro del rango ($${bm.min} — $${bm.max})`;
+    }
   }
 }
 
@@ -3783,4 +3826,4 @@ function updateTarifaBase(key, val) {
 </div>
 
 </body>
-                                                                     </html>
+</html>

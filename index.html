@@ -860,6 +860,27 @@ body{background:var(--light);color:var(--ink);font-family:'Barlow',sans-serif;mi
     <div class="slabel">Paso 3 de 6</div>
     <div class="stitle">Forecast mensual</div>
 
+    <!-- POSICIONES DECLARADAS -->
+    <div class="fsec" style="margin-bottom:12px">
+      <div class="fhdr">Posiciones requeridas</div>
+      <div style="padding:13px">
+        <div class="field-row" style="margin-bottom:10px">
+          <div class="fitem">
+            <label>Posiciones promedio / mes</label>
+            <input type="number" id="posPromedio" min="0" placeholder="Ej. 200"
+              oninput="checkPosDisponibles()" class="ainput r">
+          </div>
+          <div class="fitem">
+            <label>Posiciones pico (máximo)</label>
+            <input type="number" id="posPico" min="0" placeholder="Ej. 350"
+              oninput="checkPosDisponibles()" class="ainput r">
+          </div>
+        </div>
+        <!-- DISPONIBILIDAD INDICATOR -->
+        <div id="posDisponiblesInfo" style="display:none;padding:10px 13px;border-radius:var(--r);font-size:.75rem;margin-top:4px"></div>
+      </div>
+    </div>
+
     <!-- STORAGE FORMAT -->
     <div style="margin-bottom:14px">
       <div style="font-size:.67rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Formato de cobro de almacenaje</div>
@@ -1890,8 +1911,20 @@ function calcAndShow(){
     });
   }
 
-  // COSTOS FIJOS - applied separately via checkbox in step 5
-  // (removed from direct injection - see renderGFSelector)
+  // COSTOS FIJOS — auto-apply from declared positions if available
+  const gfAuto = calcGastoFijoAutomatico();
+  if (gfAuto && gfAuto.monto > 0) {
+    totC += gfAuto.monto;
+    lines.push({
+      name: `Costos fijos imputados (${gfAuto.pct}% — ${gv('posPromedio')||'?'} pos declaradas)`,
+      unit: '/mes', qty: 1, rate: gfAuto.monto, sub: 0,
+      costoB: gfAuto.monto, isGF: true, costoOnly: true,
+      autoApplied: true
+    });
+    S._autoGF = gfAuto;
+  } else {
+    S._autoGF = null;
+  }
 
   // DOCUMENTACIÓN
   Object.entries(DOCS).forEach(([id,d])=>{
@@ -1956,6 +1989,21 @@ function calcAndShow(){
   </div>`;
 
   alerts.forEach(a=>{html+=`<div class="alert ${a.cls}"><div class="ai">${a.i}</div><div><strong>${a.t}</strong>${a.msg}</div></div>`;});
+  // Disclaimer if no positions declared
+  const posPromVal = parseInt(document.getElementById('posPromedio')?.value)||0;
+  if(!posPromVal){
+    html+=`<div class="alert aw"><div class="ai">⚠️</div><div>
+      <strong>Posiciones no declaradas</strong>
+      No se indicaron posiciones de almacenaje — el reparto de costos fijos <strong>no está incluido</strong> en esta cotización. 
+      Puedes aplicarlo manualmente desde el selector de gastos fijos.
+    </div></div>`;
+  } else if(S._autoGF) {
+    html+=`<div class="alert aok"><div class="ai">✅</div><div>
+      <strong>Costos fijos aplicados automáticamente</strong>
+      ${S._autoGF.pct}% del total de costos fijos imputados (${posPromVal} posiciones declaradas de ${ADMIN.totalPos} totales).
+      Monto: <strong>$${S._autoGF.monto.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}/mes</strong>.
+    </div></div>`;
+  }
 
   html+=`<div class="litems"><div class="lihdr"><div>Servicio</div><div style="text-align:right">Vol.</div><div style="text-align:right">Tarifa</div><div style="text-align:right">Subtotal</div><div></div></div>`;
   lines.forEach(l=>{html+=`<div class="lirow"><div><div class="li-name">${l.name}</div><div class="li-sub">${l.unit}</div></div><div class="li-v">${l.qty.toLocaleString()}</div><div class="li-v">$${l.rate.toFixed(2)}</div><div class="li-c">$${fm(l.sub)}</div></div>`;});
@@ -2169,29 +2217,7 @@ ${q.alerts.map(a=>`<div class="alert ${a.cls==='aok'?'aok':a.cls==='ainfo'?'ainf
       <button class="btn btn-s" onclick="closeCotDetalle()">Cerrar</button>
     </div>
   </div>
-</div>
-
-
-<!-- DOCUMENT PREVIEW MODAL -->
-<div class="preview-overlay" id="previewOverlay">
-  <div class="preview-toolbar">
-    <div class="preview-toolbar-title">📄 Vista previa del documento</div>
-    <div class="preview-toolbar-actions">
-      <button class="btn-sm btn-sm-g" onclick="downloadFromPreview()" style="background:var(--green)">
-        📤 Compartir / Guardar
-      </button>
-      <button class="btn-sm btn-sm-s" onclick="shareDocument()" style="display:none" id="btnShareDoc">
-        📤 Compartir
-      </button>
-      <button class="btn-sm btn-sm-s" onclick="closePreview()">✕ Cerrar</button>
-    </div>
-  </div>
-  <div class="preview-frame">
-    <div class="preview-page" id="previewContent"></div>
-  </div>
-</div>
-
-</body></html>`;
+</div>`;
   // Store for download if needed
   S._lastPrintHTML = printHTML;
   S._lastPrintFilename = 'Cotizacion_DPWorld_'+(q.client||'').replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.html';
@@ -2201,18 +2227,24 @@ ${q.alerts.map(a=>`<div class="alert ${a.cls==='aok'?'aok':a.cls==='ainfo'?'ainf
 }
 
 function showDocPreview(printHTML) {
-  // Extract body content for preview (strip head/html tags)
   const bodyMatch = printHTML.match(/<body[^>]*>([\s\S]*)<\/body>/i);
   const bodyContent = bodyMatch ? bodyMatch[1] : printHTML;
-  // Remove the auto-print script
   const cleanContent = bodyContent.replace(/<script>window\.onload[^<]*<\/script>/g, '');
   
   const preview = document.getElementById('previewContent');
   const overlay = document.getElementById('previewOverlay');
+  const shareBtn = document.getElementById('btnSharePreview');
+  
   if (preview && overlay) {
     preview.innerHTML = cleanContent;
     overlay.classList.add('open');
     overlay.scrollTop = 0;
+  }
+  
+  // Update button label based on device
+  if (shareBtn) {
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    shareBtn.textContent = isMobile ? '📤 Compartir' : '⬇ Descargar';
   }
 }
 
@@ -2934,6 +2966,10 @@ function resetAll(){
   resetOpex();
   S.opexMensual=0;
   document.getElementById('hazmatFlag').classList.remove('show');
+  const posP=document.getElementById('posPromedio');if(posP)posP.value='';
+  const posK=document.getElementById('posPico');if(posK)posK.value='';
+  const posI=document.getElementById('posDisponiblesInfo');if(posI)posI.style.display='none';
+  S._autoGF=null;
   document.getElementById('tipoMercancia').value='';
   goTo(1);
 }
@@ -3993,6 +4029,58 @@ async function shareDocument() {
   }
 }
 
+
+
+// ── POSICIONES & REPARTO AUTOMÁTICO ──────────────────────────────────────────
+function checkPosDisponibles() {
+  const promedio = parseInt(document.getElementById('posPromedio')?.value) || 0;
+  const pico     = parseInt(document.getElementById('posPico')?.value)     || 0;
+  const ref      = Math.max(promedio, pico);
+  const infoEl   = document.getElementById('posDisponiblesInfo');
+  if (!infoEl) return;
+
+  // Calculate available positions from admin data
+  const totalPos  = ADMIN.totalPos || 1716;
+  const ocupadas  = ADMIN.cuentas.reduce((s, c) => s + (c.pos || 0), 0);
+  const disponibles = Math.max(0, totalPos - ocupadas);
+
+  if (ref === 0) { infoEl.style.display = 'none'; return; }
+
+  infoEl.style.display = 'block';
+
+  const quedan = disponibles - ref;
+  const pct    = totalPos > 0 ? (ref / totalPos * 100).toFixed(1) : 0;
+
+  if (quedan < 0) {
+    // Over capacity — non-stopper alert
+    infoEl.style.background  = '#FFF8EC';
+    infoEl.style.border      = '1.5px solid #F0C060';
+    infoEl.style.color       = '#7a5a10';
+    infoEl.innerHTML = `⚠️ <strong>El pico declarado (${ref} pos) supera las posiciones disponibles (${disponibles} pos).</strong>
+      Se requiere revisión de capacidad. La cotización puede continuar — coordinar con operaciones.
+      <br><span style="font-size:.68rem;color:#aaa">Total bodega: ${totalPos} · Ocupadas: ${ocupadas} · Disponibles: ${disponibles}</span>`;
+  } else {
+    infoEl.style.background  = '#EEFAF4';
+    infoEl.style.border      = '1.5px solid var(--green)';
+    infoEl.style.color       = '#1a5c30';
+    infoEl.innerHTML = `✅ <strong>${ref} posiciones declaradas (${pct}% de la bodega)</strong> — 
+      Quedan <strong>${quedan} posiciones disponibles</strong> tras esta asignación.
+      <br><span style="font-size:.68rem;color:#aaa">Total bodega: ${totalPos} · Ocupadas: ${ocupadas} · Disponibles: ${disponibles}</span>`;
+  }
+}
+
+// Calculate gasto fijo % based on declared positions
+function calcGastoFijoAutomatico() {
+  const promedio  = parseInt(document.getElementById('posPromedio')?.value) || 0;
+  const totalPos  = ADMIN.totalPos || 1716;
+  const totalCostos = ADMIN.costos.reduce((s, c) => s + c.monto, 0);
+  if (!promedio || !totalCostos || !totalPos) return null;
+
+  const pct   = promedio / totalPos * 100;
+  const monto = Math.round(totalCostos * pct / 100 * 100) / 100;
+  return { pct: Math.round(pct * 10) / 10, monto, totalCostos };
+}
+
 </script>
 
 <div class="watermark">🔒 Uso interno exclusivo · DP World Panamá 3PL &nbsp;|&nbsp; Consultas: <strong>Miguel Charris</strong></div>
@@ -4048,10 +4136,7 @@ async function shareDocument() {
   <div class="preview-toolbar">
     <div class="preview-toolbar-title">📄 Vista previa del documento</div>
     <div class="preview-toolbar-actions">
-      <button class="btn-sm btn-sm-g" onclick="downloadFromPreview()" style="background:var(--green)">
-        📤 Compartir / Guardar
-      </button>
-      <button class="btn-sm btn-sm-s" onclick="shareDocument()" style="display:none" id="btnShareDoc">
+      <button class="btn-sm btn-sm-g" id="btnSharePreview" onclick="downloadFromPreview()" style="background:var(--green)">
         📤 Compartir
       </button>
       <button class="btn-sm btn-sm-s" onclick="closePreview()">✕ Cerrar</button>
@@ -4062,5 +4147,25 @@ async function shareDocument() {
   </div>
 </div>
 
+
+
+
+<!-- DOCUMENT PREVIEW MODAL -->
+<div class="preview-overlay" id="previewOverlay">
+  <div class="preview-toolbar">
+    <div class="preview-toolbar-title">📄 Vista previa del documento</div>
+    <div class="preview-toolbar-actions">
+      <button class="btn-sm btn-sm-g" id="btnSharePreview" onclick="downloadFromPreview()" style="background:var(--green)">
+        📤 Compartir
+      </button>
+      <button class="btn-sm btn-sm-s" onclick="closePreview()">✕ Cerrar</button>
+    </div>
+  </div>
+  <div class="preview-frame">
+    <div class="preview-page" id="previewContent"></div>
+  </div>
+</div>
+
+</body></html>
 </body>
-                                                                                                                                                                                                                              </html>
+  </html>

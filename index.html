@@ -162,6 +162,32 @@ async function saveInsights() {
   await supa.from('insights_config').upsert({ id: 1, ...payload });
 };
 
+async function saveTarifasBase() {
+  if (!currentUser || currentUserData?.rol !== 'admin') return;
+  // Save TARIFAS as tarifas_base in insights_config
+  const { error } = await supa.from('insights_config')
+    .upsert({ id: 1, tarifas_base: TARIFAS });
+  if (!error) {
+    const bar = document.getElementById('saveSuccessBar');
+    if(bar){ bar.innerHTML='✅ Tarifas base guardadas — todos los vendedores verán estas tarifas'; bar.style.display='block'; setTimeout(()=>bar.style.display='none',3500); }
+  }
+}
+
+async function saveProdTasksBase() {
+  if (!currentUser || currentUserData?.rol !== 'admin') return;
+  const mo = parseFloat(document.getElementById('globalMO')?.value)||6.50;
+  const fk = parseFloat(document.getElementById('globalFK')?.value)||10.00;
+  const mgn = parseFloat(document.getElementById('globalMGN')?.value)||30;
+  // Recalc all tarifas from prod tasks before saving
+  syncProdToTarifas();
+  const { error } = await supa.from('insights_config')
+    .upsert({ id: 1, prod_tasks: PROD_TASKS, global_mo: mo, global_fk: fk, global_mgn: mgn, tarifas_base: TARIFAS });
+  if (!error) {
+    const bar = document.getElementById('saveSuccessBar');
+    if(bar){ bar.innerHTML='✅ Productividades y tarifas base guardadas correctamente'; bar.style.display='block'; setTimeout(()=>bar.style.display='none',3500); }
+  }
+}
+
 async function loadInsights() {
   const { data } = await supa.from('insights_config').select('*').eq('id', 1).single();
   if (!data) return;
@@ -173,6 +199,12 @@ async function loadInsights() {
   if (data.global_mo && document.getElementById('globalMO')) document.getElementById('globalMO').value = data.global_mo;
   if (data.global_fk && document.getElementById('globalFK')) document.getElementById('globalFK').value = data.global_fk;
   if (data.global_mgn && document.getElementById('globalMGN')) document.getElementById('globalMGN').value = data.global_mgn;
+  // Load saved tarifas base — overrides defaults for all users
+  if (data.tarifas_base) {
+    Object.keys(data.tarifas_base).forEach(k => {
+      if (TARIFAS[k]) TARIFAS[k].cost = data.tarifas_base[k].cost;
+    });
+  }
 }
 
 function showSaveSuccess(numero, id) {
@@ -1197,7 +1229,8 @@ body{background:var(--light);color:var(--ink);font-family:'Barlow',sans-serif;mi
       <h3>Productividades & Tareas</h3>
       <div class="hdr-actions">
         <button class="btn-sm btn-sm-g" onclick="addProdRow()">+ Nueva tarea</button>
-        <button class="btn-sm btn-sm-s" onclick="recalcAllCosts()">⟳ Recalcular costos</button>
+        <button class="btn-sm btn-sm-s" onclick="recalcAllCosts()">⟳ Recalcular</button>
+        <button class="btn-sm btn-sm-g" onclick="saveProdTasksBase()" style="background:#9B59B6;border-color:#9B59B6">💾 Guardar</button>
       </div>
     </div>
     <div class="asec-body">
@@ -1249,6 +1282,44 @@ body{background:var(--light);color:var(--ink);font-family:'Barlow',sans-serif;mi
     <div class="asec-hdr"><h3>Resumen de Costos por Cuenta</h3></div>
     <div class="asec-body" id="distribBody"></div>
   
+
+  <!-- TARIFAS BASE (admin only) -->
+  <div class="asec" id="tarifasBaseSection" style="display:none">
+    <div class="asec-hdr">
+      <h3>💲 Tarifas Base</h3>
+      <div class="hdr-actions">
+        <button class="btn-sm btn-sm-s" onclick="renderTarifasBase()">⟳ Recalcular</button>
+        <button class="btn-sm btn-sm-g" onclick="saveTarifasBase()" style="background:#9B59B6;border-color:#9B59B6">💾 Guardar tarifas</button>
+      </div>
+    </div>
+    <div class="asec-body">
+      <div class="alert ainfo" style="margin-bottom:13px">
+        <div class="ai">💡</div>
+        <div><strong>Estas son las tarifas que ven todos los vendedores al abrir el cotizador.</strong>
+        El costo base se calcula automáticamente desde las productividades. El admin puede ajustar la tarifa manualmente. Los vendedores pueden editarlas solo para una cotización específica.</div>
+      </div>
+      <div class="prod-tbl-wrap">
+        <table class="prod-tbl" id="tarifasBaseTbl">
+          <thead>
+            <tr>
+              <th style="min-width:160px">Servicio</th>
+              <th style="min-width:80px">Unidad</th>
+              <th class="r" style="min-width:80px">Costo base</th>
+              <th class="r" style="min-width:80px">Margen %</th>
+              <th class="r" style="min-width:90px">Tarifa estándar</th>
+              <th class="r" style="min-width:80px">Margen real %</th>
+            </tr>
+          </thead>
+          <tbody id="tarifasBaseTblBody"></tbody>
+        </table>
+      </div>
+      <div style="font-size:.62rem;color:#aaa;margin-top:10px;font-style:italic">
+        💡 El costo base viene del motor de productividades. Ajusta la tarifa estándar y guarda para que todos los vendedores la vean.
+        El margen real = (tarifa − costo) / tarifa.
+      </div>
+    </div>
+  </div>
+
   <!-- USER MANAGEMENT (admin only) -->
   <div class="asec" id="userMgmtSection" style="display:none">
     <div class="asec-hdr">
@@ -3578,12 +3649,89 @@ async function downloadRepCuentas(){
 // ── SHOW ADMIN SECTIONS BASED ON ROLE ────────────────────────────────────────
 function showAdminSections(){
   const isAdmin = currentUserData?.rol === 'admin';
-  const userSection = document.getElementById('userMgmtSection');
-  const repSection  = document.getElementById('reporteriaSection');
-  if(userSection) userSection.style.display = isAdmin ? 'block' : 'none';
-  if(repSection)  repSection.style.display  = isAdmin ? 'block' : 'none';
-  if(isAdmin) loadUserList();
+  const userSection     = document.getElementById('userMgmtSection');
+  const repSection      = document.getElementById('reporteriaSection');
+  const tarifasSection  = document.getElementById('tarifasBaseSection');
+  if(userSection)    userSection.style.display    = isAdmin ? 'block' : 'none';
+  if(repSection)     repSection.style.display     = isAdmin ? 'block' : 'none';
+  if(tarifasSection) tarifasSection.style.display = isAdmin ? 'block' : 'none';
+  if(isAdmin){
+    loadUserList();
+    renderTarifasBase();
+  }
 }
+
+
+
+// ── TARIFAS BASE (admin) ──────────────────────────────────────────────────────
+const TARIFA_GROUPS = [
+  { label:'📥 Inbound / Descarga',  keys:['desc40p','desc20p','desc40g','desc20g','recepPal','recepBul','putaway'] },
+  { label:'📦 Almacenaje',           keys:['almacPos','almacM2','almacCBM','almacBul'] },
+  { label:'📤 Outbound / Despacho',  keys:['pickBul','pickUni','prepOrd','carga40p','carga20p','carga40g','carga20g'] },
+  { label:'🔧 VAS & Paletizado',     keys:['paletSin','paletCon','etiquetado','lecSerial'] },
+  { label:'📄 Documentación',        keys:['dmceIn','dmceOut','memorial','tiDoc','manejoIn','manejoOut'] },
+];
+
+function renderTarifasBase() {
+  syncProdToTarifas(); // Ensure CB is up to date
+  const mgn = getGlobalMGN();
+  const tbody = document.getElementById('tarifasBaseTblBody');
+  if (!tbody) return;
+
+  let html = '';
+  TARIFA_GROUPS.forEach(g => {
+    html += `<tr><td colspan="6" style="background:#F0EFF8;padding:7px 10px;font-size:.62rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.07em">${g.label}</td></tr>`;
+    g.keys.forEach(k => {
+      const t = TARIFAS[k];
+      if (!t) return;
+      const cb = CB[k] || 0;
+      const margenReal = t.cost > 0 ? ((t.cost - cb) / t.cost * 100) : 0;
+      const margenCls = margenReal >= 30 ? 'color:var(--green)' : margenReal >= 15 ? 'color:var(--orange)' : 'color:#E8003D';
+      const suggestedTarifa = cb > 0 ? (cb * (1 + mgn)).toFixed(2) : t.cost.toFixed(2);
+      
+      html += `<tr>
+        <td style="font-size:.78rem;font-weight:600">${t.label}</td>
+        <td style="font-size:.72rem;color:#888">${t.unit}</td>
+        <td class="r">
+          <span class="cost-pill" style="font-size:.72rem">
+            ${cb > 0 ? '$' + cb.toFixed(4) : '<em style="color:#bbb">desde prod.</em>'}
+          </span>
+        </td>
+        <td class="r" style="font-size:.75rem;color:#888">${(mgn*100).toFixed(0)}%</td>
+        <td class="r">
+          <input type="number" class="prod-input r md" value="${t.cost.toFixed(2)}" min="0" step="0.01"
+            style="width:85px;font-weight:700;color:var(--blue)"
+            id="tb_${k}"
+            oninput="updateTarifaBase('${k}',this.value)"
+            title="Tarifa sugerida: $${suggestedTarifa}">
+        </td>
+        <td class="r" style="font-size:.78rem;font-weight:700;${margenCls}" id="tbmgn_${k}">
+          ${margenReal.toFixed(1)}%
+        </td>
+      </tr>`;
+    });
+  });
+
+  tbody.innerHTML = html;
+}
+
+function updateTarifaBase(key, val) {
+  const newVal = parseFloat(val) || 0;
+  if (TARIFAS[key]) {
+    TARIFAS[key].cost = newVal;
+    if (!S._manualTarifas) S._manualTarifas = {};
+    S._manualTarifas[key] = true;
+  }
+  // Update margin display
+  const cb = CB[key] || 0;
+  const margenReal = newVal > 0 ? ((newVal - cb) / newVal * 100) : 0;
+  const el = document.getElementById('tbmgn_' + key);
+  if (el) {
+    el.textContent = margenReal.toFixed(1) + '%';
+    el.style.color = margenReal >= 30 ? 'var(--green)' : margenReal >= 15 ? 'var(--orange)' : '#E8003D';
+  }
+}
+
 
 </script>
 
@@ -3635,4 +3783,4 @@ function showAdminSections(){
 </div>
 
 </body>
-  </html>
+                                                                     </html>

@@ -3578,6 +3578,9 @@ async function loadUserList(){
           onclick="toggleUserActive('${u.id}',${u.activo})">
           ${u.activo?'Desactivar':'Activar'}
         </button>
+        <button class="btn-del-row" title="Eliminar usuario"
+          onclick="deleteUser('${u.id}','${u.nombre}')"
+          style="font-size:1rem;padding:4px 8px;color:#ccc">🗑</button>
       </div>
     </div>`).join('');
 
@@ -3592,6 +3595,33 @@ async function loadUserList(){
 async function toggleUserActive(id, currentState){
   const { error } = await supa.from('usuarios').update({ activo: !currentState }).eq('id', id);
   if(!error) loadUserList();
+}
+
+async function deleteUser(id, nombre){
+  if(!confirm(`¿Eliminar al usuario "${nombre}"? Esta acción no se puede deshacer.`)) return;
+  
+  // Delete from public.usuarios first (FK constraint)
+  const { error: dbError } = await supa.from('usuarios').delete().eq('id', id);
+  if(dbError){ 
+    alert('Error al eliminar: ' + dbError.message); 
+    return; 
+  }
+  
+  // Delete from auth.users via admin API
+  // Note: requires service role key - we do it via SQL function instead
+  const { error: authError } = await supa.rpc('delete_user', { user_id: id });
+  if(authError){
+    // Auth user deletion failed but DB record removed - show warning
+    console.warn('Auth user not deleted:', authError.message);
+  }
+  
+  const bar = document.getElementById('saveSuccessBar');
+  if(bar){ 
+    bar.innerHTML = `✅ Usuario "${nombre}" eliminado correctamente`; 
+    bar.style.display='block'; 
+    setTimeout(()=>bar.style.display='none',3000); 
+  }
+  loadUserList();
 }
 
 // ── EXCEL REPORTS ─────────────────────────────────────────────────────────────

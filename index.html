@@ -1190,6 +1190,7 @@ body{background:var(--light);color:var(--ink);font-family:'Barlow',sans-serif;mi
       <div class="hdr-actions">
         <label class="file-btn" style="cursor:pointer">📂 CSV<input type="file" accept=".csv" style="display:none" onchange="importCostos(this)"></label>
         <button class="btn-sm btn-sm-s" onclick="exportCostos()">⬇ Exportar</button>
+        <button class="btn-sm btn-sm-g" onclick="saveCostosFijos()" style="background:#9B59B6;border-color:#9B59B6">💾 Guardar</button>
       </div>
     </div>
     <div class="asec-body">
@@ -3796,6 +3797,21 @@ function updateTarifaBase(key, val) {
 }
 
 
+
+
+// ── SAVE COSTOS FIJOS ─────────────────────────────────────────────────────────
+async function saveCostosFijos() {
+  if (!currentUser || currentUserData?.rol !== 'admin') return;
+  const { error } = await supa.from('insights_config')
+    .upsert({ id: 1, costos_fijos: ADMIN.costos });
+  const bar = document.getElementById('saveSuccessBar');
+  if (!error) {
+    if(bar){ bar.innerHTML='✅ Costos fijos guardados correctamente'; bar.style.display='block'; setTimeout(()=>bar.style.display='none',3000); }
+  } else {
+    if(bar){ bar.innerHTML='❌ Error al guardar: '+error.message; bar.style.display='block'; bar.style.background='#C0392B'; setTimeout(()=>{bar.style.display='none';bar.style.background='var(--green)';},4000); }
+  }
+}
+
 </script>
 
 <div class="watermark">🔒 Uso interno exclusivo · DP World Panamá 3PL &nbsp;|&nbsp; Consultas: <strong>Miguel Charris</strong></div>
@@ -3846,4 +3862,4 @@ function updateTarifaBase(key, val) {
 </div>
 
 </body>
-  </html>
+</html>

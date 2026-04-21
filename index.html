@@ -669,7 +669,7 @@ body{background:var(--light);color:var(--ink);font-family:'Barlow',sans-serif;mi
       <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"
         onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-    <button class="login-btn" onclick="doLogin()" id="loginBtn">Iniciar sesión</button>
+    <button class="login-btn" id="loginBtn">Iniciar sesión</button>
     <div class="login-error" id="loginError"></div>
   </div>
 </div>
@@ -2093,7 +2093,7 @@ tbody td:first-child{text-align:left;color:#1B1B1B;font-weight:500}
       <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"
         onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-    <button class="login-btn" onclick="doLogin()" id="loginBtn">Iniciar sesión</button>
+    <button class="login-btn" id="loginBtn">Iniciar sesión</button>
     <div class="login-error" id="loginError"></div>
   </div>
 </div>
@@ -2178,7 +2178,10 @@ ${q.alerts.map(a=>`<div class="alert ${a.cls==='aok'?'aok':a.cls==='ainfo'?'ainf
     <div class="preview-toolbar-title">📄 Vista previa del documento</div>
     <div class="preview-toolbar-actions">
       <button class="btn-sm btn-sm-g" onclick="downloadFromPreview()" style="background:var(--green)">
-        ⬇ Descargar HTML
+        ⬇ Guardar archivo
+      </button>
+      <button class="btn-sm btn-sm-s" onclick="shareDocument()" style="display:none" id="btnShareDoc">
+        📤 Compartir
       </button>
       <button class="btn-sm btn-sm-s" onclick="closePreview()">✕ Cerrar</button>
     </div>
@@ -2219,13 +2222,21 @@ function closePreview() {
 
 function downloadFromPreview() {
   if (!S._lastPrintHTML || !S._lastPrintFilename) return;
-  const blob = new Blob([S._lastPrintHTML], {type:'text/html'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = S._lastPrintFilename;
-  a.click();
-  URL.revokeObjectURL(url);
+  try {
+    const blob = new Blob([S._lastPrintHTML], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = S._lastPrintFilename;
+    a.style.display = 'none';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
+  } catch(e) {
+    // Fallback: show copy prompt
+    alert('Para guardar el documento, usa el botón de compartir del navegador.');
+  }
 }
 
 
@@ -3143,37 +3154,53 @@ updatePositions();
 
 // ── LOGIN / AUTH ──────────────────────────────────────────────────────────────
 async function doLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const pass  = document.getElementById('loginPass').value;
+  const email = (document.getElementById('loginEmail').value || '').trim();
+  const pass  = document.getElementById('loginPass').value || '';
   const btn   = document.getElementById('loginBtn');
   const err   = document.getElementById('loginError');
   
   if (!email || !pass) { showLoginError('Ingresa tu email y contraseña.'); return; }
+  if (btn.disabled) return; // Prevent double tap
   
   btn.textContent = 'Iniciando...';
   btn.disabled = true;
-  err.classList.remove('show');
+  if(err) err.classList.remove('show');
   
   try {
+    // Ensure supa is ready
+    if (!supa) throw new Error('Error de conexión. Recarga la página.');
+    
     const { data, error } = await supa.auth.signInWithPassword({ email, password: pass });
     if (error) throw error;
+    if (!data || !data.user) throw new Error('No se pudo autenticar.');
     
     currentUser = data.user;
     currentUserData = await loadUserData(currentUser.id);
     
     if (!currentUserData || !currentUserData.activo) {
-      await signOut();
+      await supa.auth.signOut();
       showLoginError('Usuario inactivo. Contacta al administrador.');
       return;
     }
     
-    onLoginSuccess();
+    await onLoginSuccess();
   } catch(e) {
-    showLoginError(e.message || 'Credenciales incorrectas.');
+    showLoginError(e.message || 'Credenciales incorrectas. Intenta de nuevo.');
   } finally {
-    btn.textContent = 'Iniciar sesión';
-    btn.disabled = false;
+    if(btn){ btn.textContent = 'Iniciar sesión'; btn.disabled = false; }
   }
+}
+
+// Init login button with proper mobile events
+function initLoginButton() {
+  const btn = document.getElementById('loginBtn');
+  if (!btn) return;
+  // Remove any existing listeners
+  const newBtn = btn.cloneNode(true);
+  btn.parentNode.replaceChild(newBtn, btn);
+  // Add both click and touchend for mobile
+  newBtn.addEventListener('click', doLogin);
+  newBtn.addEventListener('touchend', (e) => { e.preventDefault(); doLogin(); });
 }
 
 function showLoginError(msg) {
@@ -3210,18 +3237,26 @@ async function onLoginSuccess() {
 
 // Check if already logged in on load
 window.addEventListener('load', async () => {
-  const { data: { user } } = await supa.auth.getUser();
-  if (user) {
-    currentUser = user;
-    currentUserData = await loadUserData(user.id);
-    if (currentUserData?.activo) {
-      await onLoginSuccess();
-    } else {
-      showLoginScreen();
+  // Init login button with mobile-friendly events
+  initLoginButton();
+  
+  try {
+    const { data: { user } } = await supa.auth.getUser();
+    if (user) {
+      currentUser = user;
+      currentUserData = await loadUserData(user.id);
+      if (currentUserData?.activo) {
+        await onLoginSuccess();
+        return;
+      }
     }
-  } else {
-    showLoginScreen();
+  } catch(e) {
+    console.error('Session check error:', e);
   }
+  // Show login if no valid session
+  showLoginScreen();
+  // Re-init button after login screen shown
+  setTimeout(initLoginButton, 100);
 });
 
 // ── MIS COTIZACIONES ──────────────────────────────────────────────────────────
@@ -3893,6 +3928,31 @@ async function saveCostosFijos() {
   }
 }
 
+
+
+// Check if Web Share API is available (mobile)
+window.addEventListener('load', () => {
+  if (navigator.share) {
+    const shareBtn = document.getElementById('btnShareDoc');
+    if (shareBtn) shareBtn.style.display = '';
+  }
+});
+
+async function shareDocument() {
+  if (!S._lastPrintHTML || !S._lastPrintFilename) return;
+  try {
+    const blob = new Blob([S._lastPrintHTML], {type:'text/html'});
+    const file = new File([blob], S._lastPrintFilename, {type:'text/html'});
+    if (navigator.canShare && navigator.canShare({files:[file]})) {
+      await navigator.share({ files:[file], title: 'Cotización DP World' });
+    } else {
+      await navigator.share({ title: 'Cotización DP World', text: 'Documento de cotización DP World Panamá 3PL' });
+    }
+  } catch(e) {
+    if (e.name !== 'AbortError') console.error(e);
+  }
+}
+
 </script>
 
 <div class="watermark">🔒 Uso interno exclusivo · DP World Panamá 3PL &nbsp;|&nbsp; Consultas: <strong>Miguel Charris</strong></div>
@@ -3949,7 +4009,10 @@ async function saveCostosFijos() {
     <div class="preview-toolbar-title">📄 Vista previa del documento</div>
     <div class="preview-toolbar-actions">
       <button class="btn-sm btn-sm-g" onclick="downloadFromPreview()" style="background:var(--green)">
-        ⬇ Descargar HTML
+        ⬇ Guardar archivo
+      </button>
+      <button class="btn-sm btn-sm-s" onclick="shareDocument()" style="display:none" id="btnShareDoc">
+        📤 Compartir
       </button>
       <button class="btn-sm btn-sm-s" onclick="closePreview()">✕ Cerrar</button>
     </div>
@@ -3960,4 +4023,4 @@ async function saveCostosFijos() {
 </div>
 
 </body>
-              </html>
+  </html>

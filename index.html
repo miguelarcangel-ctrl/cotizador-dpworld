@@ -2178,7 +2178,7 @@ ${q.alerts.map(a=>`<div class="alert ${a.cls==='aok'?'aok':a.cls==='ainfo'?'ainf
     <div class="preview-toolbar-title">📄 Vista previa del documento</div>
     <div class="preview-toolbar-actions">
       <button class="btn-sm btn-sm-g" onclick="downloadFromPreview()" style="background:var(--green)">
-        ⬇ Guardar archivo
+        📤 Compartir / Guardar
       </button>
       <button class="btn-sm btn-sm-s" onclick="shareDocument()" style="display:none" id="btnShareDoc">
         📤 Compartir
@@ -2222,21 +2222,22 @@ function closePreview() {
 
 function downloadFromPreview() {
   if (!S._lastPrintHTML || !S._lastPrintFilename) return;
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (isMobile) {
+    shareDocument();
+    return;
+  }
+  // Desktop: data URI
   try {
-    const blob = new Blob([S._lastPrintHTML], {type:'text/html;charset=utf-8'});
-    const url = URL.createObjectURL(blob);
+    const encoded = encodeURIComponent(S._lastPrintHTML);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = S._lastPrintFilename;
+    a.setAttribute('href', 'data:text/html;charset=utf-8,' + encoded);
+    a.setAttribute('download', S._lastPrintFilename);
     a.style.display = 'none';
-    a.rel = 'noopener';
     document.body.appendChild(a);
     a.click();
-    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
-  } catch(e) {
-    // Fallback: show copy prompt
-    alert('Para guardar el documento, usa el botón de compartir del navegador.');
-  }
+    setTimeout(() => document.body.removeChild(a), 500);
+  } catch(e) { console.error(e); }
 }
 
 
@@ -3971,12 +3972,21 @@ window.addEventListener('load', () => {
 async function shareDocument() {
   if (!S._lastPrintHTML || !S._lastPrintFilename) return;
   try {
+    if (!navigator.share) {
+      alert('Tu navegador no soporta compartir archivos. Abre la app en Chrome o Safari.');
+      return;
+    }
     const blob = new Blob([S._lastPrintHTML], {type:'text/html'});
     const file = new File([blob], S._lastPrintFilename, {type:'text/html'});
+    // Try sharing with file first, fall back to text only
     if (navigator.canShare && navigator.canShare({files:[file]})) {
-      await navigator.share({ files:[file], title: 'Cotización DP World' });
+      await navigator.share({ files:[file], title:'Cotización DP World Panamá' });
     } else {
-      await navigator.share({ title: 'Cotización DP World', text: 'Documento de cotización DP World Panamá 3PL' });
+      // Share as text content
+      await navigator.share({ 
+        title: 'Cotización DP World Panamá', 
+        text: 'Adjunto cotización de DP World Panamá 3PL'
+      });
     }
   } catch(e) {
     if (e.name !== 'AbortError') console.error(e);
@@ -4039,7 +4049,7 @@ async function shareDocument() {
     <div class="preview-toolbar-title">📄 Vista previa del documento</div>
     <div class="preview-toolbar-actions">
       <button class="btn-sm btn-sm-g" onclick="downloadFromPreview()" style="background:var(--green)">
-        ⬇ Guardar archivo
+        📤 Compartir / Guardar
       </button>
       <button class="btn-sm btn-sm-s" onclick="shareDocument()" style="display:none" id="btnShareDoc">
         📤 Compartir

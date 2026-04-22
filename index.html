@@ -2353,23 +2353,86 @@ function closePreview() {
   document.getElementById('previewOverlay').classList.remove('open');
 }
 
+function printDocument() {
+  if (!S._lastPrintHTML) return;
+  // Open in new window and print — works on mobile and desktop
+  // Mobile: print dialog → Save as PDF
+  // Desktop: print dialog → Save as PDF or print
+  const win = window.open('', '_blank');
+  if (!win) {
+    // Popup blocked — fallback: print iframe
+    printViaIframe();
+    return;
+  }
+  win.document.write(S._lastPrintHTML);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); }, 500);
+}
+
+function printViaIframe() {
+  // Fallback: use hidden iframe to print without navigation
+  let iframe = document.getElementById('printFrame');
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+    iframe.id = 'printFrame';
+    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:none';
+    document.body.appendChild(iframe);
+  }
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(S._lastPrintHTML);
+  doc.close();
+  setTimeout(() => {
+    try { iframe.contentWindow.focus(); iframe.contentWindow.print(); }
+    catch(e) { console.error(e); }
+  }, 500);
+}
+
 function downloadFromPreview() {
   if (!S._lastPrintHTML || !S._lastPrintFilename) return;
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  
   if (isMobile) {
+    // Mobile: use Web Share API
     shareDocument();
     return;
   }
-  // Desktop: data URI
+  
+  // Desktop: use File System Access API if available (modern browsers)
+  if (window.showSaveFilePicker) {
+    (async () => {
+      try {
+        const fh = await window.showSaveFilePicker({
+          suggestedName: S._lastPrintFilename,
+          types: [{ description: 'HTML', accept: {'text/html': ['.html']} }]
+        });
+        const writable = await fh.createWritable();
+        await writable.write(S._lastPrintHTML);
+        await writable.close();
+      } catch(e) {
+        if (e.name !== 'AbortError') fallbackDownload();
+      }
+    })();
+    return;
+  }
+  
+  // Fallback for older browsers
+  fallbackDownload();
+}
+
+function fallbackDownload() {
   try {
-    const encoded = encodeURIComponent(S._lastPrintHTML);
-    const a = document.createElement('a');
-    a.setAttribute('href', 'data:text/html;charset=utf-8,' + encoded);
-    a.setAttribute('download', S._lastPrintFilename);
+    const blob = new Blob([S._lastPrintHTML], {type: 'text/html'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = S._lastPrintFilename;
     a.style.display = 'none';
+    a.target   = '_blank';  // Prevents navigation in current tab
     document.body.appendChild(a);
-    a.click();
-    setTimeout(() => document.body.removeChild(a), 500);
+    a.dispatchEvent(new MouseEvent('click', {bubbles:false, cancelable:true}));
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
   } catch(e) { console.error(e); }
 }
 
@@ -4299,7 +4362,10 @@ function calcGastoFijoVeh() {
   <div class="preview-toolbar">
     <div class="preview-toolbar-title">📄 Vista previa del documento</div>
     <div class="preview-toolbar-actions">
-      <button class="btn-sm btn-sm-g" id="btnSharePreview" onclick="downloadFromPreview()" style="background:var(--green)">
+      <button class="btn-sm btn-sm-g" onclick="printDocument()" style="background:var(--green)">
+        🖨️ Descargar / Imprimir
+      </button>
+      <button class="btn-sm btn-sm-s" id="btnSharePreview" onclick="shareDocument()">
         📤 Compartir
       </button>
       <button class="btn-sm btn-sm-s" onclick="closePreview()">✕ Cerrar</button>
@@ -4318,7 +4384,10 @@ function calcGastoFijoVeh() {
   <div class="preview-toolbar">
     <div class="preview-toolbar-title">📄 Vista previa del documento</div>
     <div class="preview-toolbar-actions">
-      <button class="btn-sm btn-sm-g" id="btnSharePreview" onclick="downloadFromPreview()" style="background:var(--green)">
+      <button class="btn-sm btn-sm-g" onclick="printDocument()" style="background:var(--green)">
+        🖨️ Descargar / Imprimir
+      </button>
+      <button class="btn-sm btn-sm-s" id="btnSharePreview" onclick="shareDocument()">
         📤 Compartir
       </button>
       <button class="btn-sm btn-sm-s" onclick="closePreview()">✕ Cerrar</button>
@@ -4331,4 +4400,4 @@ function calcGastoFijoVeh() {
 
 </body></html>
 </body>
-        </html>
+  </html>

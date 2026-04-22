@@ -1698,6 +1698,16 @@ const FIELDS={
     {id:'contSal40g',label:"Contenedores salida 40' a granel"},
     {id:'contSal20g',label:"Contenedores salida 20' a granel"},
     {id:'ordenes',  label:'Órdenes de salida / mes'},
+  ],
+  vehiculos:[
+    {id:'vehDescQty',    label:'Vehículos a descargar / mes',          sec:'DESCARGUE & CARGUE'},
+    {id:'vehCargaQty',   label:'Vehículos a cargar / mes'},
+    {id:'contQty',       label:'Contenedores / mes'},
+    {id:'vehPatio',      label:'Vehículos en patio promedio',           sec:'ALMACENAJE'},
+    {id:'vehDias',       label:'Días promedio de estadía / vehículo'},
+    {id:'vehCifVal',     label:'Valor CIF promedio por vehículo (USD)', sec:'SEGURO'},
+    {id:'vehCifQty',     label:'Cantidad de vehículos para seguro / mes'},
+    {id:'rutasConductor',label:'Rutas conductor CLP → Chilibre / mes',  sec:'CONDUCTOR'},
   ]
 };
 
@@ -1723,17 +1733,7 @@ const ADMIN={
     {id:6,rubro:'Personal administrativo',          cat:'Personal',       monto:3500},
     {id:7,rubro:'Mantenimiento equipos',            cat:'Equipos',        monto:800},
     {id:8,rubro:'Seguros',                          cat:'Gastos gen.',    monto:600},
-  ],
-  vehiculos:[
-    {id:'vehDescQty',   label:'Vehículos a descargar / mes',       sec:'DESCARGUE & CARGUE'},
-    {id:'vehCargaQty',  label:'Vehículos a cargar / mes'},
-    {id:'contQty',      label:'Contenedores / mes'},
-    {id:'vehPatio',     label:'Vehículos en patio (promedio)',      sec:'ALMACENAJE'},
-    {id:'vehDias',      label:'Días promedio de estadía / vehículo'},
-    {id:'vehCifVal',    label:'Valor CIF promedio por vehículo (USD)', sec:'SEGURO'},
-    {id:'vehCifQty',    label:'Cantidad de vehículos para seguro / mes'},
-    {id:'rutasConductor',label:'Rutas conductor CLP→Chilibre / mes', sec:'CONDUCTOR'},
-  ],
+  ]
   cuentas:[
     {id:1,nombre:'CNP',      pos:1500, pct:0, color:'#00C389', auto:true},
     {id:2,nombre:'Kangroos', pos:41,   pct:0, color:'#1A1060', auto:true},
@@ -4331,4 +4331,4 @@ function calcGastoFijoVeh() {
 
 </body></html>
 </body>
-              </html>
+  </html>

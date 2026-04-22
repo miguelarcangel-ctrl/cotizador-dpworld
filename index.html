@@ -2789,14 +2789,10 @@ function syncProdToTarifas(){
   if(salOrdCost>0){ CB.prepOrd = salOrdCost; }
   if(almPalCost>0){ CB.almacPos = almPalCost; }
 
-  // Update TARIFAS cost = CB * (1 + mgn) — but ONLY if not manually overridden
-  // We track which tarifas were manually edited via S._manualTarifas
-  if(!S._manualTarifas) S._manualTarifas = {};
-  Object.keys(CB).forEach(k=>{
-    if(TARIFAS[k] && !S._manualTarifas[k]){
-      TARIFAS[k].cost = Math.round(CB[k]*(1+mgn)*100)/100;
-    }
-  });
+  // NOTE: TARIFAS.cost is NOT auto-updated from CB
+  // TARIFAS.cost = market avg (set as default, editable by admin in Insights)
+  // CB = cost base from productivities (used only for margin calculation)
+  // This separation ensures market-avg pricing is always the default tarifa
 }
 
 
@@ -4209,7 +4205,8 @@ const TARIFA_GROUPS = [
 ];
 
 function renderTarifasBase() {
-  syncProdToTarifas();
+  // Only update CB from productivities, NOT TARIFAS.cost
+  // TARIFAS.cost stays as market avg
   const mgn = getGlobalMGN();
   const tbody = document.getElementById('tarifasBaseTblBody');
   if (!tbody) return;
@@ -5022,4 +5019,4 @@ function initCollapsibleSections() {
 </div>
 
 </body>
-  </html>
+      </html>

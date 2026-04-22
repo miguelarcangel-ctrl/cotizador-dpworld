@@ -216,6 +216,7 @@ async function loadInsights() {
   if (data.global_mo && document.getElementById('globalMO')) document.getElementById('globalMO').value = data.global_mo;
   if (data.global_fk && document.getElementById('globalFK')) document.getElementById('globalFK').value = data.global_fk;
   if (data.global_mgn && document.getElementById('globalMGN')) document.getElementById('globalMGN').value = data.global_mgn;
+  if(data.costos_fijos_veh && data.costos_fijos_veh.length>0) ADMIN.costosVeh=data.costos_fijos_veh;
   // Load saved tarifas base — overrides defaults for all users
   if (data.tarifas_base) {
     Object.keys(data.tarifas_base).forEach(k => {
@@ -792,6 +793,11 @@ body{background:var(--light);color:var(--ink);font-family:'Barlow',sans-serif;mi
         <div class="tdesc">Combinación completa — paletizado, granel y unidades.</div>
         <div class="ttag">Operación compleja</div>
       </div>
+      <div class="tcard" onclick="selType('vehiculos')" id="card-vehiculos" style="grid-column:1/-1">
+        <div class="tname">🚗 Operación de Vehículos</div>
+        <div class="tdesc">Descargue, cargue, almacenaje en patio, seguro, conductor y manejo de vehículos.</div>
+        <div class="ttag">Automotive Logistics</div>
+      </div>
     </div>
 
     <!-- TRANSPORT -->
@@ -1275,6 +1281,29 @@ body{background:var(--light);color:var(--ink);font-family:'Barlow',sans-serif;mi
   </div>
 
 
+
+  <!-- COSTOS FIJOS VEHÍCULOS -->
+  <div class="asec" id="costosVehSection">
+    <div class="asec-hdr">
+      <h3>🚗 Costos Fijos — Operación de Vehículos</h3>
+      <div class="hdr-actions">
+        <button class="btn-sm btn-sm-g" onclick="saveCostosVeh()" style="background:#9B59B6;border-color:#9B59B6">💾 Guardar</button>
+      </div>
+    </div>
+    <div class="asec-body">
+      <div class="alert ainfo" style="margin-bottom:12px">
+        <div class="ai">🚗</div>
+        <div><strong>Costos exclusivos de operación de vehículos</strong> — Solo impactan cotizaciones de tipo Vehículos. No se mezclan con los costos de bodega de carga general.</div>
+      </div>
+      <table class="atbl">
+        <thead><tr><th>Rubro</th><th>Categoría</th><th class="r">Monto mensual (USD)</th><th class="r">Acción</th></tr></thead>
+        <tbody id="costosVehBody"></tbody>
+        <tfoot><tr><td colspan="2"><strong>TOTAL COSTOS FIJOS VEHÍCULOS</strong></td><td class="r"><strong id="costosVehTotalVal">$0.00</strong></td><td></td></tr></tfoot>
+      </table>
+      <button class="btn-add-row" onclick="addCostoVehRow()">+ Agregar rubro</button>
+    </div>
+  </div>
+
   <!-- PRODUCTIVITY ENGINE SECTION -->
   <div class="asec" id="prodSection">
     <div class="asec-hdr">
@@ -1583,6 +1612,13 @@ let TARIFAS={
   manejoOut: {label:'Manejo de salida',          unit:'/mes',        cost:20.00},
   etiquetado:{label:'Etiquetado',                unit:'/unidad',     cost:0.15},
   lecSerial: {label:'Lectura de seriales',       unit:'/unidad',     cost:0.05},
+  // VEHÍCULOS
+  vehDesc:   {label:'Descargue de vehículo',     unit:'/vehículo',   cost:300.00},
+  vehCarga:  {label:'Cargue de vehículo',        unit:'/vehículo',   cost:300.00},
+  vehAlmac:  {label:'Almacenaje en patio',       unit:'/vehículo/día', cost:7.50},
+  vehSeguro: {label:'Seguro (0.024% CIF)',       unit:'% valor CIF', cost:0.00024},
+  vehConductor:{label:'Conductor CLP → Chilibre',unit:'/ruta',       cost:100.00},
+  vehManejo: {label:'Manejo por contenedor',     unit:'/contenedor', cost:150.00},
 };
 
 // Costos base reales (sin margen) para calcular margen
@@ -1599,6 +1635,7 @@ const CB={
   carga40g:4.3875, carga20g:2.1938,
   paletSin:14.50, paletCon:17.80, etiquetado:0.08, lecSerial:0.03,
   dmceIn:25, dmceOut:18, memorial:10, tiDoc:10, manejoIn:18, manejoOut:14, etiquetado:0.08, lecSerial:0.03,
+  vehDesc:130, vehCarga:130, vehAlmac:2.00, vehSeguro:0.00012, vehConductor:50, vehManejo:0,
 };
 
 let RUTAS=[
@@ -1664,12 +1701,19 @@ const FIELDS={
   ]
 };
 
-const TNAMES={pallet:'Pallet In/Out',bulto:'Bulto In/Out',unit:'Unit In/Out',mixto:'Mixto'};
+const TNAMES={pallet:'Pallet In/Out',bulto:'Bulto In/Out',unit:'Unit In/Out',mixto:'Mixto',vehiculos:'Operación de Vehículos'};
 const ACCT_COLORS=['#00C389','#1A1060','#E8712A','#9B59B6','#E8003D','#2980B9','#F39C12','#1ABC9C'];
 
 // ── ADMIN STATE ────────────────────────────────────────────────────────────────
 const ADMIN={
   totalPos:1716,
+  costosVeh:[
+    {id:1, rubro:'Patio de almacenaje vehículos', cat:'Infraestructura', monto:0},
+    {id:2, rubro:'Personal de patio / conductores fijos', cat:'Personal', monto:0},
+    {id:3, rubro:'Seguros de responsabilidad civil', cat:'Seguros', monto:0},
+    {id:4, rubro:'Equipos de movimiento (grúas, dolly)', cat:'Equipos', monto:0},
+  ],
+  nextCostoVehId: 5,
   costos:[
     {id:1,rubro:'Arrendamiento bodega (1,500m²)',  cat:'Infraestructura',monto:16000},
     {id:2,rubro:'Arrendamiento espacio ext. (478 pos)',cat:'Infraestructura',monto:7170},
@@ -1679,6 +1723,16 @@ const ADMIN={
     {id:6,rubro:'Personal administrativo',          cat:'Personal',       monto:3500},
     {id:7,rubro:'Mantenimiento equipos',            cat:'Equipos',        monto:800},
     {id:8,rubro:'Seguros',                          cat:'Gastos gen.',    monto:600},
+  ],
+  vehiculos:[
+    {id:'vehDescQty',   label:'Vehículos a descargar / mes',       sec:'DESCARGUE & CARGUE'},
+    {id:'vehCargaQty',  label:'Vehículos a cargar / mes'},
+    {id:'contQty',      label:'Contenedores / mes'},
+    {id:'vehPatio',     label:'Vehículos en patio (promedio)',      sec:'ALMACENAJE'},
+    {id:'vehDias',      label:'Días promedio de estadía / vehículo'},
+    {id:'vehCifVal',    label:'Valor CIF promedio por vehículo (USD)', sec:'SEGURO'},
+    {id:'vehCifQty',    label:'Cantidad de vehículos para seguro / mes'},
+    {id:'rutasConductor',label:'Rutas conductor CLP→Chilibre / mes', sec:'CONDUCTOR'},
   ],
   cuentas:[
     {id:1,nombre:'CNP',      pos:1500, pct:0, color:'#00C389', auto:true},
@@ -1803,7 +1857,9 @@ function renderForecast(){
       bodyHTML+=`<div class="fsec-sub">── ${f.sec}</div>`;
       lastSec=f.sec;
     }
-    bodyHTML+=`<div class="fitem"><label>${f.label}</label><input type="number" id="f_${f.id}" min="0" placeholder="0"></div>`;
+    // Special field for CIF value — currency format
+    const isCif = f.id==='vehCifVal';
+    bodyHTML+=`<div class="fitem"><label>${f.label}</label><input type="number" id="f_${f.id}" min="0" placeholder="${isCif?'Ej. 25000':'0'}" ${isCif?'step="1000"':''}></div>`;
   });
 
   const fmtLabels={pallet_pos:'Pallet Position /mes',m2:'m² /mes',cbm:'CBM /día',bulto:'Bulto pico /mes'};
@@ -1912,18 +1968,45 @@ function calcAndShow(){
   }
 
   // COSTOS FIJOS — auto-apply from declared positions if available
-  const gfAuto = calcGastoFijoAutomatico();
+  // For vehiculos type, use vehicle fixed costs instead
+  const gfAuto = type==='vehiculos' ? calcGastoFijoVeh() : calcGastoFijoAutomatico();
   if (gfAuto && gfAuto.monto > 0) {
     totC += gfAuto.monto;
+    const gfLabel = type==='vehiculos'
+      ? 'Costos fijos operación de vehículos'
+      : `Costos fijos imputados (${gfAuto.pct}% — ${gv('posPromedio')||'?'} pos declaradas)`;
     lines.push({
-      name: `Costos fijos imputados (${gfAuto.pct}% — ${gv('posPromedio')||'?'} pos declaradas)`,
-      unit: '/mes', qty: 1, rate: gfAuto.monto, sub: 0,
-      costoB: gfAuto.monto, isGF: true, costoOnly: true,
-      autoApplied: true
+      name: gfLabel, unit: '/mes', qty: 1, rate: gfAuto.monto, sub: 0,
+      costoB: gfAuto.monto, isGF: true, costoOnly: true, autoApplied: true
     });
     S._autoGF = gfAuto;
   } else {
     S._autoGF = null;
+  }
+
+  // VEHÍCULOS
+  if(type==='vehiculos'){
+    const vDesc    = gv('vehDescQty');
+    const vCarga   = gv('vehCargaQty');
+    const vCont    = gv('contQty');
+    const vPatio   = gv('vehPatio');
+    const vDias    = gv('vehDias');
+    const vCifVal  = gv('vehCifVal');
+    const vCifQty  = gv('vehCifQty');
+    const vRutas   = gv('rutasConductor');
+    if(vDesc)  add('vehDesc',   vDesc);
+    if(vCarga) add('vehCarga',  vCarga);
+    if(vCont)  add('vehManejo', vCont);
+    if(vPatio && vDias) add('vehAlmac', vPatio * vDias, 'Almacenaje en patio ('+vPatio+' veh × '+vDias+' días)');
+    if(vCifVal && vCifQty){
+      const segTarifa = Math.round(vCifVal * 0.00024 * 100) / 100;
+      const segCosto  = Math.round(vCifVal * 0.00012 * 100) / 100;
+      const segTotal  = Math.round(segTarifa * vCifQty * 100) / 100;
+      const segCostTotal = Math.round(segCosto * vCifQty * 100) / 100;
+      totT += segTotal; totC += segCostTotal;
+      lines.push({name:'Seguro (0.024% CIF × '+vCifQty+' veh)',unit:'/mes',qty:vCifQty,rate:segTarifa,sub:segTotal,costoB:segCostTotal});
+    }
+    if(vRutas) add('vehConductor', vRutas);
   }
 
   // DOCUMENTACIÓN
@@ -2996,6 +3079,7 @@ function renderAdmin(){
   renderCuentas();
   renderDistrib();
   renderProdTable();
+  renderCostosVeh();
   showAdminSections();
 }
 
@@ -4081,6 +4165,67 @@ function calcGastoFijoAutomatico() {
   return { pct: Math.round(pct * 10) / 10, monto, totalCostos };
 }
 
+
+
+// ── COSTOS FIJOS VEHÍCULOS ────────────────────────────────────────────────────
+function renderCostosVeh(){
+  const tbody = document.getElementById('costosVehBody');
+  if(!tbody) return;
+  tbody.innerHTML = ADMIN.costosVeh.map(c=>`
+    <tr>
+      <td><input class="ainput" value="${c.rubro}" placeholder="Rubro"
+        oninput="ADMIN.costosVeh.find(x=>x.id===${c.id}).rubro=this.value"></td>
+      <td><input class="ainput" value="${c.cat}" placeholder="Categoría"
+        oninput="ADMIN.costosVeh.find(x=>x.id===${c.id}).cat=this.value"></td>
+      <td><input class="ainput r" type="number" value="${c.monto}" min="0" step="0.01"
+        oninput="updateCostoVehMonto(${c.id},this.value)"></td>
+      <td class="r"><button class="btn-del-row" onclick="delCostoVeh(${c.id})">✕</button></td>
+    </tr>`).join('');
+  const total = ADMIN.costosVeh.reduce((s,c)=>s+c.monto,0);
+  const el = document.getElementById('costosVehTotalVal');
+  if(el) el.textContent='$'+total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function updateCostoVehMonto(id,val){
+  const c=ADMIN.costosVeh.find(x=>x.id===id);
+  if(c) c.monto=parseFloat(val)||0;
+  const total=ADMIN.costosVeh.reduce((s,c)=>s+c.monto,0);
+  const el=document.getElementById('costosVehTotalVal');
+  if(el) el.textContent='$'+total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function addCostoVehRow(){
+  ADMIN.costosVeh.push({id:ADMIN.nextCostoVehId++,rubro:'',cat:'',monto:0});
+  renderCostosVeh();
+}
+
+function delCostoVeh(id){
+  ADMIN.costosVeh=ADMIN.costosVeh.filter(c=>c.id!==id);
+  renderCostosVeh();
+}
+
+async function saveCostosVeh(){
+  if(!currentUser||currentUserData?.rol!=='admin') return;
+  const {error}=await supa.from('insights_config')
+    .update({costos_fijos_veh: ADMIN.costosVeh}).eq('id',1);
+  const bar=document.getElementById('saveSuccessBar');
+  if(!error){
+    if(bar){bar.innerHTML='✅ Costos fijos de vehículos guardados';bar.style.display='block';setTimeout(()=>bar.style.display='none',3000);}
+  } else {
+    if(bar){bar.innerHTML='❌ Error: '+error.message;bar.style.background='#C0392B';bar.style.display='block';setTimeout(()=>{bar.style.display='none';bar.style.background='var(--green)';},4000);}
+  }
+}
+
+// Calculate vehicle fixed cost % for a cotizacion
+function calcGastoFijoVeh() {
+  const vPatio = gv('vehPatio') || 0;
+  if(!vPatio) return null;
+  const totalVehCostos = ADMIN.costosVeh.reduce((s,c)=>s+c.monto,0);
+  if(!totalVehCostos) return null;
+  // Simple: total fixed costs for vehicle operation / month
+  return { monto: totalVehCostos, tipo: 'vehiculos' };
+}
+
 </script>
 
 <div class="watermark">🔒 Uso interno exclusivo · DP World Panamá 3PL &nbsp;|&nbsp; Consultas: <strong>Miguel Charris</strong></div>
@@ -4168,4 +4313,4 @@ function calcGastoFijoAutomatico() {
 
 </body></html>
 </body>
-  </html>
+                </html>

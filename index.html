@@ -2272,6 +2272,99 @@ ${q.alerts.map(a=>`<div class="alert ${a.cls==='aok'?'aok':a.cls==='ainfo'?'ainf
 <tbody>${q.lines.map(l=>`<tr><td>${l.name}<span class="sub">${l.unit}</span></td><td style="text-align:right">${l.unit}</td><td style="text-align:right">${l.qty.toLocaleString()}</td><td style="text-align:right">$${l.rate.toFixed(2)}</td><td style="text-align:right;color:#1A1060;font-weight:700">$${fm(l.sub)}</td></tr>`).join('')}</tbody>
 <tfoot><tr class="trow"><td colspan="4">TOTAL MENSUAL ESTIMADO</td><td>$${fm(q.totT)}</td></tr></tfoot></table>
 <div class="alert ainfo" style="margin-top:9px"><span>ℹ️</span><div><strong>Condiciones</strong>USD. Vigencia: ${q.vigencia} días. Recargo nocturno/fin de semana: +30%. Maquila se cotiza por separado según proceso.</div></div>
+<!-- SECCIÓN B: FICHA OPERACIONAL -->
+<div style="margin-top:24px;border-top:3px solid #1A1060;padding-top:16px">
+  <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;color:#1A1060;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">
+    SECCIÓN B — FICHA OPERACIONAL · Para uso de Operaciones
+  </div>
+
+  <!-- PERFIL DE CARGA -->
+  <div class="stitle">Perfil de carga</div>
+  <table><thead><tr><th>Campo</th><th>Valor</th><th>Campo</th><th>Valor</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Tipo de mercancía</td><td>${q.tipoMerc||'—'}</td>
+      <td>Temperatura</td><td>${document.getElementById('temperatura')?.value||'—'}</td>
+    </tr>
+    <tr>
+      <td>Unidad de medida</td><td>${document.getElementById('uom')?.value||'—'}</td>
+      <td>Tipo de pallet</td><td>${document.getElementById('palletType')?.value||'—'}</td>
+    </tr>
+    <tr>
+      <td>Rotación</td><td>${document.getElementById('rotacion')?.value||'—'}</td>
+      <td>Segregación</td><td>${document.getElementById('segregacion')?.value||'—'}</td>
+    </tr>
+    <tr>
+      <td>Trazabilidad lote</td><td>${document.getElementById('trazabilidad')?.value||'—'}</td>
+      <td>Control vencimiento</td><td>${document.getElementById('vencimiento')?.value||'—'}</td>
+    </tr>
+    <tr>
+      <td><strong>Total SKUs (maestro)</strong></td><td><strong>${document.getElementById('totalSkus')?.value||'—'}</strong></td>
+      <td>% manejo unidad</td><td>${document.getElementById('pctUnidad')?.value||'—'}%</td>
+    </tr>
+    <tr>
+      <td>% manejo bulto</td><td>${document.getElementById('pctBulto')?.value||'—'}%</td>
+      <td>Posiciones promedio</td><td>${document.getElementById('posPromedio')?.value||'—'}</td>
+    </tr>
+    <tr>
+      <td>Posiciones pico</td><td>${document.getElementById('posPico')?.value||'—'}</td>
+      <td>Formato almacenaje</td><td>${q.storageFmt||'—'}</td>
+    </tr>
+    ${document.getElementById('obsCargas')?.value?`<tr><td colspan="3">Observaciones</td><td>${document.getElementById('obsCargas').value}</td></tr>`:''}
+  </tbody></table>
+
+  <!-- VOLÚMENES -->
+  <div class="stitle" style="margin-top:14px">Volúmenes declarados (forecast)</div>
+  <table><thead><tr><th>Servicio</th><th>Volumen / mes</th></tr></thead>
+  <tbody>
+    ${(FIELDS[q.type]||[]).map(f=>{
+      const val=document.getElementById('f_'+f.id)?.value;
+      return val?`<tr><td>${f.label}</td><td>${val}</td></tr>`:'';
+    }).join('')}
+  </tbody></table>
+
+  <!-- DOCUMENTACIÓN -->
+  ${Object.entries(DOCS).some(([k,d])=>d.checked)?`
+  <div class="stitle" style="margin-top:14px">Documentación</div>
+  <table><thead><tr><th>Documento</th><th>Frecuencia</th><th>Cantidad/mes</th></tr></thead>
+  <tbody>
+    ${Object.entries(DOCS).filter(([k,d])=>d.checked).map(([k,d])=>`
+      <tr><td>${TARIFAS[DOC_KEYS[k]]?.label||k}</td><td>${d.freq}</td><td>${d.qty||'—'}</td></tr>
+    `).join('')}
+    ${MANEJO['man-in']?'<tr><td>Manejo de entrada</td><td>Mensual</td><td>1</td></tr>':''}
+    ${MANEJO['man-out']?'<tr><td>Manejo de salida</td><td>Mensual</td><td>1</td></tr>':''}
+  </tbody></table>`:''}
+
+  <!-- CAPEX / OPEX -->
+  ${(S.capex&&S.capexMensual>0)||S.opexMensual>0?`
+  <div class="stitle" style="margin-top:14px">CAPEX / OPEX exclusivo</div>
+  <table><tbody>
+    ${S.capex&&S.capexMensual>0?`<tr><td>CAPEX mensual amortizado</td><td>$${S.capexMensual.toFixed(2)}/mes (${document.getElementById('capexMeses')?.value||12} meses)</td></tr>`:''}
+    ${OPEX.personal.map(p=>`<tr><td>Personal: ${p.nombre}</td><td>$${p.costo.toFixed(2)}/mes</td></tr>`).join('')}
+    ${OPEX.equipo.map(e=>`<tr><td>Equipo: ${e.nombre}</td><td>$${e.costo.toFixed(2)}/mes</td></tr>`).join('')}
+  </tbody></table>`:''}
+
+  <!-- TRANSPORTE -->
+  ${S.transport&&(S.selectedRoutes.length>0||S.customRoutes.length>0)?`
+  <div class="stitle" style="margin-top:14px">Rutas de transporte</div>
+  <table><tbody>
+    ${S.selectedRoutes.map(rid=>{const r=RUTAS.find(x=>x.id===rid);return r?`<tr><td>${r.label}</td><td>${r.qty} viaje(s)/mes · $${r.tarifa}/viaje</td></tr>`:''}).join('')}
+    ${S.customRoutes.filter(r=>r.label).map(r=>`<tr><td>${r.label}</td><td>${r.qty} viaje(s)/mes · $${r.tarifa}/viaje</td></tr>`).join('')}
+  </tbody></table>`:''}
+
+  <!-- CONTACTO CLIENTE -->
+  <div class="stitle" style="margin-top:14px">Datos del cliente</div>
+  <table><tbody>
+    <tr><td>Nombre legal</td><td>${q.client}</td><td>Trade name</td><td>${document.getElementById('tradeName')?.value||'—'}</td></tr>
+    <tr><td>Contacto</td><td>${document.getElementById('contactName')?.value||'—'}</td><td>Email</td><td>${document.getElementById('contactEmail')?.value||'—'}</td></tr>
+    <tr><td>Teléfono</td><td>${document.getElementById('contactPhone')?.value||'—'}</td><td>Inicio estimado</td><td>${document.getElementById('startDate')?.value||'—'}</td></tr>
+  </tbody></table>
+
+  <div style="margin-top:16px;padding:10px;background:#F8F8FC;border-radius:6px;font-size:10px;color:#888">
+    Este documento contiene información confidencial de DP World Panamá. Solo para uso interno de operaciones.
+  </div>
+</div>
+
 <div class="foot"><div><strong>DP World Panamá</strong> · DAL Colón Logistics Park · 3PL</div><div>Documento interno · v3.0</div></div>
 <script>window.onload=function(){window.print();};<\/script>
 
@@ -2328,24 +2421,11 @@ ${q.alerts.map(a=>`<div class="alert ${a.cls==='aok'?'aok':a.cls==='ainfo'?'ainf
 }
 
 function showDocPreview(printHTML) {
-  const bodyMatch = printHTML.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-  const bodyContent = bodyMatch ? bodyMatch[1] : printHTML;
-  const cleanContent = bodyContent.replace(/<script>window\.onload[^<]*<\/script>/g, '');
-  
-  const preview = document.getElementById('previewContent');
-  const overlay = document.getElementById('previewOverlay');
-  const shareBtn = document.getElementById('btnSharePreview');
-  
-  if (preview && overlay) {
-    preview.innerHTML = cleanContent;
-    overlay.classList.add('open');
-    overlay.scrollTop = 0;
-  }
-  
-  // Update button label based on device
-  if (shareBtn) {
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    shareBtn.textContent = isMobile ? '📤 Compartir' : '⬇ Descargar';
+  // Open in new window/tab with auto-print — same as original behavior
+  const win = window.open('', '_blank');
+  if (win) {
+    win.document.write(printHTML);
+    win.document.close();
   }
 }
 
@@ -4400,4 +4480,4 @@ function calcGastoFijoVeh() {
 
 </body></html>
 </body>
-  </html>
+                                                                  </html>

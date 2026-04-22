@@ -1849,25 +1849,43 @@ function selStorageFmt(fmt){
 }
 
 function renderForecast(){
-  const fields=FIELDS[S.type]||[];
-  let bodyHTML='';
-  let lastSec='';
-  fields.forEach(f=>{
-    if(f.sec&&f.sec!==lastSec){
-      bodyHTML+=`<div class="fsec-sub">── ${f.sec}</div>`;
-      lastSec=f.sec;
+  const isVeh = S.type === 'vehiculos';
+  const fields = FIELDS[S.type] || [];
+  
+  // Show/hide storage format selector (not needed for vehiculos)
+  const sfWrap = document.querySelector('#step3 [style*="margin-bottom:14px"]');
+  if(sfWrap) sfWrap.style.display = isVeh ? 'none' : '';
+  
+  // Show/hide posiciones section (not needed for vehiculos)
+  const posWrap = document.querySelector('.fsec .fhdr');
+  
+  let bodyHTML = '';
+  let lastSec = '';
+  fields.forEach(f => {
+    if(f.sec && f.sec !== lastSec){
+      bodyHTML += `<div class="fsec-sub" style="grid-column:1/-1">── ${f.sec}</div>`;
+      lastSec = f.sec;
     }
-    // Special field for CIF value — currency format
-    const isCif = f.id==='vehCifVal';
-    bodyHTML+=`<div class="fitem"><label>${f.label}</label><input type="number" id="f_${f.id}" min="0" placeholder="${isCif?'Ej. 25000':'0'}" ${isCif?'step="1000"':''}></div>`;
+    const isCif = f.id === 'vehCifVal';
+    bodyHTML += `<div class="fitem"><label>${f.label}</label>
+      <input type="number" id="f_${f.id}" min="0" 
+        placeholder="${isCif ? 'Ej. 25000' : '0'}" 
+        ${isCif ? 'step="1000"' : ''}></div>`;
   });
 
-  const fmtLabels={pallet_pos:'Pallet Position /mes',m2:'m² /mes',cbm:'CBM /día',bulto:'Bulto pico /mes'};
-  document.getElementById('forecastForm').innerHTML=`
+  const fmtLabels = {pallet_pos:'Pallet Position /mes',m2:'m² /mes',cbm:'CBM /día',bulto:'Bulto pico /mes'};
+  const hdrTitle = isVeh 
+    ? '🚗 Operación de Vehículos — Volúmenes mensuales'
+    : `${TNAMES[S.type]} — Volúmenes mensuales · Almacenaje: ${fmtLabels[S.storageFmt]||''}`;
+
+  document.getElementById('forecastForm').innerHTML = `
     <div class="fsec">
-      <div class="fhdr">${TNAMES[S.type]} — Volúmenes mensuales · Almacenaje: ${fmtLabels[S.storageFmt]}</div>
+      <div class="fhdr">${hdrTitle}</div>
       <div class="fbody">${bodyHTML}</div>
     </div>`;
+    
+  // Hide posiciones block for vehiculos
+  const posBlock = document.querySelector('.fsec[style*="margin-bottom:12px"]');
 }
 
 function gv(id){const e=document.getElementById('f_'+id);return e?parseFloat(e.value)||0:0;}
@@ -4313,4 +4331,4 @@ function calcGastoFijoVeh() {
 
 </body></html>
 </body>
-                </html>
+              </html>

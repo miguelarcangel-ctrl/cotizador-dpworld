@@ -4611,70 +4611,7 @@ function initCollapsibleSections() {
 
 <div class="watermark">🔒 Uso interno exclusivo · DP World Panamá 3PL &nbsp;|&nbsp; Consultas: <strong>Miguel Charris</strong></div>
 
-<!-- MIS COTIZACIONES PANEL -->
-<div class="modal-overlay" id="misCotModal">
-  <div class="modal" style="max-width:680px">
-    <div class="modal-hdr">
-      <h2>📋 Mis cotizaciones</h2>
-      <button class="modal-close" onclick="closeMisCot()">✕</button>
-    </div>
-    <div class="modal-body" style="padding:0">
-      <!-- FILTERS -->
-      <div style="padding:13px 16px;background:#F8F8FC;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <select id="filtroEstado" onchange="filterCotizaciones()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:6px;font-family:'Barlow',sans-serif;font-size:.78rem;outline:none;background:var(--white)">
-          <option value="">Todos los estados</option>
-          <option value="borrador">Borrador</option>
-          <option value="enviada">Enviada</option>
-          <option value="cerrada">Cerrada</option>
-          <option value="cancelada">Cancelada</option>
-        </select>
-        <input type="date" id="filtroDesde" onchange="filterCotizaciones()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:6px;font-family:'Barlow',sans-serif;font-size:.78rem;outline:none">
-        <input type="date" id="filtroHasta" onchange="filterCotizaciones()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:6px;font-family:'Barlow',sans-serif;font-size:.78rem;outline:none">
-        <button onclick="filterCotizaciones()" style="padding:6px 13px;background:var(--blue);color:#fff;border:none;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.75rem;text-transform:uppercase;cursor:pointer">Buscar</button>
-      </div>
-      <div id="cotListContainer" style="padding:13px 16px;max-height:55vh;overflow-y:auto">
-        <div style="text-align:center;color:#aaa;padding:30px;font-size:.8rem">Cargando...</div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-s" style="flex:1" onclick="closeMisCot()">Cerrar</button>
-    </div>
-  </div>
-</div>
 
-<!-- DETALLE COTIZACION MODAL -->
-<div class="modal-overlay" id="cotDetalleModal">
-  <div class="modal" style="max-width:680px">
-    <div class="modal-hdr">
-      <h2 id="cotDetalleTitle">Cotización</h2>
-      <button class="modal-close" onclick="closeCotDetalle()">✕</button>
-    </div>
-    <div class="modal-body" id="cotDetalleBody" style="max-height:65vh;overflow-y:auto"></div>
-    <div class="modal-footer" id="cotDetalleFooter">
-      <button class="btn btn-s" onclick="closeCotDetalle()">Cerrar</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- DOCUMENT PREVIEW MODAL -->
-<div class="preview-overlay" id="previewOverlay">
-  <div class="preview-toolbar">
-    <div class="preview-toolbar-title">📄 Vista previa del documento</div>
-    <div class="preview-toolbar-actions">
-      <button class="btn-sm btn-sm-g" onclick="printDocument()" style="background:var(--green)">
-        🖨️ Descargar / Imprimir
-      </button>
-      <button class="btn-sm btn-sm-s" id="btnSharePreview" onclick="shareDocument()">
-        📤 Compartir
-      </button>
-      <button class="btn-sm btn-sm-s" onclick="closePreview()">✕ Cerrar</button>
-    </div>
-  </div>
-  <div class="preview-frame">
-    <div class="preview-page" id="previewContent"></div>
-  </div>
-</div>
 
 
 
@@ -4743,18 +4680,7 @@ function initCollapsibleSections() {
 </body></html>
 
 <!-- COTIZACIONES PANEL -->
-<div class="cot-wrap" id="cotWrap">
-  <!-- LIST VIEW -->
-  <div id="cotListView">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
-      <div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.45rem;color:var(--ink);text-transform:uppercase;letter-spacing:.02em" id="cotPanelTitle">Mis cotizaciones</div>
-        <div style="font-size:.73rem;color:#888;margin-top:3px" id="cotPanelSub">Historial de cotizaciones generadas</div>
-      </div>
-      <button class="btn btn-p" style="padding:9px 18px" onclick="backToCotizador()">
-        + Nueva cotización
-      </button>
-    </div>
+<div 
 
     <div class="cot-filters">
       <input type="text" id="cotSearch" placeholder="🔍 Buscar por cliente..." oninput="filterCotizaciones()">
@@ -4769,7 +4695,7 @@ function initCollapsibleSections() {
       <input type="date" id="filtroHasta" onchange="filterCotizaciones()">
     </div>
 
-    <div id="cotListContainer">
+    <div id="cotListContainer2">
       <div class="cot-empty">Cargando cotizaciones...</div>
     </div>
   </div>
@@ -4784,4 +4710,4 @@ function initCollapsibleSections() {
 </div>
 
 </body>
-</html>
+        </html>

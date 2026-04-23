@@ -1251,8 +1251,8 @@ body{background:#F0F0F5;color:var(--ink);font-family:'Barlow',sans-serif;min-hei
 
   <!-- POSITIONS WIDGET -->
   <div class="asec">
-    <div class="asec-hdr" onclick="toggleAsec('sec0')" id="hdr_sec0"><h3>Capacidad & Posiciones de Bodega</h3>
-        <span class="collapse-arrow">▼</span>
+    <div class="asec-hdr" id="hdr_sec0"><h3><span onclick="toggleAsec('sec0')" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:7px">Capacidad & Posiciones de Bodega</span></h3>
+        <span class="collapse-arrow" onclick="toggleAsec('sec0')" style="cursor:pointer;padding:0 4px">▼</span>
     </div>
     <div class="asec-body" id="body_sec0">>
       <div class="field-row" style="margin-bottom:14px">
@@ -1272,15 +1272,15 @@ body{background:#F0F0F5;color:var(--ink);font-family:'Barlow',sans-serif;min-hei
 
   <!-- COSTOS FIJOS -->
   <div class="asec">
-    <div class="asec-hdr" onclick="toggleAsec('sec1')" id="hdr_sec1">
-      <h3>Costos Fijos Mensuales</h3>
+    <div class="asec-hdr" id="hdr_sec1">
+      <h3><span onclick="toggleAsec('sec1')" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:7px">Costos Fijos Mensuales</span></h3>
       <div class="hdr-actions">
         <label class="file-btn" style="cursor:pointer">📂 CSV<input type="file" accept=".csv" style="display:none" onchange="importCostos(this)"></label>
         <button class="btn-sm btn-sm-s" onclick="exportCostos()">⬇ Exportar</button>
         <button class="btn-sm btn-sm-g" onclick="saveCostosFijos()" style="background:#9B59B6;border-color:#9B59B6">💾 Guardar</button>
       </div>
     
-        <span class="collapse-arrow">▼</span>
+        <span class="collapse-arrow" onclick="toggleAsec('sec1')" style="cursor:pointer;padding:0 4px">▼</span>
       </div>
     <div class="asec-body" id="body_sec1">>
       <table class="atbl">
@@ -1294,14 +1294,14 @@ body{background:#F0F0F5;color:var(--ink);font-family:'Barlow',sans-serif;min-hei
 
   <!-- CUENTAS & REPARTO -->
   <div class="asec">
-    <div class="asec-hdr" onclick="toggleAsec('sec2')" id="hdr_sec2">
-      <h3>Cuentas Activas & Reparto</h3>
+    <div class="asec-hdr" id="hdr_sec2">
+      <h3><span onclick="toggleAsec('sec2')" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:7px">Cuentas Activas & Reparto</span></h3>
       <div class="hdr-actions">
         <button class="btn-sm btn-sm-g" onclick="autoDistribuir()">⟳ Redistribuir</button>
         <button class="btn-sm btn-sm-s" onclick="saveInsightsAndConfirm()">💾 Guardar config</button>
       </div>
     
-        <span class="collapse-arrow">▼</span>
+        <span class="collapse-arrow" onclick="toggleAsec('sec2')" style="cursor:pointer;padding:0 4px">▼</span>
       </div>
     <div class="asec-body" id="body_sec2">>
       <div class="alert ainfo" style="margin-bottom:13px">
@@ -1318,13 +1318,13 @@ body{background:#F0F0F5;color:var(--ink);font-family:'Barlow',sans-serif;min-hei
 
   <!-- COSTOS FIJOS VEHÍCULOS -->
   <div class="asec" id="costosVehSection">
-    <div class="asec-hdr" onclick="toggleAsec('sec3')" id="hdr_sec3">
-      <h3>🚗 Costos Fijos — Operación de Vehículos</h3>
+    <div class="asec-hdr" id="hdr_sec3">
+      <h3><span onclick="toggleAsec('sec3')" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:7px">🚗 Costos Fijos — Operación de Vehículos</span></h3>
       <div class="hdr-actions">
         <button class="btn-sm btn-sm-g" onclick="saveCostosVeh()" style="background:#9B59B6;border-color:#9B59B6">💾 Guardar</button>
       </div>
     
-        <span class="collapse-arrow">▼</span>
+        <span class="collapse-arrow" onclick="toggleAsec('sec3')" style="cursor:pointer;padding:0 4px">▼</span>
       </div>
     <div class="asec-body" id="body_sec3">>
       <div class="alert ainfo" style="margin-bottom:12px">
@@ -1359,15 +1359,15 @@ body{background:#F0F0F5;color:var(--ink);font-family:'Barlow',sans-serif;min-hei
 
   <!-- PRODUCTIVITY ENGINE SECTION -->
   <div class="asec" id="prodSection">
-    <div class="asec-hdr" onclick="toggleAsec('sec4')" id="hdr_sec4">
-      <h3>Productividades & Tareas</h3>
+    <div class="asec-hdr" id="hdr_sec4">
+      <h3><span onclick="toggleAsec('sec4')" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:7px">Productividades & Tareas</span></h3>
       <div class="hdr-actions">
         <button class="btn-sm btn-sm-g" onclick="addProdRow()">+ Nueva tarea</button>
         <button class="btn-sm btn-sm-s" onclick="recalcAllCosts()">⟳ Recalcular</button>
         <button class="btn-sm btn-sm-g" onclick="saveProdTasksBase()" style="background:#9B59B6;border-color:#9B59B6">💾 Guardar</button>
       </div>
     
-        <span class="collapse-arrow">▼</span>
+        <span class="collapse-arrow" onclick="toggleAsec('sec4')" style="cursor:pointer;padding:0 4px">▼</span>
       </div>
     <div class="asec-body" id="body_sec4">>
 
@@ -1415,22 +1415,22 @@ body{background:#F0F0F5;color:var(--ink);font-family:'Barlow',sans-serif;min-hei
 
   <!-- DISTRIBUCIÓN -->
   <div class="asec">
-    <div class="asec-hdr" onclick="toggleAsec('sec5')" id="hdr_sec5"><h3>Resumen de Costos por Cuenta</h3>
-        <span class="collapse-arrow">▼</span>
+    <div class="asec-hdr" id="hdr_sec5"><h3><span onclick="toggleAsec('sec5')" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:7px">Resumen de Costos por Cuenta</span></h3>
+        <span class="collapse-arrow" onclick="toggleAsec('sec5')" style="cursor:pointer;padding:0 4px">▼</span>
     </div>
     <div class="asec-body" id="distribBody"></div>
   
 
   <!-- TARIFAS BASE (admin only) -->
   <div class="asec" id="tarifasBaseSection" style="display:none">
-    <div class="asec-hdr" onclick="toggleAsec('sec6')" id="hdr_sec6">
-      <h3>💲 Tarifas Base</h3>
+    <div class="asec-hdr" id="hdr_sec6">
+      <h3><span onclick="toggleAsec('sec6')" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:7px">💲 Tarifas Base</span></h3>
       <div class="hdr-actions">
         <button class="btn-sm btn-sm-s" onclick="renderTarifasBase()">⟳ Recalcular</button>
         <button class="btn-sm btn-sm-g" onclick="saveTarifasBase()" style="background:#9B59B6;border-color:#9B59B6">💾 Guardar tarifas</button>
       </div>
     
-        <span class="collapse-arrow">▼</span>
+        <span class="collapse-arrow" onclick="toggleAsec('sec6')" style="cursor:pointer;padding:0 4px">▼</span>
       </div>
     <div class="asec-body" id="body_sec6">>
       <div class="alert ainfo" style="margin-bottom:13px">
@@ -1465,13 +1465,13 @@ body{background:#F0F0F5;color:var(--ink);font-family:'Barlow',sans-serif;min-hei
 
   <!-- USER MANAGEMENT (admin only) -->
   <div class="asec" id="userMgmtSection" style="display:none">
-    <div class="asec-hdr" onclick="toggleAsec('sec7')" id="hdr_sec7">
-      <h3>👥 Gestión de Usuarios</h3>
+    <div class="asec-hdr" id="hdr_sec7">
+      <h3><span onclick="toggleAsec('sec7')" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:7px">👥 Gestión de Usuarios</span></h3>
       <div class="hdr-actions">
         <button class="btn-sm btn-sm-g" onclick="toggleNewUserForm()">+ Nuevo usuario</button>
       </div>
     
-        <span class="collapse-arrow">▼</span>
+        <span class="collapse-arrow" onclick="toggleAsec('sec7')" style="cursor:pointer;padding:0 4px">▼</span>
       </div>
     <div class="asec-body" id="body_sec7">>
       <!-- NEW USER FORM -->
@@ -1510,8 +1510,8 @@ body{background:#F0F0F5;color:var(--ink);font-family:'Barlow',sans-serif;min-hei
 
   <!-- REPORTERÍA -->
   <div class="asec" id="reporteriaSection" style="display:none">
-    <div class="asec-hdr" onclick="toggleAsec('sec8')" id="hdr_sec8"><h3>📊 Reportería</h3>
-        <span class="collapse-arrow">▼</span>
+    <div class="asec-hdr" id="hdr_sec8"><h3><span onclick="toggleAsec('sec8')" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:7px">📊 Reportería</span></h3>
+        <span class="collapse-arrow" onclick="toggleAsec('sec8')" style="cursor:pointer;padding:0 4px">▼</span>
     </div>
     <div class="asec-body" id="body_sec8">>
       <div class="alert ainfo" style="margin-bottom:14px">
@@ -2312,12 +2312,79 @@ tbody td:first-child{text-align:left;color:#1B1B1B;font-weight:500}
 }
 
 function showDocPreview(printHTML) {
-  // Open in new window/tab with auto-print — same as original behavior
-  const win = window.open('', '_blank');
-  if (win) {
-    win.document.write(printHTML);
-    win.document.close();
+  // Store for printing
+  S._lastPrintHTML = printHTML;
+  
+  // Show print preview modal
+  const overlay = document.getElementById('previewOverlay');
+  const content = document.getElementById('previewContent');
+  if (!overlay || !content) return;
+  
+  // Extract body content
+  const bodyMatch = printHTML.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  const bodyContent = bodyMatch ? bodyMatch[1] : printHTML;
+  // Remove auto-print script
+  const cleanContent = bodyContent.replace(/<script>[\s\S]*?<\/script>/gi, '');
+  
+  content.innerHTML = cleanContent;
+  overlay.classList.add('open');
+}
+
+function printFromPreview() {
+  if (!S._lastPrintHTML) return;
+  
+  // Write to current page, print, then restore
+  const originalBody = document.body.innerHTML;
+  const originalTitle = document.title;
+  
+  // Extract print styles + content
+  const styleMatch = S._lastPrintHTML.match(/<style>([\s\S]*?)<\/style>/i);
+  const bodyMatch = S._lastPrintHTML.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  
+  if (!bodyMatch) return;
+  
+  const printContent = bodyMatch[1].replace(/<script>[\s\S]*?<\/script>/gi, '');
+  const printStyle = styleMatch ? styleMatch[1] : '';
+  
+  // Add print styles to head
+  let styleEl = document.getElementById('printStyles');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'printStyles';
+    document.head.appendChild(styleEl);
   }
+  styleEl.textContent = printStyle + `
+    @media screen { body.printing { visibility: hidden; } }
+    @media print { 
+      #printOverlay { visibility: visible !important; position: fixed; top: 0; left: 0; width: 100%; }
+      body > *:not(#printOverlay) { display: none !important; }
+    }
+  `;
+  
+  // Create print overlay div
+  let printDiv = document.getElementById('printOverlay');
+  if (!printDiv) {
+    printDiv = document.createElement('div');
+    printDiv.id = 'printOverlay';
+    printDiv.style.cssText = 'display:none;position:fixed;top:0;left:0;width:100%;z-index:10000;background:#fff';
+    document.body.appendChild(printDiv);
+  }
+  printDiv.innerHTML = printContent;
+  printDiv.style.display = 'block';
+  
+  // Close preview
+  document.getElementById('previewOverlay').classList.remove('open');
+  
+  // Print
+  setTimeout(() => {
+    window.print();
+    // Restore after print
+    setTimeout(() => {
+      printDiv.style.display = 'none';
+      printDiv.innerHTML = '';
+      if(styleEl) styleEl.textContent = '';
+    }, 500);
+  }, 300);
 }
 
 function closePreview() {
@@ -4400,8 +4467,8 @@ function renderCotDetalle(cot) {
 
     <!-- PERFIL DE CARGA -->
     <div class="asec">
-      <div class="asec-hdr" onclick="toggleAsec('sec9')" id="hdr_sec9"><h3>📦 Perfil de carga</h3>
-        <span class="collapse-arrow">▼</span>
+      <div class="asec-hdr" id="hdr_sec9"><h3><span onclick="toggleAsec('sec9')" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:7px">📦 Perfil de carga</span></h3>
+        <span class="collapse-arrow" onclick="toggleAsec('sec9')" style="cursor:pointer;padding:0 4px">▼</span>
     </div>
       <div class="asec-body" id="body_sec9">>
         <div class="egrid">
@@ -4419,8 +4486,8 @@ function renderCotDetalle(cot) {
     <!-- CAPEX/OPEX -->
     ${(cot.capex_monto>0||cot.opex_total>0)?`
     <div class="asec">
-      <div class="asec-hdr" onclick="toggleAsec('sec10')" id="hdr_sec10"><h3>💰 CAPEX / OPEX</h3>
-        <span class="collapse-arrow">▼</span>
+      <div class="asec-hdr" id="hdr_sec10"><h3><span onclick="toggleAsec('sec10')" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:7px">💰 CAPEX / OPEX</span></h3>
+        <span class="collapse-arrow" onclick="toggleAsec('sec10')" style="cursor:pointer;padding:0 4px">▼</span>
     </div>
       <div class="asec-body" id="body_sec10">>
         ${cot.capex_monto>0?`<div style="font-size:.78rem;margin-bottom:6px">CAPEX: ${fm(cot.capex_monto)} / ${cot.capex_meses} meses → <strong>${fm(cot.capex_mensual)}/mes</strong></div>`:''}
@@ -4431,8 +4498,8 @@ function renderCotDetalle(cot) {
 
     <!-- CONTACTO -->
     <div class="asec">
-      <div class="asec-hdr" onclick="toggleAsec('sec11')" id="hdr_sec11"><h3>👤 Cliente</h3>
-        <span class="collapse-arrow">▼</span>
+      <div class="asec-hdr" id="hdr_sec11"><h3><span onclick="toggleAsec('sec11')" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:7px">👤 Cliente</span></h3>
+        <span class="collapse-arrow" onclick="toggleAsec('sec11')" style="cursor:pointer;padding:0 4px">▼</span>
     </div>
       <div class="asec-body" id="body_sec11">>
         <div class="egrid">
@@ -4447,8 +4514,8 @@ function renderCotDetalle(cot) {
     <!-- ADMIN CONTROLS -->
     ${isAdmin?`
     <div class="asec">
-      <div class="asec-hdr" onclick="toggleAsec('sec12')" id="hdr_sec12"><h3>⚙️ Gestión admin</h3>
-        <span class="collapse-arrow">▼</span>
+      <div class="asec-hdr" id="hdr_sec12"><h3><span onclick="toggleAsec('sec12')" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:7px">⚙️ Gestión admin</span></h3>
+        <span class="collapse-arrow" onclick="toggleAsec('sec12')" style="cursor:pointer;padding:0 4px">▼</span>
     </div>
       <div class="asec-body" id="body_sec12">>
         <div class="field-row" style="margin-bottom:10px">
@@ -4621,8 +4688,8 @@ function initCollapsibleSections() {
   <div class="preview-toolbar">
     <div class="preview-toolbar-title">📄 Vista previa del documento</div>
     <div class="preview-toolbar-actions">
-      <button class="btn-sm btn-sm-g" onclick="printDocument()" style="background:var(--green)">
-        🖨️ Descargar / Imprimir
+      <button class="btn-sm btn-sm-g" onclick="printFromPreview()" style="background:var(--green)">
+        🖨️ Imprimir / Guardar PDF
       </button>
       <button class="btn-sm btn-sm-s" id="btnSharePreview" onclick="shareDocument()">
         📤 Compartir
@@ -4710,4 +4777,4 @@ function initCollapsibleSections() {
 </div>
 
 </body>
-        </html>
+      </html>

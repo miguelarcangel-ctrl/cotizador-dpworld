@@ -166,14 +166,13 @@ async function saveTarifasBase() {
   if (!currentUser || currentUserData?.rol !== 'admin') {
     alert('Solo el administrador puede guardar tarifas.'); return;
   }
-  // Serialize only the data we need (label, unit, cost)
-  const tarifasClean = {};
-  Object.keys(TARIFAS).forEach(k => {
-    tarifasClean[k] = { label: TARIFAS[k].label, unit: TARIFAS[k].unit, cost: TARIFAS[k].cost };
-  });
-  // Use update (row already exists from schema init)
+  // Save TARIFAS_EDITABLES array — preserves custom tarifas and order
+  const toSave = TARIFAS_EDITABLES.map(t => ({
+    key: t.key, label: t.label, unit: t.unit, cost: t.cost,
+    bmMin: t.bmMin, bmMax: t.bmMax
+  }));
   const { error } = await supa.from('insights_config')
-    .update({ tarifas_base: tarifasClean })
+    .update({ tarifas_base: toSave })
     .eq('id', 1);
   const bar = document.getElementById('saveSuccessBar');
   if (!error) {
@@ -218,8 +217,22 @@ async function loadInsights() {
   if (data.global_mgn && document.getElementById('globalMGN')) document.getElementById('globalMGN').value = data.global_mgn;
   if(data.costos_fijos_veh && data.costos_fijos_veh.length>0) ADMIN.costosVeh=data.costos_fijos_veh;
   if(data.cb_veh){ ADMIN.cbVeh=data.cb_veh; loadCbVehInputs(); }
-  // Load saved tarifas base — overrides defaults for all users
-  if (data.tarifas_base) {
+  // Load saved tarifas base — restores full editable list
+  if (data.tarifas_base && Array.isArray(data.tarifas_base) && data.tarifas_base.length > 0) {
+    TARIFAS_EDITABLES = data.tarifas_base.map(t => ({
+      id: nextTarifaId++,
+      key: t.key, label: t.label, unit: t.unit, cost: t.cost,
+      bmMin: t.bmMin||null, bmMax: t.bmMax||null, bmAvg: null
+    }));
+    // Sync back to TARIFAS object
+    TARIFAS_EDITABLES.forEach(t => {
+      if (!TARIFAS[t.key]) TARIFAS[t.key] = {};
+      TARIFAS[t.key].label = t.label;
+      TARIFAS[t.key].unit  = t.unit;
+      TARIFAS[t.key].cost  = t.cost;
+    });
+  } else if (data.tarifas_base && !Array.isArray(data.tarifas_base)) {
+    // Legacy format (object) — convert to array
     Object.keys(data.tarifas_base).forEach(k => {
       if (TARIFAS[k]) TARIFAS[k].cost = data.tarifas_base[k].cost;
     });
@@ -1442,23 +1455,24 @@ body{background:#F0F0F5;color:var(--ink);font-family:'Barlow',sans-serif;min-hei
         <table class="prod-tbl" id="tarifasBaseTbl">
           <thead>
             <tr>
-              <th style="min-width:150px">Servicio</th>
-              <th style="min-width:70px">Unidad</th>
-              <th class="r" style="min-width:75px">Costo base</th>
-              <th class="r" style="min-width:65px">Mín. mercado</th>
-              <th class="r" style="min-width:65px">Máx. mercado</th>
-              <th class="r" style="min-width:65px">Avg. mercado</th>
-              <th class="r" style="min-width:85px">Tarifa DP World</th>
-              <th class="r" style="min-width:75px">Margen %</th>
-              <th style="min-width:110px">Posición</th>
+              <th style="min-width:140px">Servicio</th>
+              <th style="min-width:75px">Unidad</th>
+              <th class="r" style="min-width:70px">Costo base</th>
+              <th class="r" style="min-width:60px">Mín. mdo.</th>
+              <th class="r" style="min-width:60px">Máx. mdo.</th>
+              <th class="r" style="min-width:80px">Tarifa DP World</th>
+              <th class="r" style="min-width:70px">Margen %</th>
+              <th style="min-width:100px">Posición</th>
+              <th class="r" style="min-width:30px"></th>
             </tr>
           </thead>
           <tbody id="tarifasBaseTblBody"></tbody>
         </table>
       </div>
-      <div style="font-size:.62rem;color:#aaa;margin-top:10px;font-style:italic">
-        💡 El costo base viene del motor de productividades. Ajusta la tarifa estándar y guarda para que todos los vendedores la vean.
-        El margen real = (tarifa − costo) / tarifa.
+      <button class="btn-add-row" onclick="addTarifaRow()" style="margin-top:8px">+ Agregar tarifa</button>
+      <div style="font-size:.62rem;color:#aaa;margin-top:8px;font-style:italic">
+        💡 El costo base viene del motor de productividades. La tarifa es editable — guarda para que todos los vendedores la vean.
+        Margen = (tarifa − costo base) / tarifa.
       </div>
     </div>
   </div>
@@ -2183,8 +2197,38 @@ function calcAndShow(){
   }
 
   html+=`<div class="litems"><div class="lihdr"><div>Servicio</div><div style="text-align:right">Vol.</div><div style="text-align:right">Tarifa</div><div style="text-align:right">Subtotal</div><div></div></div>`;
-  lines.forEach(l=>{html+=`<div class="lirow"><div><div class="li-name">${l.name}</div><div class="li-sub">${l.unit}</div></div><div class="li-v">${l.qty.toLocaleString()}</div><div class="li-v">$${l.rate.toFixed(2)}</div><div class="li-c">$${fm(l.sub)}</div></div>`;});
-  html+=`<div class="li-total"><div class="li-tl">Total mensual estimado</div><div class="li-tv">$${fm(totT)}</div></div></div>`;
+  lines.forEach((l,i)=>{
+    const isCosto = l.costoOnly||l.isGF;
+    const rowBg = l.isGF?'background:#EEEEF8;':'';
+    html+=`<div class="lirow-removable" style="${rowBg}" id="qrow_${i}">
+      <div style="flex:1;min-width:0">
+        <div class="li-name">${l.isGF?'📊 ':''} ${l.name}</div>
+        <div class="li-sub">${l.unit}${isCosto?' · <em style="color:#9B97C8">costo interno</em>':''}</div>
+      </div>
+      <div class="li-v">${l.qty.toLocaleString()}</div>
+      <div class="li-v">
+        ${isCosto?`$${fm(l.rate)}`:`<input type="number" value="${l.rate.toFixed(l.rate<1?3:2)}"
+          min="0" step="${l.rate<1?'0.01':'1'}"
+          style="width:68px;padding:3px 5px;border:1.5px solid var(--border);border-radius:4px;font-family:'Barlow',sans-serif;font-size:.75rem;text-align:right;outline:none;color:var(--blue)"
+          oninput="editQuoteLine(${i},'rate',this.value)"
+          onfocus="this.style.borderColor='var(--blue)'"
+          onblur="this.style.borderColor='var(--border)'">`}
+      </div>
+      <div class="li-c" style="${l.isGF?'color:#9B97C8':''}">
+        ${isCosto?'<em style="font-size:.68rem;color:#aaa">—</em>':`$${fm(l.sub)}`}
+      </div>
+      ${isCosto?'<div></div>':`<button class="li-remove" onclick="removeQuoteLine(${i})" title="Eliminar">✕</button>`}
+    </div>`;
+  });
+  html+=`<div class="li-total" id="quoteTotal"><div class="li-tl">Total mensual estimado</div><div class="li-tv">$${fm(totT)}</div></div>`;
+  // Add rubro button
+  html+=`<div style="padding:9px 13px;border-top:1px solid var(--border)">
+    <button onclick="addQuoteLine()" style="width:100%;padding:8px;background:transparent;border:1.5px dashed var(--green);border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.76rem;text-transform:uppercase;letter-spacing:.05em;color:var(--green);cursor:pointer;transition:all .2s"
+      onmouseover="this.style.background='#EEFAF4'" onmouseout="this.style.background='transparent'">
+      + Agregar rubro
+    </button>
+  </div>`;
+  html+=`</div>`;
 
   // KPIs
   const totConts=(v.cont40p||0)+(v.cont20p||0)+(v.cont40g||0)+(v.cont20g||0);
@@ -3012,16 +3056,33 @@ function renderUpdatedQuote(){
   html+=q._alertsHTML||'';
   html+=`<div class="litems"><div class="lihdr"><div>Servicio</div><div style="text-align:right">Vol.</div><div style="text-align:right">Tarifa</div><div style="text-align:right">Subtotal</div><div></div></div>`;
   q.lines.forEach((l,i)=>{
-    const rowStyle=l.isGF?'background:#EEEEF8;':'';
-    html+=`<div class="lirow-removable" style="${rowStyle}">
-      <div><div class="li-name">${l.isGF?'📊 ':''} ${l.name}</div><div class="li-sub">${l.unit}${l.costoOnly?' · <em style="color:#9B97C8">no facturado</em>':''}</div></div>
+    const isCosto = l.costoOnly||l.isGF;
+    const rowBg = l.isGF?'background:#EEEEF8;':'';
+    html+=`<div class="lirow-removable" style="${rowBg}" id="qrow_${i}">
+      <div style="flex:1;min-width:0">
+        <div class="li-name">${l.isGF?'📊 ':''} ${l.name}</div>
+        <div class="li-sub">${l.unit}${isCosto?' · <em style="color:#9B97C8">costo interno</em>':''}</div>
+      </div>
       <div class="li-v">${l.qty.toLocaleString()}</div>
-      <div class="li-v">$${l.rate.toFixed(2)}</div>
-      <div class="li-c" style="${l.isGF?'color:#9B97C8':''}${l.costoOnly?'color:#9B97C8':''}">$${fm(l.sub)}</div>
-      ${l.isGF?'<div></div>':`<button class="li-remove" onclick="removeQuoteLine(${i})" title="Eliminar">✕</button>`}
+      <div class="li-v">
+        ${isCosto?`$${fm(l.rate)}`:`<input type="number" value="${l.rate.toFixed(l.rate<1?3:2)}"
+          min="0" step="${l.rate<1?'0.01':'1'}"
+          style="width:68px;padding:3px 5px;border:1.5px solid var(--border);border-radius:4px;font-family:'Barlow',sans-serif;font-size:.75rem;text-align:right;outline:none;color:var(--blue)"
+          oninput="editQuoteLine(${i},'rate',this.value)">`}
+      </div>
+      <div class="li-c" style="${isCosto?'color:#9B97C8':''}">
+        ${isCosto?'<em style="font-size:.68rem;color:#aaa">—</em>':`$${fm(l.sub)}`}
+      </div>
+      ${isCosto?'<div></div>':`<button class="li-remove" onclick="removeQuoteLine(${i})" title="Eliminar">✕</button>`}
     </div>`;
   });
-  html+=`<div class="li-total"><div class="li-tl">Total mensual estimado</div><div class="li-tv">$${fm(q.totT)}</div></div></div>`;
+  html+=`<div class="li-total" id="quoteTotal"><div class="li-tl">Total mensual estimado</div><div class="li-tv">$${fm(q.totT)}</div></div>`;
+  html+=`<div style="padding:9px 13px;border-top:1px solid var(--border)">
+    <button onclick="addQuoteLine()" style="width:100%;padding:8px;background:transparent;border:1.5px dashed var(--green);border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.76rem;text-transform:uppercase;letter-spacing:.05em;color:var(--green);cursor:pointer">
+      + Agregar rubro
+    </button>
+  </div>`;
+  html+=`</div>`;
   html+=q._kpisHTML||'';
   html+=q._footerHTML||'';
   document.getElementById('quoteResult').innerHTML=html;
@@ -4074,6 +4135,7 @@ function showAdminSections(){
   if(tarifasSection) tarifasSection.style.display = isAdmin ? 'block' : 'none';
   if(isAdmin){
     loadUserList();
+    if(!TARIFAS_EDITABLES.length) initTarifasEditables();
     renderTarifasBase();
   }
 }
@@ -4114,71 +4176,122 @@ const TARIFA_GROUPS = [
   { label:'🚗 Vehículos',             keys:['vehDesc','vehCarga','vehAlmac','vehConductor','vehManejo'] },
 ];
 
-function renderTarifasBase() {
-  // Only update CB from productivities, NOT TARIFAS.cost
-  // TARIFAS.cost stays as market avg
-  const mgn = getGlobalMGN();
-  const tbody = document.getElementById('tarifasBaseTblBody');
-  if (!tbody) return;
+// ── TARIFAS BASE STATE ────────────────────────────────────────────────────────
+let TARIFAS_EDITABLES = [];
+let nextTarifaId = 1000;
 
-  const fm = (n,dec=2) => n!=null ? '$'+parseFloat(n).toFixed(dec) : '—';
-
-  let rows = '';
+function initTarifasEditables() {
+  TARIFAS_EDITABLES = [];
+  let tid = nextTarifaId;
   TARIFA_GROUPS.forEach(g => {
-    rows += `<tr><td colspan="9" style="background:#F0EFF8;padding:7px 10px;font-size:.62rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.07em;border-top:2px solid #C8C5E0">${g.label}</td></tr>`;
     g.keys.forEach(k => {
       const t = TARIFAS[k];
       if (!t) return;
-      const cb = CB[k] || 0;
       const bm = MARKET_BENCHMARK[k] || null;
-      const margenReal = t.cost > 0 && cb > 0 ? ((t.cost - cb) / t.cost * 100) : null;
-      const margenCls = margenReal==null?'color:#bbb':margenReal>=30?'color:var(--green)':margenReal>=15?'color:var(--orange)':'color:#E8003D';
-
-      // Market position indicator
-      let posIcon = '—', posStyle = 'color:#bbb', posTitle = 'Sin benchmark';
-      if (bm) {
-        if (t.cost > bm.max) {
-          posIcon = '▲ Por encima'; posStyle = 'color:#9B59B6;font-weight:700';
-          posTitle = `Encima del mercado (máx: ${fm(bm.max)})`;
-        } else if (t.cost < bm.min) {
-          posIcon = '▼ Por debajo'; posStyle = 'color:var(--orange);font-weight:700';
-          posTitle = `Debajo del mínimo (mín: ${fm(bm.min)})`;
-        } else {
-          posIcon = '✓ En mercado'; posStyle = 'color:var(--green);font-weight:700';
-          posTitle = `Dentro del rango (${fm(bm.min)} — ${fm(bm.max)})`;
-        }
-      }
-
-      rows += `<tr style="border-bottom:1px solid var(--border)">
-        <td style="font-size:.78rem;font-weight:600;padding:8px 10px">${t.label}</td>
-        <td style="font-size:.68rem;color:#888;padding:8px 6px;white-space:nowrap">${t.unit}</td>
-        <td class="r" style="padding:8px 6px">
-          <span class="cost-pill" style="font-size:.7rem">
-            ${cb > 0 ? '$'+cb.toFixed(cb<1?4:2) : '<em style="color:#bbb;font-style:italic">—</em>'}
-          </span>
-        </td>
-        <td class="r" style="font-size:.72rem;color:#aaa;padding:8px 6px">${bm ? fm(bm.min, bm.min<1?2:0) : '—'}</td>
-        <td class="r" style="font-size:.72rem;color:#aaa;padding:8px 6px">${bm ? fm(bm.max, bm.max<1?2:0) : '—'}</td>
-        <td class="r" style="font-size:.72rem;color:#888;padding:8px 6px">${bm ? fm(bm.avg, bm.avg<1?2:0) : '—'}</td>
-        <td style="padding:8px 6px">
-          <input type="number" class="prod-input r" value="${t.cost.toFixed(t.cost<1?3:2)}" 
-            min="0" step="${t.cost<1?'0.01':'1'}"
-            style="width:80px;font-weight:700;color:var(--blue);text-align:right"
-            id="tb_${k}" oninput="updateTarifaBase('${k}',this.value)">
-        </td>
-        <td class="r" style="font-size:.75rem;font-weight:700;padding:8px 6px;${margenCls}" id="tbmgn_${k}">
-          ${margenReal!=null ? margenReal.toFixed(1)+'%' : '—'}
-        </td>
-        <td style="padding:8px 8px;font-size:.68rem;font-weight:700;${posStyle}" 
-            title="${posTitle}" id="tbpos_${k}">
-          ${posIcon}
-        </td>
-      </tr>`;
+      TARIFAS_EDITABLES.push({
+        id: tid++, key: k, label: t.label, unit: t.unit, cost: t.cost,
+        bmMin: bm ? bm.min : null, bmMax: bm ? bm.max : null,
+      });
     });
   });
-
-  tbody.innerHTML = rows;
+  nextTarifaId = tid;
 }
+
+function renderTarifasBase() {
+  if (!TARIFAS_EDITABLES.length) initTarifasEditables();
+  const tbody = document.getElementById('tarifasBaseTblBody');
+  if (!tbody) return;
+  const fm = (n, dec=2) => n != null ? '$' + parseFloat(n).toFixed(dec) : '—';
+  tbody.innerHTML = TARIFAS_EDITABLES.map(t => {
+    const cb = CB[t.key] || 0;
+    const mgn = t.cost > 0 && cb > 0 ? ((t.cost - cb) / t.cost * 100) : null;
+    const mgnClr = mgn==null?'#bbb':mgn>=30?'var(--green)':mgn>=15?'var(--orange)':'#E8003D';
+    let posIcon = '—', posClr = '#bbb';
+    if (t.bmMin != null && t.bmMax != null) {
+      if (t.cost > t.bmMax)      { posIcon='▲ Por encima'; posClr='#9B59B6'; }
+      else if (t.cost < t.bmMin) { posIcon='▼ Por debajo'; posClr='var(--orange)'; }
+      else                        { posIcon='✓ En mercado'; posClr='var(--green)'; }
+    }
+    const step = t.cost < 1 ? '0.001' : '1';
+    const dec  = t.cost < 1 ? 3 : 2;
+    return `<tr style="border-bottom:1px solid var(--border)" id="tbrow_${t.id}">
+      <td style="padding:7px 8px">
+        <input class="ainput" value="${t.label}" style="width:100%;min-width:120px"
+          oninput="updateTarifaField(${t.id},'label',this.value)">
+      </td>
+      <td style="padding:7px 6px">
+        <input class="ainput" value="${t.unit}" style="width:75px"
+          oninput="updateTarifaField(${t.id},'unit',this.value)">
+      </td>
+      <td class="r" style="padding:7px 6px">
+        <span class="cost-pill" style="font-size:.7rem">
+          ${cb > 0 ? '$'+cb.toFixed(cb<1?4:2) : '<em style="color:#bbb">—</em>'}
+        </span>
+      </td>
+      <td class="r" style="font-size:.72rem;color:#aaa;padding:7px 6px">
+        ${t.bmMin!=null ? fm(t.bmMin,t.bmMin<1?2:0) : '—'}
+      </td>
+      <td class="r" style="font-size:.72rem;color:#aaa;padding:7px 6px">
+        ${t.bmMax!=null ? fm(t.bmMax,t.bmMax<1?2:0) : '—'}
+      </td>
+      <td style="padding:7px 6px">
+        <input type="number" class="ainput r" value="${t.cost.toFixed(dec)}"
+          min="0" step="${step}" style="width:80px;font-weight:700;color:var(--blue)"
+          oninput="updateTarifaCost(${t.id},this.value)">
+      </td>
+      <td class="r" style="font-size:.75rem;font-weight:700;padding:7px 6px;color:${mgnClr}" id="tbmgn_${t.id}">
+        ${mgn!=null ? mgn.toFixed(1)+'%' : '—'}
+      </td>
+      <td style="padding:7px 6px;font-size:.68rem;font-weight:700;color:${posClr}" id="tbpos_${t.id}">
+        ${posIcon}
+      </td>
+      <td class="r" style="padding:7px 4px">
+        <button class="btn-del-row" onclick="delTarifaRow(${t.id})">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function updateTarifaField(id, field, val) {
+  const t = TARIFAS_EDITABLES.find(x => x.id === id);
+  if (!t) return;
+  t[field] = val;
+  if (t.key && TARIFAS[t.key]) TARIFAS[t.key][field] = val;
+}
+
+function updateTarifaCost(id, val) {
+  const t = TARIFAS_EDITABLES.find(x => x.id === id);
+  if (!t) return;
+  t.cost = parseFloat(val) || 0;
+  if (t.key && TARIFAS[t.key]) { TARIFAS[t.key].cost = t.cost; if(!S._manualTarifas)S._manualTarifas={}; S._manualTarifas[t.key]=true; }
+  const cb = CB[t.key] || 0;
+  const mgn = t.cost > 0 && cb > 0 ? ((t.cost - cb) / t.cost * 100) : null;
+  const el = document.getElementById('tbmgn_' + id);
+  if (el) { el.textContent = mgn!=null?mgn.toFixed(1)+'%':'—'; el.style.color = mgn==null?'#bbb':mgn>=30?'var(--green)':mgn>=15?'var(--orange)':'#E8003D'; }
+  const pe = document.getElementById('tbpos_' + id);
+  if (pe && t.bmMin != null) {
+    if (t.cost > t.bmMax)      { pe.textContent='▲ Por encima'; pe.style.color='#9B59B6'; }
+    else if (t.cost < t.bmMin) { pe.textContent='▼ Por debajo'; pe.style.color='var(--orange)'; }
+    else                        { pe.textContent='✓ En mercado'; pe.style.color='var(--green)'; }
+  }
+}
+
+function delTarifaRow(id) {
+  const t = TARIFAS_EDITABLES.find(x => x.id === id);
+  if (t && t.key && TARIFAS[t.key]) delete TARIFAS[t.key];
+  TARIFAS_EDITABLES = TARIFAS_EDITABLES.filter(x => x.id !== id);
+  renderTarifasBase();
+}
+
+function addTarifaRow() {
+  const nid = nextTarifaId++;
+  const nkey = 'custom_' + nid;
+  TARIFAS_EDITABLES.push({ id:nid, key:nkey, label:'Nueva tarifa', unit:'/unidad', cost:0, bmMin:null, bmMax:null });
+  TARIFAS[nkey] = { label:'Nueva tarifa', unit:'/unidad', cost:0 };
+  renderTarifasBase();
+  setTimeout(() => { const r=document.getElementById('tbrow_'+nid); if(r)r.scrollIntoView({behavior:'smooth',block:'center'}); }, 100);
+}
+
 
 function updateTarifaBase(key, val) {
   const newVal = parseFloat(val) || 0;
@@ -4750,6 +4863,120 @@ function initCollapsibleSections() {
       if (hdr) hdr.classList.add('collapsed');
     }
   });
+}
+
+
+
+// ── EDITABLE QUOTE LINES ──────────────────────────────────────────────────────
+function editQuoteLine(idx, field, val) {
+  if (!S.lastQuote || !S.lastQuote.lines) return;
+  const line = S.lastQuote.lines[idx];
+  if (!line) return;
+  const fm = n => n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  
+  if (field === 'rate') {
+    line.rate = parseFloat(val) || 0;
+    line.sub  = Math.round(line.rate * line.qty * 100) / 100;
+  }
+  
+  // Recalc totals
+  let newTotT = 0, newTotC = 0;
+  S.lastQuote.lines.forEach(l => {
+    if (!l.costoOnly) newTotT += l.sub;
+    newTotC += l.costoB || 0;
+  });
+  if (S.lastQuote.costoFijoAplicado) newTotC += S.lastQuote.costoFijoAplicado;
+  
+  const newMargen = newTotC > 0 ? (newTotT - newTotC) / newTotT * 100 : 0;
+  S.lastQuote.totT = newTotT;
+  S.lastQuote.totC = newTotC;
+  S.lastQuote.margen = newMargen;
+  S.lastQuote.utilidad = newTotT - newTotC;
+  S._baseTotT = newTotT;
+  S._baseTotC = newTotC;
+  S._baseLines = [...S.lastQuote.lines];
+  
+  // Update subtotal display for this row
+  const row = document.getElementById('qrow_' + idx);
+  if (row) {
+    const subEl = row.querySelector('.li-c');
+    if (subEl) subEl.textContent = '$' + fm(line.sub);
+  }
+  
+  // Update total and margin
+  const totalEl = document.getElementById('quoteTotal');
+  if (totalEl) totalEl.innerHTML = `<div class="li-tl">Total mensual estimado · Margen: <span style="color:${newMargen>=30?'var(--green)':newMargen>=15?'var(--orange)':'#E8003D'}">${newMargen.toFixed(1)}%</span></div><div class="li-tv">$${fm(newTotT)}</div>`;
+  
+  // Update mbar cards
+  const mbiVals = document.querySelectorAll('.mbi-val');
+  if (mbiVals[0]) mbiVals[0].textContent = '$' + fm(newTotT);
+  if (mbiVals[2]) {
+    mbiVals[2].textContent = newMargen.toFixed(1) + '%';
+    mbiVals[2].className = 'mbi-val ' + (newMargen>=30?'good':newMargen>=15?'warn':'bad');
+  }
+}
+
+function addQuoteLine() {
+  if (!S.lastQuote) return;
+  if (!S.lastQuote.lines) S.lastQuote.lines = [];
+  
+  // Show inline form
+  const container = document.getElementById('addLineForm');
+  if (container) { container.style.display = container.style.display==='none'?'block':'none'; return; }
+  
+  // Create add form
+  const form = document.createElement('div');
+  form.id = 'addLineForm';
+  form.style.cssText = 'padding:12px 13px;background:#F8F8FC;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 80px 80px auto;gap:7px;align-items:end';
+  form.innerHTML = `
+    <div>
+      <div style="font-size:.6rem;color:#888;text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:3px">Nombre del rubro</div>
+      <input id="newLineName" type="text" placeholder="Ej. Custodia especial" style="width:100%;padding:7px 9px;border:1.5px solid var(--border);border-radius:5px;font-family:'Barlow',sans-serif;font-size:.8rem;outline:none">
+    </div>
+    <div>
+      <div style="font-size:.6rem;color:#888;text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:3px">Unidad</div>
+      <input id="newLineUnit" type="text" placeholder="/mes" style="width:100%;padding:7px 9px;border:1.5px solid var(--border);border-radius:5px;font-family:'Barlow',sans-serif;font-size:.8rem;outline:none">
+    </div>
+    <div>
+      <div style="font-size:.6rem;color:#888;text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:3px">Tarifa (USD)</div>
+      <input id="newLineRate" type="number" placeholder="0.00" min="0" step="0.01" style="width:100%;padding:7px 9px;border:1.5px solid var(--border);border-radius:5px;font-family:'Barlow',sans-serif;font-size:.8rem;outline:none;text-align:right">
+    </div>
+    <div style="display:flex;gap:5px">
+      <button onclick="confirmAddLine()" style="padding:7px 12px;background:var(--green);color:#fff;border:none;border-radius:5px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.78rem;cursor:pointer">✓</button>
+      <button onclick="document.getElementById('addLineForm').remove()" style="padding:7px 10px;background:#F0F0F0;color:#888;border:none;border-radius:5px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.78rem;cursor:pointer">✕</button>
+    </div>`;
+  
+  // Insert before the add button row
+  const addBtn = document.querySelector('#quoteResult .lirow-removable ~ div > button');
+  const parent = addBtn?.closest('div')?.parentElement;
+  if (parent) {
+    const addBtnRow = parent.querySelector('div:last-child');
+    if (addBtnRow) parent.insertBefore(form, addBtnRow);
+  } else {
+    // Fallback — append to quoteResult
+    document.getElementById('quoteResult').appendChild(form);
+  }
+}
+
+function confirmAddLine() {
+  const name = document.getElementById('newLineName')?.value?.trim();
+  const unit = document.getElementById('newLineUnit')?.value?.trim() || '/mes';
+  const rate = parseFloat(document.getElementById('newLineRate')?.value) || 0;
+  
+  if (!name) { alert('Ingresa el nombre del rubro.'); return; }
+  
+  const newLine = { name, unit, qty: 1, rate, sub: rate, costoB: 0 };
+  S.lastQuote.lines.push(newLine);
+  S._baseLines = [...S.lastQuote.lines];
+  
+  // Remove form and re-render
+  document.getElementById('addLineForm')?.remove();
+  
+  // Update totals
+  editQuoteLine(S.lastQuote.lines.length - 1, 'rate', rate);
+  
+  // Re-render line items
+  renderUpdatedQuote();
 }
 
 </script>

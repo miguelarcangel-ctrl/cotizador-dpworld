@@ -2302,7 +2302,85 @@ tbody td:first-child{text-align:left;color:#1B1B1B;font-weight:500}
 .alert strong{font-weight:700;display:block;margin-bottom:1px}
 .foot{margin-top:18px;padding-top:9px;border-top:1px solid #E0E0E0;display:flex;justify-content:space-between;font-size:10px;color:#aaa}
 @media print{body{padding:12px}@page{margin:.7cm}}
-</style></head><body>`;
+</style></head><body>
+<div class="hdr">
+  <div class="logo">DP<span>WORLD</span> <span style="font-size:12px;color:#888;font-weight:600">3PL Panamá</span></div>
+  <div class="hdr-r"><strong>Propuesta Comercial · Servicios de Bodega</strong>${q.today}<br>Vigencia: ${q.vigencia} días · Por: ${q.seller}<br>DAL · Colón Logistics Park</div>
+</div>
+
+<div class="cb">
+  <div class="cf">Cotización para</div>
+  <div class="cn">${q.client}</div>
+  <div class="cs">Zona Libre de Colón · Cocosolito · Panamá</div>
+  <span class="badge">${TNAMES[q.type]||q.type||'—'}</span>
+  ${q.tipoMerc?`<span class="badge${q.tipoMerc==='hazmat'?' r':''}">${q.tipoMerc}</span>`:''}
+  ${q.storageFmt?`<span class="badge">${{pallet_pos:'Pallet pos/mes',m2:'m²/mes',cbm:'CBM/día',bulto:'Bulto pico'}[q.storageFmt]||''}</span>`:''}
+</div>
+
+<div class="mbar">
+  <div class="mbi"><div class="mbi-l">Total mensual</div><div class="mbi-v">$${fm(q.totT)}</div><div class="mbi-s">tarifa al cliente</div></div>
+  <div class="mbi"><div class="mbi-l">Costo operativo</div><div class="mbi-v">$${fm(q.totC)}</div><div class="mbi-s">estimado</div></div>
+  <div class="mbi"><div class="mbi-l">Margen</div><div class="mbi-v ${mCls}">${q.margen.toFixed(1)}%</div><div class="mbi-s">$${q.utilidad.toFixed(2)}</div></div>
+</div>
+
+${(q.alerts||[]).map(a=>`<div class="alert ${a.cls==='aok'?'aok':a.cls==='ainfo'?'ainfo':'aw'}"><span>${a.i}</span><div><strong>${a.t}</strong>${a.msg}</div></div>`).join('')}
+
+<div class="stitle">Detalle de servicios</div>
+<table>
+  <thead><tr><th>Servicio</th><th>Unidad</th><th>Volumen</th><th>Tarifa</th><th>Subtotal</th></tr></thead>
+  <tbody>
+    ${(q.lines||[]).map(l=>`<tr>
+      <td>${l.name}<span class="sub">${l.unit}</span></td>
+      <td style="text-align:right">${l.unit}</td>
+      <td style="text-align:right">${l.qty}</td>
+      <td style="text-align:right">$${parseFloat(l.rate||0).toFixed(2)}</td>
+      <td style="text-align:right;color:#1A1060;font-weight:700">${l.costoOnly?'<em style="font-size:9px;color:#aaa">costo interno</em>':'$'+fm(l.sub)}</td>
+    </tr>`).join('')}
+  </tbody>
+  <tfoot><tr class="trow"><td colspan="4">TOTAL MENSUAL ESTIMADO</td><td>$${fm(q.totT)}</td></tr></tfoot>
+</table>
+
+<!-- SECCIÓN B: FICHA OPERACIONAL -->
+<div style="margin-top:20px;border-top:3px solid #1A1060;padding-top:14px">
+  <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;color:#1A1060;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">SECCIÓN B — FICHA OPERACIONAL</div>
+
+  <div class="stitle">Perfil de carga</div>
+  <table><thead><tr><th>Campo</th><th>Valor</th><th>Campo</th><th>Valor</th></tr></thead><tbody>
+    <tr><td>Tipo de mercancía</td><td>${q.tipoMerc||'—'}</td><td>Temperatura</td><td>${document.getElementById('temperatura')?.value||'—'}</td></tr>
+    <tr><td>UoM principal</td><td>${document.getElementById('uom')?.value||'—'}</td><td>Tipo pallet</td><td>${document.getElementById('palletType')?.value||'—'}</td></tr>
+    <tr><td>Rotación</td><td>${document.getElementById('rotacion')?.value||'—'}</td><td>Trazabilidad</td><td>${document.getElementById('trazabilidad')?.value||'—'}</td></tr>
+    <tr><td>Total SKUs</td><td>${document.getElementById('totalSkus')?.value||'—'}</td><td>% Unidad / % Bulto</td><td>${document.getElementById('pctUnidad')?.value||'—'}% / ${document.getElementById('pctBulto')?.value||'—'}%</td></tr>
+    <tr><td>Posiciones promedio</td><td>${document.getElementById('posPromedio')?.value||'—'}</td><td>Posiciones pico</td><td>${document.getElementById('posPico')?.value||'—'}</td></tr>
+  </tbody></table>
+
+  ${(q.lines||[]).length>0?`
+  <div class="stitle" style="margin-top:12px">Volúmenes declarados</div>
+  <table><thead><tr><th>Servicio</th><th>Volumen</th><th>Tarifa</th></tr></thead><tbody>
+    ${(q.lines||[]).filter(l=>!l.costoOnly&&!l.isGF).map(l=>`<tr><td>${l.name}</td><td>${l.qty} ${l.unit}</td><td>$${parseFloat(l.rate||0).toFixed(2)}</td></tr>`).join('')}
+  </tbody></table>`:''}
+
+  ${document.getElementById('contactName')?.value?`
+  <div class="stitle" style="margin-top:12px">Datos del cliente</div>
+  <table><tbody>
+    <tr><td>Contacto</td><td>${document.getElementById('contactName')?.value||'—'}</td><td>Email</td><td>${document.getElementById('contactEmail')?.value||'—'}</td></tr>
+    <tr><td>Teléfono</td><td>${document.getElementById('contactPhone')?.value||'—'}</td><td>Inicio estimado</td><td>${document.getElementById('startDate')?.value||'—'}</td></tr>
+  </tbody></table>`:''}
+
+  ${S.capex&&S.capexMensual>0?`
+  <div class="stitle" style="margin-top:12px">CAPEX / OPEX</div>
+  <table><tbody>
+    <tr><td>CAPEX mensual</td><td>$${S.capexMensual.toFixed(2)}/mes</td></tr>
+    ${OPEX.personal.map(p=>`<tr><td>Personal: ${p.nombre}</td><td>$${p.costo.toFixed(2)}/mes</td></tr>`).join('')}
+    ${OPEX.equipo.map(e=>`<tr><td>Equipo: ${e.nombre}</td><td>$${e.costo.toFixed(2)}/mes</td></tr>`).join('')}
+  </tbody></table>`:''}
+</div>
+
+<div class="foot">
+  <div><strong>DP World Panamá</strong> · DAL Colón Logistics Park · 3PL</div>
+  <div>Documento interno · v3.0 · ${q.today}</div>
+</div>
+<script>window.onload=function(){window.print();};<\/script>
+</body></html>`;
   // Store for download if needed
   S._lastPrintHTML = printHTML;
   S._lastPrintFilename = 'Cotizacion_DPWorld_'+(q.client||'').replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.html';
@@ -4777,4 +4855,4 @@ function initCollapsibleSections() {
 </div>
 
 </body>
-      </html>
+          </html>

@@ -3386,9 +3386,14 @@ function renderCostos(){
   const tbody=document.getElementById('costosBody');
   tbody.innerHTML=ADMIN.costos.map(c=>`
     <tr>
-      <td><input class="ainput" value="${c.rubro}" placeholder="Rubro" oninput="ADMIN.costos.find(x=>x.id===${c.id}).rubro=this.value" onblur="renderCostos()"></td>
-      <td><input class="ainput" value="${c.cat}" placeholder="Categoría" oninput="ADMIN.costos.find(x=>x.id===${c.id}).cat=this.value" onblur="renderCostos()"></td>
-      <td><input class="ainput r" type="number" value="${c.monto}" min="0" step="0.01" oninput="updateCostoMonto(${c.id},this.value)"></td>
+      <td><input class="ainput" value="${c.rubro}" placeholder="Rubro"
+        onchange="ADMIN.costos.find(x=>x.id===${c.id}).rubro=this.value"
+        onblur="ADMIN.costos.find(x=>x.id===${c.id}).rubro=this.value"></td>
+      <td><input class="ainput" value="${c.cat}" placeholder="Categoría"
+        onchange="ADMIN.costos.find(x=>x.id===${c.id}).cat=this.value"
+        onblur="ADMIN.costos.find(x=>x.id===${c.id}).cat=this.value"></td>
+      <td><input class="ainput r" type="number" value="${c.monto}" min="0" step="0.01"
+        oninput="updateCostoMonto(${c.id},this.value)"></td>
       <td class="r"><button class="btn-del-row" onclick="delCosto(${c.id})">✕</button></td>
     </tr>`).join('');
   const total=ADMIN.costos.reduce((s,c)=>s+c.monto,0);
@@ -3432,8 +3437,8 @@ function renderCuentas(){
       <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0">
         <div style="font-size:.58rem;color:#888;text-transform:uppercase;letter-spacing:.05em;font-weight:700">Cuenta</div>
         <input class="ainput" id="cn-${c.id}" value="${c.nombre}" placeholder="Nombre de cuenta" style="width:100%"
-          oninput="ADMIN.cuentas.find(x=>x.id===${c.id}).nombre=this.value"
-          onblur="renderCuentas();renderDistrib();">
+          onchange="ADMIN.cuentas.find(x=>x.id===${c.id}).nombre=this.value"
+          onblur="ADMIN.cuentas.find(x=>x.id===${c.id}).nombre=this.value;renderDistrib();">
       </div>
       <div style="display:flex;flex-direction:column;gap:3px;width:80px;flex-shrink:0">
         <div style="font-size:.58rem;color:#888;text-transform:uppercase;letter-spacing:.05em;font-weight:700">Posiciones</div>
@@ -4217,11 +4222,13 @@ function renderTarifasBase() {
     return `<tr style="border-bottom:1px solid var(--border)" id="tbrow_${t.id}">
       <td style="padding:7px 8px">
         <input class="ainput" value="${t.label}" style="width:100%;min-width:120px"
-          oninput="updateTarifaField(${t.id},'label',this.value)">
+          onchange="updateTarifaField(${t.id},'label',this.value)"
+          onblur="updateTarifaField(${t.id},'label',this.value)">
       </td>
       <td style="padding:7px 6px">
         <input class="ainput" value="${t.unit}" style="width:75px"
-          oninput="updateTarifaField(${t.id},'unit',this.value)">
+          onchange="updateTarifaField(${t.id},'unit',this.value)"
+          onblur="updateTarifaField(${t.id},'unit',this.value)">
       </td>
       <td class="r" style="padding:7px 6px">
         <span class="cost-pill" style="font-size:.7rem">
@@ -4441,9 +4448,11 @@ function renderCostosVeh(){
   tbody.innerHTML = ADMIN.costosVeh.map(c=>`
     <tr>
       <td><input class="ainput" value="${c.rubro}" placeholder="Rubro"
-        oninput="ADMIN.costosVeh.find(x=>x.id===${c.id}).rubro=this.value"></td>
+        onchange="ADMIN.costosVeh.find(x=>x.id===${c.id}).rubro=this.value"
+        onblur="ADMIN.costosVeh.find(x=>x.id===${c.id}).rubro=this.value"></td>
       <td><input class="ainput" value="${c.cat}" placeholder="Categoría"
-        oninput="ADMIN.costosVeh.find(x=>x.id===${c.id}).cat=this.value"></td>
+        onchange="ADMIN.costosVeh.find(x=>x.id===${c.id}).cat=this.value"
+        onblur="ADMIN.costosVeh.find(x=>x.id===${c.id}).cat=this.value"></td>
       <td><input class="ainput r" type="number" value="${c.monto}" min="0" step="0.01"
         oninput="updateCostoVehMonto(${c.id},this.value)"></td>
       <td class="r"><button class="btn-del-row" onclick="delCostoVeh(${c.id})">✕</button></td>
@@ -4946,16 +4955,23 @@ function addQuoteLine() {
       <button onclick="document.getElementById('addLineForm').remove()" style="padding:7px 10px;background:#F0F0F0;color:#888;border:none;border-radius:5px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.78rem;cursor:pointer">✕</button>
     </div>`;
   
-  // Insert before the add button row
-  const addBtn = document.querySelector('#quoteResult .lirow-removable ~ div > button');
-  const parent = addBtn?.closest('div')?.parentElement;
-  if (parent) {
-    const addBtnRow = parent.querySelector('div:last-child');
-    if (addBtnRow) parent.insertBefore(form, addBtnRow);
+  // Find the litems container and insert form before the add button
+  const quoteResult = document.getElementById('quoteResult');
+  if (!quoteResult) return;
+  
+  // Find the "+ Agregar rubro" button and insert form before it
+  const addBtns = quoteResult.querySelectorAll('button');
+  let targetBtn = null;
+  addBtns.forEach(b => { if(b.textContent.includes('Agregar rubro')) targetBtn = b; });
+  
+  if (targetBtn && targetBtn.parentElement) {
+    targetBtn.parentElement.insertBefore(form, targetBtn);
   } else {
-    // Fallback — append to quoteResult
-    document.getElementById('quoteResult').appendChild(form);
+    quoteResult.appendChild(form);
   }
+  
+  // Focus first input
+  setTimeout(() => { document.getElementById('newLineName')?.focus(); }, 100);
 }
 
 function confirmAddLine() {
@@ -5082,4 +5098,4 @@ function confirmAddLine() {
 </div>
 
 </body>
-  </html>
+        </html>

@@ -113,67 +113,51 @@ a{text-decoration:none;color:inherit}
 .app{display:none;padding-top:var(--hdr-h)}
 .app.show{display:block}
 
-/* ── SIDEBAR ───────────────────────────────────────────────── */
-.sidebar{
-  position:fixed;top:var(--hdr-h);left:0;bottom:0;
-  width:var(--sidebar-w);background:var(--white);
-  border-right:1px solid var(--border);z-index:50;
-  display:none;flex-direction:column;overflow-y:auto;
-  padding:20px 0;transition:transform .25s ease;
+/* ── PROGRESS BAR (replaces sidebar) ──────────────────────── */
+.progress-bar-wrap{
+  position:sticky;top:var(--hdr-h);left:0;right:0;z-index:90;
+  background:var(--white);border-bottom:1px solid var(--border);
+  padding:0 16px;
+  box-shadow:0 1px 4px rgba(0,0,0,.05);
 }
-.sidebar.show{display:flex}
-/* Mobile: hide sidebar by default, show as overlay when toggled */
-@media(max-width:768px){
-  .sidebar{transform:translateX(-100%);display:flex!important;box-shadow:var(--shadow-lg)}
-  .sidebar.show{transform:translateX(0)}
-  .main.with-sidebar{margin-left:0!important}
-  .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:49}
-  .sidebar-overlay.show{display:block}
-  .sidebar-mobile-toggle{display:flex!important}
+.progress-steps{
+  display:flex;align-items:stretch;max-width:680px;margin:0 auto;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
 }
-.sidebar-mobile-toggle{
-  display:none;align-items:center;justify-content:center;
-  width:34px;height:34px;border-radius:8px;background:var(--light);
-  border:1.5px solid var(--border);color:var(--ink);font-size:1rem;
-  cursor:pointer;transition:var(--transition);flex-shrink:0;
+.progress-steps::-webkit-scrollbar{display:none}
+.progress-step{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:10px 12px;gap:3px;cursor:pointer;
+  position:relative;flex:1;min-width:60px;
+  border-bottom:3px solid transparent;transition:var(--transition);
+  white-space:nowrap;
 }
-.sidebar-mobile-toggle:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
-.sidebar-title{
-  font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.65rem;
-  text-transform:uppercase;letter-spacing:.1em;color:var(--mid);
-  padding:0 20px;margin-bottom:16px;
+.progress-step:hover{background:var(--light)}
+.progress-step.active{border-bottom-color:var(--blue)}
+.progress-step.done{border-bottom-color:var(--green)}
+.ps-icon{
+  width:28px;height:28px;border-radius:7px;display:flex;align-items:center;
+  justify-content:center;font-size:.8rem;background:var(--light);
+  border:1.5px solid var(--border);transition:var(--transition);flex-shrink:0;
 }
-.sidebar-step{
-  display:flex;align-items:center;gap:12px;padding:10px 20px;
-  cursor:pointer;transition:var(--transition);border-left:3px solid transparent;
-  position:relative;
+.progress-step.active .ps-icon{background:var(--blue);border-color:var(--blue);color:#fff}
+.progress-step.done .ps-icon{background:var(--green);border-color:var(--green);color:#fff}
+.ps-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.72rem;
+  color:var(--mid);text-transform:uppercase;letter-spacing:.04em}
+.progress-step.active .ps-label{color:var(--blue)}
+.progress-step.done .ps-label{color:var(--green-dark)}
+.ps-connector{
+  width:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  color:var(--border);font-size:.65rem;padding-bottom:3px;
 }
-.sidebar-step:hover{background:var(--light)}
-.sidebar-step.active{background:#EEF2FF;border-left-color:var(--blue)}
-.sidebar-step.done{border-left-color:var(--green)}
-.sidebar-step.done .ss-icon{background:var(--green);color:#fff}
-.sidebar-step.active .ss-icon{background:var(--blue);color:#fff}
-.ss-icon{
-  width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;
-  font-size:.85rem;background:var(--light);color:var(--mid);flex-shrink:0;
-  border:1.5px solid var(--border);transition:var(--transition);
-}
-.ss-info{flex:1;min-width:0}
-.ss-num{font-size:.62rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.06em}
-.ss-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.9rem;color:var(--ink)}
-.sidebar-step.active .ss-name{color:var(--blue)}
-.sidebar-step.done .ss-name{color:var(--green-dark)}
-.ss-check{font-size:.8rem;color:var(--green);display:none}
-.sidebar-step.done .ss-check{display:block}
-.sidebar-divider{height:1px;background:var(--border);margin:8px 20px}
 
 /* ── MAIN CONTENT ──────────────────────────────────────────── */
 .main{
-  min-height:calc(100vh - var(--hdr-h));
+  min-height:calc(100vh - var(--hdr-h) - 52px);
   padding:24px 20px 80px;
-  transition:margin-left .3s ease;
 }
-.main.with-sidebar{margin-left:var(--sidebar-w)}
+
 .main-inner{max-width:680px;margin:0 auto}
 
 /* ── STEPS ─────────────────────────────────────────────────── */
@@ -625,7 +609,6 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
     <img src="https://raw.githubusercontent.com/miguelarcangel-ctrl/cotizador-dpworld/main/logo_white.png" alt="DP World">
   </div>
   <div class="hdr-divider"></div>
-  <button class="sidebar-mobile-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Progreso">☰</button>
   <nav class="hdr-nav">
     <button class="hdr-btn green active" id="btnCotizador" onclick="showCotizador()">
       📝 Cotizador
@@ -643,62 +626,39 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
   </div>
 </header>
 
-<!-- ── SIDEBAR ───────────────────────────────────────────── -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-title">Progreso</div>
-  <div class="sidebar-step" id="ss-1" onclick="safeGoTo(1)">
-    <div class="ss-icon">👤</div>
-    <div class="ss-info">
-      <div class="ss-num">Paso 1</div>
-      <div class="ss-name">Cliente</div>
+<!-- ── PROGRESS BAR ─────────────────────────────────────────── -->
+<div class="progress-bar-wrap" id="progressBarWrap" style="display:none">
+  <div class="progress-steps">
+    <div class="progress-step" id="ps-1" onclick="safeGoTo(1)">
+      <div class="ps-icon" id="psi-1">👤</div>
+      <div class="ps-label">Cliente</div>
     </div>
-    <span class="ss-check">✓</span>
-  </div>
-  <div class="sidebar-step" id="ss-2" onclick="safeGoTo(2)">
-    <div class="ss-icon">📦</div>
-    <div class="ss-info">
-      <div class="ss-num">Paso 2</div>
-      <div class="ss-name">Operación</div>
+    <div class="ps-connector">›</div>
+    <div class="progress-step" id="ps-2" onclick="safeGoTo(2)">
+      <div class="ps-icon" id="psi-2">📦</div>
+      <div class="ps-label">Operación</div>
     </div>
-    <span class="ss-check">✓</span>
-  </div>
-  <div class="sidebar-step" id="ss-3" onclick="safeGoTo(3)">
-    <div class="ss-icon">📊</div>
-    <div class="ss-info">
-      <div class="ss-num">Paso 3</div>
-      <div class="ss-name">Volúmenes</div>
+    <div class="ps-connector">›</div>
+    <div class="progress-step" id="ps-3" onclick="safeGoTo(3)">
+      <div class="ps-icon" id="psi-3">📊</div>
+      <div class="ps-label">Volúmenes</div>
     </div>
-    <span class="ss-check">✓</span>
-  </div>
-  <div class="sidebar-step" id="ss-4" onclick="safeGoTo(4)">
-    <div class="ss-icon">💰</div>
-    <div class="ss-info">
-      <div class="ss-num">Paso 4</div>
-      <div class="ss-name">Costos</div>
+    <div class="ps-connector">›</div>
+    <div class="progress-step" id="ps-4" onclick="safeGoTo(4)">
+      <div class="ps-icon" id="psi-4">💰</div>
+      <div class="ps-label">Costos</div>
     </div>
-    <span class="ss-check">✓</span>
-  </div>
-  <div class="sidebar-divider"></div>
-  <div class="sidebar-step" id="ss-5" onclick="safeGoTo(5)">
-    <div class="ss-icon">💵</div>
-    <div class="ss-info">
-      <div class="ss-num">Resultado</div>
-      <div class="ss-name">Cotización</div>
+    <div class="ps-connector">›</div>
+    <div class="progress-step" id="ps-5" onclick="safeGoTo(5)">
+      <div class="ps-icon" id="psi-5">💵</div>
+      <div class="ps-label">Cotización</div>
     </div>
-    <span class="ss-check">✓</span>
   </div>
-  <div style="flex:1"></div>
-  <div style="padding:16px 20px">
-    <button onclick="resetAll()" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--mid);background:transparent;transition:var(--transition)" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--mid)'">
-      + Nueva cotización
-    </button>
-  </div>
-</aside>
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+</div>
 
 <!-- ── APP WRAPPER ───────────────────────────────────────── -->
 <div class="app" id="appWrap">
-  <div class="main with-sidebar" id="mainContent">
+  <div class="main" id="mainContent" style="padding-top:8px">
     <div class="main-inner">
       <!-- EDIT BANNER -->
       <div class="edit-banner hidden" id="editBanner">
@@ -1748,33 +1708,15 @@ function showToast(msg,type='success',duration=3000){
 }
 
 
-// ── SIDEBAR MOBILE ──────────────────────────────────────────
-function toggleSidebar(){
-  const sb=document.getElementById('sidebar');
-  const ov=document.getElementById('sidebarOverlay');
-  const open=sb.classList.toggle('show');
-  if(ov) ov.classList.toggle('show',open);
-}
-function closeSidebar(){
-  document.getElementById('sidebar')?.classList.remove('show');
-  document.getElementById('sidebarOverlay')?.classList.remove('show');
-}
-
 // ── NAVIGATION ────────────────────────────────────────────────
 function showPanel(panel){
   ['appWrap','cotWrap','adminWrap'].forEach(id=>{
     const el=document.getElementById(id);
-    if(el){el.classList.toggle('hidden',el.id!==panel);el.classList.toggle('show',el.id!==panel?false:true);}
+    if(el){el.classList.toggle('hidden',el.id!==panel);}
   });
-  const sidebar=document.getElementById('sidebar');
-  const mainContent=document.getElementById('mainContent');
-  if(panel==='appWrap'){
-    if(sidebar)sidebar.classList.add('show');
-    if(mainContent)mainContent.classList.add('with-sidebar');
-  }else{
-    if(sidebar)sidebar.classList.remove('show');
-    if(mainContent)mainContent.classList.remove('with-sidebar');
-  }
+  // Show progress bar only when in cotizador
+  const pb=document.getElementById('progressBarWrap');
+  if(pb) pb.style.display=panel==='appWrap'?'block':'none';
   // Update header buttons
   document.getElementById('btnCotizador')?.classList.toggle('active',panel==='appWrap');
   document.getElementById('btnCotizador')?.classList.toggle('green',panel==='appWrap');
@@ -1824,12 +1766,20 @@ function safeGoTo(n){
 }
 
 function updateSidebar(activeStep){
+  // Now updates the horizontal progress bar instead of sidebar
   for(let i=1;i<=5;i++){
-    const el=document.getElementById('ss-'+i);
-    if(!el)continue;
-    el.classList.remove('active','done');
-    if(i<activeStep) el.classList.add('done');
-    else if(i===activeStep) el.classList.add('active');
+    const step=document.getElementById('ps-'+i);
+    const icon=document.getElementById('psi-'+i);
+    if(!step) continue;
+    step.classList.remove('active','done');
+    if(i<activeStep){ step.classList.add('done'); if(icon) icon.textContent='✓'; }
+    else if(i===activeStep){ step.classList.add('active'); 
+      const icons=['👤','📦','📊','💰','💵'];
+      if(icon) icon.textContent=icons[i-1];
+    } else {
+      const icons=['👤','📦','📊','💰','💵'];
+      if(icon) icon.textContent=icons[i-1];
+    }
   }
 }
 
@@ -4229,4 +4179,4 @@ function renderSummaryCards(){ renderAdminKpis(); }
 
 </script>
 </body>
-  </html>
+              </html>

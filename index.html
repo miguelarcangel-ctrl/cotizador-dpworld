@@ -3444,7 +3444,7 @@ function renderProdTable(){
   const tbody = document.getElementById('prodTblBody');
   if(!tbody) return;
   tbody.innerHTML = PROD_TASKS.map(t => {
-    // Normalizar campos si vienen de versión anterior
+    // Normalize fields from older versions
     if(!t.name && t.nombre) t.name=t.nombre;
     if(!t.unit && t.unidad) t.unit=t.unidad;
     if(!t.uses && t.tipos) t.uses=t.tipos;
@@ -3856,7 +3856,7 @@ function renderAdminSections(){
             <div class="finput-prefix"><span class="prefix">%</span><input type="number" id="globalMGN" value="30" min="0" max="100" step="1"></div>
           </div>
         </div>
-        <div style="overflow-x:auto"><table class="atbl"><thead><tr><th>Tarea</th><th>Cat.</th><th>Unidad</th><th class="r">Prod.</th><th class="r">MO</th><th class="r">FK</th><th class="r">Tarifa</th><th></th></tr></thead><tbody id="prodTblBody"></tbody></table></div>
+        <div style="overflow-x:auto"><table class="atbl"><thead><tr><th>Tarea</th><th>Cat.</th><th>Unidad</th><th class="r">Prod.</th><th class="r">Ops MO</th><th class="r">Eqs FK</th><th>Tipos</th><th class="r">Tarifa calc.</th><th></th></tr></thead><tbody id="prodTblBody"></tbody></table></div>
         <button class="btn-add-row" onclick="addProdTask()" style="margin-top:8px">+ Agregar tarea</button>
       </div>
     </div>
@@ -4333,4 +4333,4 @@ function updateProdField(id,field,val){
 }
 </script>
 </body>
-</html>
+                </html>

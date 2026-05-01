@@ -59,19 +59,25 @@ a{text-decoration:none;color:inherit}
 .hdr-btn.green{background:var(--green);color:#fff;border-color:var(--green)}
 .hdr-btn.green:hover{background:var(--green-dark)}
 .hdr-user{
-  display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;
+  display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0;
 }
 .hdr-user-name{
-  font-size:.75rem;font-weight:600;color:var(--mid);
-  max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:.72rem;font-weight:600;color:var(--mid);
+  max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 .hdr-signout{
-  padding:6px 12px;border-radius:6px;font-size:.72rem;font-weight:700;
+  padding:6px 10px;border-radius:6px;font-size:.7rem;font-weight:700;
   font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;
-  letter-spacing:.05em;background:var(--light);color:var(--mid);
-  border:1.5px solid var(--border);transition:var(--transition);
+  letter-spacing:.04em;background:var(--light);color:var(--mid);
+  border:1.5px solid var(--border);transition:var(--transition);white-space:nowrap;
 }
 .hdr-signout:hover{border-color:var(--red);color:var(--red)}
+@media(max-width:480px){
+  .hdr-user-name{display:none}
+  .hdr-signout{padding:5px 8px;font-size:.65rem}
+  .hdr-btn{padding:6px 8px;font-size:.72rem;gap:3px}
+  .hdr-divider{display:none}
+}
 
 /* ── LOGIN SCREEN ──────────────────────────────────────────── */
 .login-screen{
@@ -742,6 +748,13 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
             Continuar → Tipo de operación
           </button>
         </div>
+        <div style="text-align:center;padding:0 0 24px">
+          <div style="font-size:.62rem;color:var(--mid);margin-bottom:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:700">— o bien —</div>
+          <button onclick="cotizacionEstandar()" style="width:100%;padding:12px 16px;border:2px dashed var(--blue);border-radius:10px;background:transparent;color:var(--blue);font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.9rem;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#EEF2FF'" onmouseout="this.style.background='transparent'">
+            ⚡ Cotización Estándar — todos los rubros × 1
+          </button>
+          <div style="font-size:.68rem;color:var(--mid);margin-top:6px;line-height:1.4">Tarifa referencial con todos los servicios. No requiere volúmenes ni detalles. Ideal para exploración inicial.</div>
+        </div>
       </div>
 
       <!-- ══ STEP 2: OPERACIÓN ════════════════════════════ -->
@@ -986,12 +999,12 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
             <div class="vol-grid">
               <div class="vol-card">
                 <div class="vol-label">Posiciones promedio / mes</div>
-                <input type="number" class="vol-input" id="posPromedio" min="0" placeholder="0" oninput="checkPosDisponibles()">
+                <input type="number" class="vol-input" id="posPromedio" min="0" placeholder="0" oninput="checkPosDisponibles();syncPosToForecast()">
                 <div class="vol-unit">pallet positions</div>
               </div>
               <div class="vol-card">
                 <div class="vol-label">Posiciones pico (máximo)</div>
-                <input type="number" class="vol-input" id="posPico" min="0" placeholder="0" oninput="checkPosDisponibles()">
+                <input type="number" class="vol-input" id="posPico" min="0" placeholder="0" oninput="checkPosDisponibles();syncPosToForecast()">
                 <div class="vol-unit">pallet positions</div>
               </div>
             </div>
@@ -1356,7 +1369,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
 </div><!-- /app -->
 
 <!-- ── COTIZACIONES PANEL ─────────────────────────────────── -->
-<div class="app hidden" id="cotWrap" style="padding-top:var(--hdr-h)">
+<div class="app hidden" id="cotWrap">
   <div class="main" style="max-width:760px;margin:0 auto;padding:24px 16px 80px">
     <div id="cotListView">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px">
@@ -1390,7 +1403,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
 </div>
 
 <!-- ── ADMIN / INSIGHTS PANEL ────────────────────────────── -->
-<div class="app hidden" id="adminWrap" style="padding-top:var(--hdr-h)">
+<div class="app hidden" id="adminWrap">
   <div class="main" style="max-width:780px;margin:0 auto;padding:24px 16px 80px">
     <div style="margin-bottom:20px">
       <div class="step-eyebrow" style="font-size:.65rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Administración</div>
@@ -1712,7 +1725,10 @@ function showToast(msg,type='success',duration=3000){
 function showPanel(panel){
   ['appWrap','cotWrap','adminWrap'].forEach(id=>{
     const el=document.getElementById(id);
-    if(el){el.classList.toggle('hidden',el.id!==panel);}
+    if(!el) return;
+    const active=el.id===panel;
+    el.classList.toggle('hidden',!active);
+    el.classList.toggle('show',active);
   });
   // Show progress bar only when in cotizador
   const pb=document.getElementById('progressBarWrap');
@@ -1941,6 +1957,8 @@ function renderForecast(){
   }
   
   body.innerHTML=html;
+  // Auto-sync posiciones → forecast after rendering
+  setTimeout(syncPosToForecast, 10);
 }
 
 function buildVolSection(title, fields){
@@ -2307,15 +2325,16 @@ function calcAndShow(){
       });
     }
     
-    // COSTOS FIJOS AUTO
-    const gfAuto=calcGastoFijoAutomatico();
-    if(gfAuto&&gfAuto.monto>0){
-      totC+=gfAuto.monto;
-      lines.push({name:`Costos fijos (${gfAuto.pct}% — ${gv('posPromedio')||'?'} pos)`,unit:'/mes',qty:1,rate:gfAuto.monto,sub:0,costoB:gfAuto.monto,costoOnly:true,isGF:true,autoApplied:true});
-      S._autoGF=gfAuto;
-    }else{
-      S._autoGF=null;
-    }
+    // COSTOS FIJOS AUTO — desde posiciones declaradas en paso 3
+    const posP = gv('posPromedio') || gv('posPico') || 0;
+    if(posP > 0){
+      const gfAuto = autoRepartoFromQuote(posP);
+      if(gfAuto && gfAuto.monto > 0){
+        totC += gfAuto.monto;
+        lines.push({name:`Costos fijos bodega (${gfAuto.pct}% — ${posP} pos)`,unit:'/mes',qty:1,rate:gfAuto.monto,sub:0,costoB:gfAuto.monto,costoOnly:true,isGF:true,autoApplied:true});
+        S._autoGF = gfAuto;
+      } else { S._autoGF = null; }
+    } else { S._autoGF = null; }
   }
   
   // CAPEX
@@ -2335,9 +2354,11 @@ function calcAndShow(){
   S.lastQuote=q;
   S._baseTotT=totT;S._baseTotC=totC;S._baseLines=[...lines];
   
-  // Alerts
-  if(margen<30&&margen>=15) alerts.push({type:'warn',icon:'⚠️',title:'Margen bajo',msg:' El margen es '+margen.toFixed(1)+'%, por debajo del mínimo del 30%.'});
-  if(margen<15) alerts.push({type:'danger',icon:'🔴',title:'Margen crítico',msg:' El margen es '+margen.toFixed(1)+'%. Revisar tarifas o costos.'});
+  // Alerts — skip margin warnings for std quotes
+  if(!q.isStd){
+    if(margen<30&&margen>=15) alerts.push({type:'warn',icon:'⚠️',title:'Margen bajo',msg:' El margen es '+margen.toFixed(1)+'%, por debajo del mínimo del 30%.'});
+    if(margen<15) alerts.push({type:'danger',icon:'🔴',title:'Margen crítico',msg:' El margen es '+margen.toFixed(1)+'%. Revisar tarifas o costos.'});
+  }
   if(q.tipoMerc==='hazmat') alerts.push({type:'danger',icon:'☢️',title:'Mercancía HAZMAT',msg:' Requiere validación con operaciones antes de enviar al cliente.'});
   if(!gv('posPromedio')&&!isVeh) alerts.push({type:'warn',icon:'📍',title:'Posiciones no declaradas',msg:' El reparto de costos fijos no está incluido. Declara las posiciones para mayor precisión.'});
   if(S._autoGF) alerts.push({type:'success',icon:'✅',title:'Costos fijos aplicados',msg:` ${S._autoGF.pct}% imputado automáticamente (${gv('posPromedio')} posiciones).`});
@@ -2364,11 +2385,30 @@ function renderQuoteResult(q){
   
   // KPIs
   document.getElementById('kpiTotal').textContent=fm(q.totT);
-  document.getElementById('kpiCosto').textContent=fm(q.totC);
-  const mEl=document.getElementById('kpiMargen');
-  mEl.textContent=q.margen.toFixed(1)+'%';
-  mEl.className='kpi-value '+(q.margen>=30?'good':q.margen>=15?'warn':'bad');
-  document.getElementById('kpiUtilidad').textContent='$'+parseFloat(q.utilidad||0).toFixed(2)+' utilidad';
+  if(q.isStd){
+    document.getElementById('kpiCosto').textContent='—';
+    const mEl=document.getElementById('kpiMargen');
+    mEl.textContent='Referencial';
+    mEl.className='kpi-value';
+    mEl.style.color='var(--mid)';
+    mEl.style.fontSize='.9rem';
+    document.getElementById('kpiUtilidad').textContent='ajusta según cliente';
+    // Rename KPI labels for standard
+    const kpiBar=document.querySelector('.kpi-bar');
+    if(kpiBar){
+      const labels=kpiBar.querySelectorAll('.kpi-label');
+      if(labels[0]) labels[0].textContent='Total referencial';
+      if(labels[1]) labels[1].textContent='';
+      if(labels[2]) labels[2].textContent='Tipo';
+    }
+  } else {
+    document.getElementById('kpiCosto').textContent=fm(q.totC);
+    const mEl=document.getElementById('kpiMargen');
+    mEl.textContent=q.margen.toFixed(1)+'%';
+    mEl.className='kpi-value '+(q.margen>=30?'good':q.margen>=15?'warn':'bad');
+    mEl.style.color='';mEl.style.fontSize='';
+    document.getElementById('kpiUtilidad').textContent='$'+parseFloat(q.utilidad||0).toFixed(2)+' utilidad';
+  }
   
   // Alerts
   document.getElementById('quoteAlerts').innerHTML=q.alerts.map(a=>
@@ -2413,7 +2453,8 @@ function renderLines(lines,totT){
   if(ltVal) ltVal.textContent=fm(totT);
   const margen=S.lastQuote?.margen||0;
   const ltEl=document.getElementById('linesTotal');
-  if(ltEl) ltEl.style.background=margen>=30?'var(--blue)':margen>=15?'var(--orange)':'var(--red)';
+  const q_=S.lastQuote;
+  if(ltEl) ltEl.style.background=q_?.isStd?'var(--blue)':margen>=30?'var(--blue)':margen>=15?'var(--orange)':'var(--red)';
 }
 
 function editLine(idx,field,val){
@@ -2556,7 +2597,7 @@ function downloadQuote(){
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Barlow',sans-serif;font-size:12px;color:#1B1B2F;padding:20px;background:#fff}
     .hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:3px solid #1A1060;margin-bottom:16px}
-    .hdr img{height:48px}
+    .hdr img{height:36px;max-height:36px;width:auto;max-width:120px}
     .hdr-r{text-align:right;font-size:11px;color:#666;line-height:1.6}
     .hdr-r strong{display:block;color:#1A1060;font-size:13px}
     .cb{margin-bottom:16px}
@@ -3016,7 +3057,10 @@ async function deleteUser(id, nombre){
 
 async function filterCotizaciones() {
   const container = document.getElementById('cotListContainer');
-  container.innerHTML = '<div class="cot-empty">Cargando...</div>';
+  if(!container) return;
+  if(!currentUser){container.innerHTML='<div style="padding:20px;color:var(--mid)">Sesión no iniciada.</div>';return;}
+  container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--mid)">Cargando...</div>';
+  try{
   
   const search = (document.getElementById('cotSearch')?.value||'').toLowerCase();
   const filters = {
@@ -3036,7 +3080,11 @@ async function filterCotizaciones() {
     (c.vendedor_nombre||'').toLowerCase().includes(search)
   );
   
-  renderCotList(filtered);
+    renderCotList(filtered);
+  }catch(e){
+    console.error('filterCotizaciones error:',e);
+    container.innerHTML='<div style="padding:20px;color:var(--red)">Error al cargar: '+e.message+'</div>';
+  }
 }
 
 function renderCotList(cots) {
@@ -3371,10 +3419,19 @@ function showCotizadorFromCot(){
 
 // ── INSIGHTS / ADMIN ──────────────────────────────────────────
 function renderAdmin(){
-  updatePositions();
-  renderAdminKpis();
-  renderAdminSections();
-  setTimeout(initAdminCollapse, 50);
+  try{
+    updatePositions();
+    renderAdminKpis();
+    renderAdminSections();
+    setTimeout(()=>{
+      try{
+        renderCostos();renderCuentas();renderDistrib();renderProdTable();
+        renderCostosVeh();loadCbVehInputs();
+        if(!TARIFAS_EDITABLES.length) initTarifasEditables();
+        renderTarifasBase();loadUserList();updatePositions();
+      }catch(e){console.error('renderAdmin sub-error:',e);}
+    }, 50);
+  }catch(e){console.error('renderAdmin error:',e);}
 }
 
 function renderAdminKpis(){
@@ -4177,6 +4234,77 @@ function updatePctBar(){
 
 function renderSummaryCards(){ renderAdminKpis(); }
 
+// ── COTIZACIÓN ESTÁNDAR ───────────────────────────────────────
+function cotizacionEstandar(){
+  const client = (document.getElementById('clientName')?.value||'').trim() || 'Referencia de mercado';
+  const seller = (document.getElementById('vendedor')?.value||'').trim() || '—';
+  const vigencia = document.getElementById('vigencia')?.value || 30;
+  const today = new Date().toLocaleDateString('es-PA',{day:'2-digit',month:'long',year:'numeric'});
+  const fm = n => n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  // All tariff groups × 1
+  const stdGroups = [
+    {label:'📥 Entrada / Inbound',  keys:['desc40p','desc20p','desc40g','desc20g','recepPal','recepBul','putaway']},
+    {label:'📦 Almacenaje',          keys:['almacPos','almacM2','almacCBM','almacBul']},
+    {label:'📤 Salida / Outbound',   keys:['pickBul','pickUni','prepOrd','carga40p','carga20p','carga40g','carga20g']},
+    {label:'🔧 VAS & Paletizado',    keys:['paletSin','paletCon','etiquetado','lecSerial']},
+    {label:'📄 Documentación',       keys:['dmceIn','dmceOut','memorial','tiDoc','manejoIn','manejoOut']},
+  ];
+
+  let totT = 0;
+  const lines = [];
+  stdGroups.forEach(g => {
+    g.keys.forEach(k => {
+      const t = TARIFAS[k];
+      if(t && t.cost > 0){
+        totT += t.cost;
+        lines.push({name:t.label, unit:t.unit, qty:1, rate:t.cost, sub:t.cost, costoB:0, key:k, isStd:true});
+      }
+    });
+  });
+
+  // Store in S.lastQuote — NO margen, NO costo shown
+  S.lastQuote = {
+    client, seller, type:'mixto', storageFmt:'pallet_pos', tipoMerc:'',
+    vigencia, today, numero: null,
+    lines, totT, totC: 0, margen: null, utilidad: null,
+    alerts: [{type:'info', icon:'📋', title:'Cotización Estándar',
+      msg:' Incluye todos los rubros × 1 como referencia. Elimina los que no apliquen y ajusta tarifas según el volumen real del cliente.'}],
+    isStd: true
+  };
+
+  // Render result skipping margin KPIs
+  renderQuoteResult(S.lastQuote);
+  goTo(5);
+}
+
+// ── SYNC POSICIONES → FORECAST ALMACENAJE ───────────────────
+function syncPosToForecast(){
+  const prom = document.getElementById('posPromedio')?.value || '';
+  const pico = document.getElementById('posPico')?.value || '';
+  // Fill almacenaje forecast fields if they exist (rendered by renderForecast)
+  const pallets = document.getElementById('f_pallets');
+  const palletsPico = document.getElementById('f_palletsPico');
+  if(pallets && prom && !pallets.value) pallets.value = prom;
+  if(palletsPico && pico && !palletsPico.value) palletsPico.value = pico;
+  // Also fill bulto/cbm variants
+  ['f_bultosPico'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el && pico && !el.value) el.value = pico;
+  });
+}
+
+// ── AUTO REPARTO desde cotización ────────────────────────────
+// Called from calcAndShow — auto-assigns GF based on posPromedio
+function autoRepartoFromQuote(posPromedio){
+  if(!posPromedio || !ADMIN.cuentas?.length) return null;
+  const totalPos = ADMIN.totalPos || 1716;
+  const pct = Math.min(100, posPromedio / totalPos * 100);
+  const totalCostos = ADMIN.costos?.reduce((s,c) => s + c.monto, 0) || 0;
+  const monto = Math.round(totalCostos * pct / 100 * 100) / 100;
+  return { pct: Math.round(pct*10)/10, monto, totalCostos };
+}
+
 </script>
 </body>
-              </html>
+  </html>

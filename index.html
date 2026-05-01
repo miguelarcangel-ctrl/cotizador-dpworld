@@ -31,7 +31,7 @@
 
 /* ── RESET & BASE ──────────────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;font-family:'Barlow',sans-serif;font-size:14px;color:var(--ink);background:var(--light);overscroll-behavior:none}
+html,body{height:100%;font-family:'Barlow',sans-serif;font-size:14px;color:var(--ink);background:var(--light)}
 button{cursor:pointer;font-family:'Barlow',sans-serif;border:none;outline:none}
 input,select,textarea{font-family:'Barlow',sans-serif;outline:none;border:none}
 a{text-decoration:none;color:inherit}
@@ -2526,11 +2526,12 @@ function renderGFSelector(){
   const wrap=document.getElementById('gfSelectorWrap');
   const sel=document.getElementById('gfSelector');
   if(!wrap||!sel) return;
-  const cuentas=ADMIN.cuentas?.filter(c=>c.nombre&&c.pct>0)||[];
-  if(!cuentas.length){wrap.style.display='none';return;}
+  const cuentas=ADMIN.cuentas?.filter(c=>c.nombre)||[];
+  const totalCF=ADMIN.costos?.reduce((s,c)=>s+c.monto,0)||0;
+  if(!cuentas.length&&!totalCF){wrap.style.display='none';return;}
   wrap.style.display='block';
   sel.innerHTML='<option value="">— Sin imputar —</option>'+
-    cuentas.map(c=>`<option value="${c.id}">${c.nombre} (${c.pct?.toFixed(1)}%)</option>`).join('');
+    cuentas.map(c=>`<option value="${c.id}">${c.nombre} (${c.pct?.toFixed(1)||0}% — $${(totalCF*(c.pct||0)/100).toFixed(2)})</option>`).join('');
 }
 
 function applyGastoFijo(){
@@ -2844,82 +2845,62 @@ function resetAll(){
 }
 
 
-async function saveCotizacion(estado = 'borrador') {
-  if (!currentUser) { alert('Debes iniciar sesión para guardar.'); return; }
-  if (!S.lastQuote) { alert('Genera una cotización primero.'); return; }
+async function saveCotizacion(estado='borrador'){
+  if(!currentUser){ showToast('Debes iniciar sesión','error'); return; }
+  if(!S.lastQuote){ showToast('Genera una cotización primero','warn'); return; }
+  const q=S.lastQuote;
+  const vigencia=parseInt(document.getElementById('vigencia')?.value)||30;
 
-  const q = S.lastQuote;
-  const v = q.v || {};
-
-  // Get next number
-  const { data: numData } = await supa.rpc('next_cotizacion_numero');
-  const numero = numData || 'COT-' + Date.now();
-
-  const payload = {
-    numero,
+  const payload={
     vendedor_id: currentUser.id,
-    vendedor_nombre: currentUserData?.nombre || currentUser.email,
-    cliente_nombre: q.client || '',
-    cliente_trade_name: document.getElementById('tradeName')?.value || '',
-    cliente_contacto: document.getElementById('contactName')?.value || '',
-    cliente_email: document.getElementById('contactEmail')?.value || '',
-    cliente_telefono: document.getElementById('contactPhone')?.value || '',
-    fecha_inicio_estimada: document.getElementById('startDate')?.value || null,
+    vendedor_nombre: currentUserData?.nombre||currentUser.email,
+    cliente_nombre: q.client||'',
+    cliente_trade_name: document.getElementById('tradeName')?.value||'',
+    cliente_contacto: document.getElementById('contactName')?.value||'',
+    cliente_email: document.getElementById('contactEmail')?.value||'',
+    cliente_telefono: document.getElementById('contactPhone')?.value||'',
+    fecha_inicio_estimada: document.getElementById('startDate')?.value||null,
     tipo_operacion: q.type,
-    tipo_mercancia: document.getElementById('tipoMercancia')?.value || '',
-    temperatura: document.getElementById('temperatura')?.value || '',
-    storage_fmt: q.storageFmt,
-    uom: document.getElementById('uom')?.value || '',
-    pallet_type: document.getElementById('palletType')?.value || '',
-    rotacion: document.getElementById('rotacion')?.value || '',
-    segregacion: document.getElementById('segregacion')?.value || '',
-    trazabilidad: document.getElementById('trazabilidad')?.value || '',
-    vencimiento: document.getElementById('vencimiento')?.value || '',
-    total_skus: parseInt(document.getElementById('totalSkus')?.value) || null,
-    pct_unidad: parseFloat(document.getElementById('pctUnidad')?.value) || null,
-    pct_bulto: parseFloat(document.getElementById('pctBulto')?.value) || null,
-    obs_carga: document.getElementById('obsCargas')?.value || '',
-    forecast: v,
-    docs_seleccionados: Object.entries(DOCS).filter(([k,d])=>d.checked).map(([k,d])=>({id:k,freq:d.freq,qty:d.qty||0})),
-    manejo_entrada: MANEJO['man-in'],
-    manejo_salida: MANEJO['man-out'],
-    capex_monto: parseFloat(document.getElementById('capexMonto')?.value) || 0,
-    capex_meses: parseInt(document.getElementById('capexMeses')?.value) || 12,
-    capex_mensual: S.capexMensual || 0,
-    opex_personal: OPEX.personal,
-    opex_equipo: OPEX.equipo,
-    opex_total: S.opexMensual || 0,
-    vas_requerido: document.getElementById('vasReq')?.value === 'si',
-    vas_tipo: document.getElementById('vasTipo')?.value || '',
-    vas_desc: document.getElementById('vasDesc')?.value || '',
-    esquineras: document.getElementById('esquineras')?.value === 'si',
-    incluye_transporte: S.transport,
-    rutas_seleccionadas: RUTAS.filter(r=>S.selectedRoutes.includes(r.id)),
-    rutas_custom: S.customRoutes,
-    cuenta_gf_nombre: q.cuentaGF || null,
-    cuenta_gf_pct: null,
-    costo_fijo_aplicado: q.costoFijoAplicado || 0,
-    total_tarifa: q.totT,
-    total_costo: q.totC,
-    margen: q.margen,
-    utilidad: q.utilidad,
-    lineas: q.lines,
-    tarifas_snapshot: TARIFAS,
+    tipo_mercancia: document.getElementById('tipoMercancia')?.value||'',
+    temperatura: document.getElementById('temperatura')?.value||'',
+    storage_fmt: q.storageFmt||'pallet_pos',
+    pos_promedio: parseFloat(document.getElementById('posPromedio')?.value)||null,
+    pos_pico: parseFloat(document.getElementById('posPico')?.value)||null,
+    total_tarifa: q.totT||0,
+    total_costo: q.totC||0,
+    margen: q.margen||0,
+    utilidad: q.utilidad||0,
+    lineas: q.lines||[],
     estado,
-    vigencia: parseInt(document.getElementById('vigencia')?.value) || 30,
+    vigencia,
   };
 
-  const { data, error } = await supa.from('cotizaciones').insert([payload]).select().single();
-  if (error) {
-    console.error(error);
-    alert('Error al guardar: ' + error.message);
+  try{
+    if(S._editingCotId){
+      // UPDATE modo edición
+      const{data,error}=await supa.from('cotizaciones').update(payload).eq('id',S._editingCotId).select().single();
+      if(error) throw error;
+      showToast('Cotización actualizada: '+(data?.numero||S._editingCotNumero),'success');
+      S._editingCotId=null; S._editingCotNumero=null;
+      document.getElementById('editBanner')?.classList.add('hidden');
+      return data;
+    } else {
+      // INSERT nueva
+      const{data:numData}=await supa.rpc('next_cotizacion_numero').catch(()=>({data:null}));
+      const numero=numData||('COT-'+new Date().getFullYear()+'-'+Date.now().toString().slice(-4));
+      payload.numero=numero;
+      const{data,error}=await supa.from('cotizaciones').insert([payload]).select().single();
+      if(error) throw error;
+      showToast('Cotización guardada: '+data.numero,'success');
+      return data;
+    }
+  }catch(e){
+    console.error('saveCotizacion error:',e);
+    showToast('Error al guardar: '+(e.message||JSON.stringify(e)),'error');
     return null;
   }
-
-  // Show success
-  showSaveSuccess(data.numero, data.id);
-  return data;
 }
+
 
 async function updateCotizacion(id, updates) {
   const { data, error } = await supa.from('cotizaciones').update(updates).eq('id', id).select().single();
@@ -3077,8 +3058,8 @@ async function filterCotizaciones() {
   const search = (document.getElementById('cotSearch')?.value||'').toLowerCase();
   const filters = {
     estado: document.getElementById('filtroEstado')?.value||'',
-    fecha_desde: document.getElementById('filtroDesde')?.value||'',
-    fecha_hasta: document.getElementById('filtroHasta')?.value||'',
+    fecha_desde: '',
+    fecha_hasta: '',
   };
   if(currentUserData?.rol !== 'admin') filters.vendedor_id = currentUser.id;
   
@@ -3278,29 +3259,18 @@ function renderAdmin(){
     updatePositions();
     renderAdminKpis();
     renderAdminSections();
-    // Doble frame para asegurar que el DOM se actualizó completamente
+    // Abrir la primera sección (costos fijos) por defecto
     requestAnimationFrame(()=>{
-      requestAnimationFrame(()=>{
-        try{
+      try{
+        // Auto-open costos fijos
+        const cuerpo=document.getElementById('asb-costos');
+        if(cuerpo && cuerpo.classList.contains('collapsed')){
+          cuerpo.classList.remove('collapsed');
+          const arrow=document.querySelector('#ash-costos .ash-arrow');
+          if(arrow) arrow.style.transform='';
           renderCostos();
-          renderCuentas();
-          renderDistrib();
-          renderProdTable();
-          renderCostosVeh();
-          loadCbVehInputs();
-          if(!TARIFAS_EDITABLES.length) initTarifasEditables();
-          renderTarifasBase();
-          if(currentUserData?.rol==='admin') loadUserList();
-          updatePositions();
-        }catch(e){
-          console.error('renderAdmin sub-error:',e);
-          // Mostrar error visible en adminSections
-          const sec=document.getElementById('adminSections');
-          if(sec&&!sec.querySelector('.admin-section')){
-            sec.innerHTML='<div style="padding:20px;color:var(--red);font-size:.82rem">⚠️ Error al cargar Insights: '+e.message+'</div>';
-          }
         }
-      });
+      }catch(e){ console.error('renderAdmin open costos:',e); }
     });
   }catch(e){console.error('renderAdmin error:',e);}
 }
@@ -3643,12 +3613,12 @@ async function saveCostosVeh(){
 
 // Calculate vehicle fixed cost % for a cotizacion
 function calcTaskCost(t){
-  const mo = parseFloat(document.getElementById('globalMO')?.value) || 6.50;
-  const fk = parseFloat(document.getElementById('globalFK')?.value) || 0;
-  const moRate = t.moOwn != null ? t.moOwn : mo;
-  const fkRate = t.fkOwn != null ? t.fkOwn : fk;
+  const mo = t.moOwn != null ? t.moOwn : getGlobalMO();
+  const fk = t.fkOwn != null ? t.fkOwn : getGlobalFK();
+  const ops = t.ops || 1;
+  const eqs = t.eqs || 0;
   const prod = t.prod || 1;
-  return prod > 0 ? Math.round(((moRate + fkRate) / prod) * 1000) / 1000 : 0;
+  return prod > 0 ? Math.round(((mo*ops + fk*eqs) / prod) * 10000) / 10000 : 0;
 }
 
 function initTarifasEditables() {
@@ -3999,6 +3969,17 @@ function toggleAdminSec(id){
   if(!body) return;
   const collapsed=body.classList.toggle('collapsed');
   if(arrow) arrow.style.transform=collapsed?'rotate(-90deg)':'';
+  // Lazy render: render content when section opens
+  if(!collapsed){
+    try{
+      if(id==='costos') renderCostos();
+      else if(id==='cuentas'){ renderCuentas(); renderDistrib(); }
+      else if(id==='prod') renderProdTable();
+      else if(id==='tarifas'){ if(!TARIFAS_EDITABLES.length) initTarifasEditables(); renderTarifasBase(); }
+      else if(id==='veh'){ renderCostosVeh(); loadCbVehInputs(); }
+      else if(id==='users') loadUserList();
+    }catch(e){ console.error('render section '+id+':',e); }
+  }
 }
 
 function initAdminCollapse(){
@@ -4062,6 +4043,94 @@ async function loadInsights(){
 }
 
 
+
+// ── FUNCIONES FALTANTES DE INSIGHTS ─────────────────────────
+
+function getGlobalMO(){ return parseFloat(document.getElementById('globalMO')?.value)||6.50; }
+function getGlobalFK(){ return parseFloat(document.getElementById('globalFK')?.value)||0; }
+
+function updateProd(id,field,val){
+  const t=PROD_TASKS.find(x=>x.id===id); if(!t) return;
+  t[field]=val;
+  const cp=document.getElementById('cp-'+id);
+  if(cp){ const c=calcTaskCost(t); cp.innerHTML='$'+c.toFixed(4)+'<br><span style="font-size:.58rem;color:#888">/ '+t.unit+'</span>'; }
+  syncProdToTarifas();
+}
+
+function updateProdNum(id,field,val){
+  const t=PROD_TASKS.find(x=>x.id===id); if(!t) return;
+  t[field]=parseFloat(val)||0;
+  const cp=document.getElementById('cp-'+id);
+  if(cp){ const c=calcTaskCost(t); cp.innerHTML='$'+c.toFixed(4)+'<br><span style="font-size:.58rem;color:#888">/ '+t.unit+'</span>'; }
+  syncProdToTarifas();
+}
+
+function toggleOwnRate(id,which,checked){
+  const t=PROD_TASKS.find(x=>x.id===id); if(!t) return;
+  const field=which==='mo'?'moOwn':'fkOwn';
+  const inputEl=document.getElementById(which+'-val-'+id);
+  if(!checked){
+    t[field]=null;
+    if(inputEl){ inputEl.disabled=true; inputEl.style.opacity='.4'; inputEl.value=''; }
+  } else {
+    const baseVal=which==='mo'?getGlobalMO():getGlobalFK();
+    t[field]=baseVal;
+    if(inputEl){ inputEl.disabled=false; inputEl.style.opacity='1'; inputEl.value=baseVal; }
+  }
+  updateProd(id,field,t[field]);
+}
+
+function updateCostoVehMonto(id,val){
+  const c=ADMIN.costosVeh.find(x=>x.id===id);
+  if(c) c.monto=parseFloat(val)||0;
+  const total=ADMIN.costosVeh.reduce((s,x)=>s+x.monto,0);
+  const el=document.getElementById('costosVehTotalVal');
+  if(el) el.textContent='$'+total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function generateExcel(type){
+  // Simple CSV export since no xlsx library available
+  let rows=[], filename='reporte_dpworld.csv';
+  if(type==='all' || type==='vendedor'){
+    rows=[['Número','Cliente','Tipo','Total','Costo','Margen','Estado','Fecha','Vendedor']];
+    // Load from Supabase async
+    supa.from('cotizaciones').select('numero,cliente_nombre,tipo_operacion,total_tarifa,total_costo,margen,estado,creado_en,vendedor_nombre')
+      .order('creado_en',{ascending:false})
+      .then(({data})=>{
+        if(!data) return;
+        data.forEach(c=>rows.push([c.numero,c.cliente_nombre,c.tipo_operacion,c.total_tarifa,c.total_costo,c.margen,c.estado,c.creado_en,c.vendedor_nombre]));
+        downloadCSV(rows,'cotizaciones_dpworld.csv');
+      });
+    return;
+  }
+  if(type==='cuentas'){
+    rows=[['Cuenta','Posiciones','% Reparto','Costo Asignado']];
+    const total=ADMIN.costos.reduce((s,c)=>s+c.monto,0);
+    ADMIN.cuentas.forEach(c=>rows.push([c.nombre,c.pos,c.pct+'%','$'+(total*c.pct/100).toFixed(2)]));
+    downloadCSV(rows,'cuentas_dpworld.csv');
+    return;
+  }
+  if(type==='margen'){
+    rows=[['Servicio','Unidad','Tarifa DP World','Costo Base','Margen %']];
+    TARIFAS_EDITABLES.forEach(t=>{
+      const mgn=t.cost>0?((t.cost-(CB[t.key]||0))/t.cost*100).toFixed(1):'—';
+      rows.push([t.label,t.unit,t.cost,CB[t.key]||0,mgn+'%']);
+    });
+    downloadCSV(rows,'margen_tarifas_dpworld.csv');
+    return;
+  }
+  showToast('Reporte generado','success');
+}
+
+function downloadCSV(rows,filename){
+  const csv=rows.map(r=>r.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=filename; a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV descargado: '+filename,'success');
+}
 
 // ── INIT ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
@@ -4155,9 +4224,10 @@ function cotizacionEstandar(){
   });
 
   // Store in S.lastQuote — NO margen, NO costo shown
+  const stdNumero = 'STD-'+Date.now().toString().slice(-6);
   S.lastQuote = {
     client, seller, type:'mixto', storageFmt:'pallet_pos', tipoMerc:'',
-    vigencia, today, numero: null,
+    vigencia, today, numero: stdNumero,
     lines, totT, totC: 0, margen: null, utilidad: null,
     alerts: [{type:'info', icon:'📋', title:'Cotización Estándar',
       msg:' Incluye todos los rubros × 1 como referencia. Elimina los que no apliquen y ajusta tarifas según el volumen real del cliente.'}],
@@ -4237,4 +4307,4 @@ function updateProdField(id,field,val){
 }
 </script>
 </body>
-  </html>
+</html>

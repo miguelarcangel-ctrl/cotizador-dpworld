@@ -1749,6 +1749,10 @@ function showMisCotizaciones(){
   showPanel('cotWrap');
   const isAdmin=currentUserData?.rol==='admin';
   document.getElementById('cotPanelTitle').textContent=isAdmin?'Todas las cotizaciones':'Mis cotizaciones';
+  // Siempre volver a lista al entrar
+  document.getElementById('cotListView').style.display='block';
+  document.getElementById('cotDetailView').style.display='none';
+  _currentCotData=null;
   filterCotizaciones();
 }
 
@@ -2923,6 +2927,14 @@ async function updateCotizacion(id, updates) {
   return data;
 }
 
+async function loadCotizacion(id){
+  try{
+    const{data,error}=await supa.from('cotizaciones').select('*').eq('id',id).single();
+    if(error){console.error('loadCotizacion error:',error);return null;}
+    return data;
+  }catch(e){console.error('loadCotizacion:',e);return null;}
+}
+
 async function loadCotizaciones(filters = {}) {
   let query = supa.from('cotizaciones').select('id,numero,cliente_nombre,vendedor_nombre,tipo_operacion,total_tarifa,margen,estado,creado_en,actualizado_en').order('creado_en', { ascending: false });
   if (filters.vendedor_id) query = query.eq('vendedor_id', filters.vendedor_id);
@@ -3266,9 +3278,9 @@ function renderAdmin(){
     updatePositions();
     renderAdminKpis();
     renderAdminSections();
-    // Wait for DOM to update before calling sub-renders
+    // Doble frame para asegurar que el DOM se actualizó completamente
     requestAnimationFrame(()=>{
-      setTimeout(()=>{
+      requestAnimationFrame(()=>{
         try{
           renderCostos();
           renderCuentas();
@@ -3280,8 +3292,15 @@ function renderAdmin(){
           renderTarifasBase();
           if(currentUserData?.rol==='admin') loadUserList();
           updatePositions();
-        }catch(e){console.error('renderAdmin sub-error:',e);}
-      }, 100);
+        }catch(e){
+          console.error('renderAdmin sub-error:',e);
+          // Mostrar error visible en adminSections
+          const sec=document.getElementById('adminSections');
+          if(sec&&!sec.querySelector('.admin-section')){
+            sec.innerHTML='<div style="padding:20px;color:var(--red);font-size:.82rem">⚠️ Error al cargar Insights: '+e.message+'</div>';
+          }
+        }
+      });
     });
   }catch(e){console.error('renderAdmin error:',e);}
 }
@@ -3435,6 +3454,11 @@ function renderProdTable(){
   const tbody = document.getElementById('prodTblBody');
   if(!tbody) return;
   tbody.innerHTML = PROD_TASKS.map(t => {
+    // Normalizar campos si vienen de versión anterior
+    if(!t.name && t.nombre) t.name=t.nombre;
+    if(!t.unit && t.unidad) t.unit=t.unidad;
+    if(!t.uses && t.tipos) t.uses=t.tipos;
+    if(!t.uses) t.uses=[];
     const cost = calcTaskCost(t);
     const moVal = t.moOwn!=null ? t.moOwn : '';
     const fkVal = t.fkOwn!=null ? t.fkOwn : '';
@@ -3630,6 +3654,7 @@ function calcTaskCost(t){
 function initTarifasEditables() {
   TARIFAS_EDITABLES = [];
   let tid = nextTarifaId;
+  if(!TARIFA_GROUPS||!TARIFA_GROUPS.length){console.warn('initTarifasEditables: TARIFA_GROUPS vacío');return;}
   TARIFA_GROUPS.forEach(g => {
     g.keys.forEach(k => {
       const t = TARIFAS[k];
@@ -4008,7 +4033,7 @@ async function saveProdTasks(){
 
 function addProdTask(){
   const id=Date.now();
-  PROD_TASKS.push({id,nombre:'Nueva tarea',cat:'Entrada',unidad:'/pallet',prod:10,mo:1,fk:0,tipos:['pallet']});
+  PROD_TASKS.push({id,name:'Nueva tarea',cat:'entrada',unit:'/pallet',prod:10,ops:1,eqs:0,moOwn:null,fkOwn:null,uses:['pallet','bulto','unit']});
   renderProdTable();
 }
 
@@ -4212,4 +4237,4 @@ function updateProdField(id,field,val){
 }
 </script>
 </body>
-                                                                                                                                                                          </html>
+  </html>

@@ -3259,18 +3259,26 @@ function renderAdmin(){
     updatePositions();
     renderAdminKpis();
     renderAdminSections();
-    // Abrir la primera sección (costos fijos) por defecto
+    // Abrir secciones por defecto
     requestAnimationFrame(()=>{
+      ['costos','cuentas','prod','tarifas'].forEach(id=>{
+        try{
+          const cuerpo=document.getElementById('asb-'+id);
+          if(cuerpo && cuerpo.classList.contains('collapsed')){
+            cuerpo.classList.remove('collapsed');
+            const arrow=document.querySelector('#ash-'+id+' .ash-arrow');
+            if(arrow) arrow.style.transform='';
+          }
+        }catch(e){}
+      });
+      // Render all sections
+      try{ renderCostos(); }catch(e){ console.error('renderCostos:',e); }
+      try{ renderCuentas(); renderDistrib(); }catch(e){ console.error('renderCuentas:',e); }
+      try{ renderProdTable(); }catch(e){ console.error('renderProdTable:',e); }
       try{
-        // Auto-open costos fijos
-        const cuerpo=document.getElementById('asb-costos');
-        if(cuerpo && cuerpo.classList.contains('collapsed')){
-          cuerpo.classList.remove('collapsed');
-          const arrow=document.querySelector('#ash-costos .ash-arrow');
-          if(arrow) arrow.style.transform='';
-          renderCostos();
-        }
-      }catch(e){ console.error('renderAdmin open costos:',e); }
+        if(!TARIFAS_EDITABLES.length) initTarifasEditables();
+        renderTarifasBase();
+      }catch(e){ console.error('renderTarifasBase:',e); }
     });
   }catch(e){console.error('renderAdmin error:',e);}
 }
@@ -3321,7 +3329,16 @@ function updateCostoMonto(id,val){
   document.getElementById('costosTotalVal').textContent='$'+total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   renderSummaryCards();renderDistrib();
 }
-function addCostoRow(){ADMIN.costos.push({id:ADMIN.nextCostoId++,rubro:'',cat:'',monto:0});renderCostos();}
+function addCostoRow(){
+  const maxId=ADMIN.costos.reduce((m,c)=>Math.max(m,parseInt(c.id)||0),0);
+  ADMIN.costos.push({id:maxId+1,rubro:'Nuevo rubro',cat:'',monto:0});
+  renderCostos();
+  // Scroll to new row
+  setTimeout(()=>{
+    const rows=document.querySelectorAll('#costosBody tr');
+    if(rows.length) rows[rows.length-1].scrollIntoView({behavior:'smooth',block:'center'});
+  },100);
+}
 function delCosto(id){ADMIN.costos=ADMIN.costos.filter(c=>c.id!==id);renderCostos();}
 function exportCostos(){
   const rows=[['Rubro','Categoría','Monto USD'],...ADMIN.costos.map(c=>[c.rubro,c.cat,c.monto])];
@@ -3566,7 +3583,8 @@ function loadCbVehInputs(){
 }
 
 function addCostoVehRow(){
-  ADMIN.costosVeh.push({id:ADMIN.nextCostoVehId++,rubro:'',cat:'',monto:0});
+  const maxId=ADMIN.costosVeh.reduce((m,c)=>Math.max(m,parseInt(c.id)||0),0);
+  ADMIN.costosVeh.push({id:maxId+1,rubro:'Nuevo rubro',cat:'',monto:0});
   renderCostosVeh();
 }
 
@@ -3765,7 +3783,7 @@ function renderAdminSections(){
   c.innerHTML=`
     <!-- COSTOS FIJOS -->
     <div class="admin-section">
-      <div class="admin-sec-hdr" id="ash-costos">
+      <div class="admin-sec-hdr" id="ash-costos" onclick="toggleAdminSec('costos')" style="cursor:pointer">
         <span class="ash-icon">💰</span>
         <span class="ash-title">Costos Fijos — Bodega</span>
         <div class="ash-actions">
@@ -3786,7 +3804,7 @@ function renderAdminSections(){
 
     <!-- CUENTAS & REPARTO -->
     <div class="admin-section">
-      <div class="admin-sec-hdr" id="ash-cuentas">
+      <div class="admin-sec-hdr" id="ash-cuentas" onclick="toggleAdminSec('cuentas')" style="cursor:pointer">
         <span class="ash-icon">🏭</span>
         <span class="ash-title">Cuentas Activas & Reparto</span>
         <div class="ash-actions">
@@ -3812,7 +3830,7 @@ function renderAdminSections(){
 
     <!-- PRODUCTIVIDADES -->
     <div class="admin-section">
-      <div class="admin-sec-hdr" id="ash-prod">
+      <div class="admin-sec-hdr" id="ash-prod" onclick="toggleAdminSec('prod')" style="cursor:pointer">
         <span class="ash-icon">⚙️</span>
         <span class="ash-title">Productividades & Tareas</span>
         <div class="ash-actions">
@@ -3842,7 +3860,7 @@ function renderAdminSections(){
 
     <!-- TARIFAS BASE -->
     <div class="admin-section">
-      <div class="admin-sec-hdr" id="ash-tarifas">
+      <div class="admin-sec-hdr" id="ash-tarifas" onclick="toggleAdminSec('tarifas')" style="cursor:pointer">
         <span class="ash-icon">💲</span>
         <span class="ash-title">Tarifas Base</span>
         <div class="ash-actions">
@@ -3871,7 +3889,7 @@ function renderAdminSections(){
 
     <!-- COSTOS VEHÍCULOS -->
     <div class="admin-section">
-      <div class="admin-sec-hdr" id="ash-veh">
+      <div class="admin-sec-hdr" id="ash-veh" onclick="toggleAdminSec('veh')" style="cursor:pointer">
         <span class="ash-icon">🚗</span>
         <span class="ash-title">Costos — Operación de Vehículos</span>
         <div class="ash-actions">
@@ -3908,7 +3926,7 @@ function renderAdminSections(){
 
     <!-- USUARIOS -->
     <div class="admin-section" id="userMgmtSection">
-      <div class="admin-sec-hdr" id="ash-users">
+      <div class="admin-sec-hdr" id="ash-users" onclick="toggleAdminSec('users')" style="cursor:pointer">
         <span class="ash-icon">👥</span>
         <span class="ash-title">Gestión de Usuarios</span>
         <div class="ash-actions">
@@ -3932,7 +3950,7 @@ function renderAdminSections(){
 
     <!-- REPORTERÍA -->
     <div class="admin-section">
-      <div class="admin-sec-hdr" id="ash-rep">
+      <div class="admin-sec-hdr" id="ash-rep" onclick="toggleAdminSec('rep')" style="cursor:pointer">
         <span class="ash-icon">📊</span>
         <span class="ash-title">Reportería</span>
         <div class="ash-actions">
@@ -3978,7 +3996,12 @@ function toggleAdminSec(id){
       else if(id==='tarifas'){ if(!TARIFAS_EDITABLES.length) initTarifasEditables(); renderTarifasBase(); }
       else if(id==='veh'){ renderCostosVeh(); loadCbVehInputs(); }
       else if(id==='users') loadUserList();
-    }catch(e){ console.error('render section '+id+':',e); }
+    }catch(e){
+      console.error('render section '+id+':',e);
+      showToast('Error al cargar sección: '+e.message,'error');
+      const sec=document.getElementById('asb-'+id);
+      if(sec) sec.innerHTML='<div style="padding:14px;color:var(--red);font-size:.78rem">⚠️ '+e.message+'</div>';
+    }
   }
 }
 
@@ -4307,4 +4330,4 @@ function updateProdField(id,field,val){
 }
 </script>
 </body>
-</html>
+  </html>

@@ -3122,278 +3122,120 @@ function renderCotList(cots) {
     </div>`).join('');
 }
 
-async function openCotDetalle(id) {
-  document.getElementById('cotDetalleModal').classList.add('open');
-  document.getElementById('cotDetalleBody').innerHTML = '<div style="text-align:center;padding:30px;color:#aaa">Cargando...</div>';
+async function openCotDetalle(id){
+  // Show detail view
+  document.getElementById('cotListView').style.display='none';
+  document.getElementById('cotDetailView').style.display='block';
+  document.getElementById('cotDetailContent').innerHTML='<div style="padding:30px;text-align:center;color:var(--mid)">Cargando...</div>';
   
   const cot = await loadCotizacion(id);
-  if (!cot) return;
-  
-  document.getElementById('cotDetalleTitle').textContent = cot.numero + ' · ' + cot.cliente_nombre;
-  
-  const fm = n => n!=null ? '$' + parseFloat(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
-  const fmDate = d => d ? new Date(d).toLocaleDateString('es-PA',{day:'2-digit',month:'long',year:'numeric'}) : '—';
-  const mCls = parseFloat(cot.margen)>=30?'good':parseFloat(cot.margen)>=15?'warn':'bad';
-  const TIPO_LABELS = {pallet:'Pallet In/Out',bulto:'Bulto In/Out',unit:'Unit In/Out',mixto:'Mixto'};
-  const FMT_LABELS = {pallet_pos:'Pallet position/mes',m2:'m²/mes',cbm:'CBM/día',bulto:'Bulto pico'};
-  
-  let html = `
-    <!-- HEADER -->
-    <div style="background:var(--blue);padding:16px 18px;border-bottom:3px solid var(--green)">
-      <div style="font-size:.6rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Cotización</div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.3rem;color:#fff">${cot.cliente_nombre}</div>
-      <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-bottom:8px">Por ${cot.vendedor_nombre} · ${fmDate(cot.creado_en)} · Vigencia: ${cot.vigencia} días</div>
-      <span class="qbadge">${TIPO_LABELS[cot.tipo_operacion]||'—'}</span>
-      ${cot.storage_fmt?`<span class="qbadge">${FMT_LABELS[cot.storage_fmt]||''}</span>`:''}
-      <span class="cot-estado est-${cot.estado}" style="margin-left:6px">${cot.estado}</span>
-    </div>
-
-    <!-- KPIs -->
-    <div class="mbar" style="border-radius:0;border-left:none;border-right:none;border-top:none">
-      <div class="mbi"><div class="mbi-lbl">Total mensual</div><div class="mbi-val">${fm(cot.total_tarifa)}</div></div>
-      <div class="mbi"><div class="mbi-lbl">Costo operativo</div><div class="mbi-val">${fm(cot.total_costo)}</div></div>
-      <div class="mbi"><div class="mbi-lbl">Margen</div><div class="mbi-val ${mCls}">${parseFloat(cot.margen||0).toFixed(1)}%</div></div>
-    </div>
-
-    <!-- SECCIÓN A: PERFIL DE CARGA -->
-    <div style="padding:13px 16px">
-      <div class="msec-title" style="margin-bottom:10px">📦 Perfil de carga</div>
-      <div class="egrid">
-        <div class="eitem"><label>Tipo de mercancía</label><div style="font-size:.82rem;font-weight:600">${cot.tipo_mercancia||'—'}</div></div>
-        <div class="eitem"><label>Temperatura</label><div style="font-size:.82rem;font-weight:600">${cot.temperatura||'—'}</div></div>
-        <div class="eitem"><label>UoM principal</label><div style="font-size:.82rem;font-weight:600">${cot.uom||'—'}</div></div>
-        <div class="eitem"><label>Tipo pallet</label><div style="font-size:.82rem;font-weight:600">${cot.pallet_type||'—'}</div></div>
-        <div class="eitem"><label>Rotación</label><div style="font-size:.82rem;font-weight:600">${cot.rotacion||'—'}</div></div>
-        <div class="eitem"><label>Trazabilidad lote</label><div style="font-size:.82rem;font-weight:600">${cot.trazabilidad||'—'}</div></div>
-        <div class="eitem"><label>Total SKUs (maestro)</label><div style="font-size:.82rem;font-weight:600">${cot.total_skus||'—'}</div></div>
-        <div class="eitem"><label>% manejo unidad</label><div style="font-size:.82rem;font-weight:600">${cot.pct_unidad!=null?cot.pct_unidad+'%':'—'}</div></div>
-        <div class="eitem"><label>% manejo bulto</label><div style="font-size:.82rem;font-weight:600">${cot.pct_bulto!=null?cot.pct_bulto+'%':'—'}</div></div>
-        <div class="eitem"><label>Segregación</label><div style="font-size:.82rem;font-weight:600">${cot.segregacion||'—'}</div></div>
-      </div>
-      ${cot.obs_carga?`<div style="margin-top:8px;padding:8px 11px;background:#F8F8F8;border-radius:6px;font-size:.75rem;color:#666"><strong>Obs:</strong> ${cot.obs_carga}</div>`:''}
-    </div>
-
-    <!-- SECCIÓN B: LÍNEAS DE SERVICIO -->
-    <div style="padding:0 16px 13px">
-      <div class="msec-title" style="margin-bottom:8px">💲 Líneas de servicio</div>
-      <div class="litems">
-        <div class="lihdr"><div>Servicio</div><div style="text-align:right">Vol.</div><div style="text-align:right">Tarifa</div><div style="text-align:right">Subtotal</div></div>
-        ${(cot.lineas||[]).map(l=>`
-          <div class="lirow">
-            <div><div class="li-name">${l.name}</div><div class="li-sub">${l.unit}</div></div>
-            <div class="li-v">${l.qty}</div>
-            <div class="li-v">$${parseFloat(l.rate||0).toFixed(2)}</div>
-            <div class="li-c">${l.costoOnly?'<em style="font-size:.68rem;color:#aaa">costo interno</em>':'$'+parseFloat(l.sub||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-          </div>`).join('')}
-        <div class="li-total"><div class="li-tl">Total mensual</div><div class="li-tv">${fm(cot.total_tarifa)}</div></div>
-      </div>
-    </div>
-
-    <!-- SECCIÓN C: CAPEX/OPEX -->
-    ${(cot.capex_monto>0||cot.opex_total>0)?`
-    <div style="padding:0 16px 13px">
-      <div class="msec-title" style="margin-bottom:8px">💰 CAPEX / OPEX exclusivo</div>
-      ${cot.capex_monto>0?`<div class="capex-result" style="margin-bottom:8px"><strong>CAPEX:</strong> ${fm(cot.capex_monto)} en ${cot.capex_meses} meses → <strong>${fm(cot.capex_mensual)}/mes</strong></div>`:''}
-      ${(cot.opex_personal||[]).length>0?`<div style="font-size:.72rem;margin-bottom:6px"><strong>Personal exclusivo:</strong> ${cot.opex_personal.map(p=>`${p.nombre} (${fm(p.costo)}/mes)`).join(' · ')}</div>`:''}
-      ${(cot.opex_equipo||[]).length>0?`<div style="font-size:.72rem"><strong>Equipos exclusivos:</strong> ${cot.opex_equipo.map(e=>`${e.nombre} (${fm(e.costo)}/mes)`).join(' · ')}</div>`:''}
-    </div>`:''}
-
-    <!-- SECCIÓN D: CLIENTE -->
-    <div style="padding:0 16px 16px">
-      <div class="msec-title" style="margin-bottom:8px">👤 Datos del cliente</div>
-      <div class="egrid">
-        <div class="eitem"><label>Contacto</label><div style="font-size:.82rem;font-weight:600">${cot.cliente_contacto||'—'}</div></div>
-        <div class="eitem"><label>Email</label><div style="font-size:.82rem;font-weight:600">${cot.cliente_email||'—'}</div></div>
-        <div class="eitem"><label>Teléfono</label><div style="font-size:.82rem;font-weight:600">${cot.cliente_telefono||'—'}</div></div>
-        <div class="eitem"><label>Inicio estimado</label><div style="font-size:.82rem;font-weight:600">${fmDate(cot.fecha_inicio_estimada)}</div></div>
-      </div>
-    </div>`;
-
-  // Admin notes section (only for admin)
-  if (currentUserData?.rol === 'admin') {
-    html += `
-    <div style="padding:0 16px 16px">
-      <div class="msec-title" style="margin-bottom:8px">📝 Notas del administrador</div>
-      <textarea id="adminNotasInput" style="width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:6px;font-family:'Barlow',sans-serif;font-size:.82rem;min-height:70px;outline:none;resize:vertical"
-        placeholder="Agregar notas internas...">${cot.notas_admin||''}</textarea>
-      <div style="margin-top:7px;display:flex;gap:8px">
-        <select id="estadoSelect" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-family:'Barlow',sans-serif;font-size:.8rem;outline:none;flex:1">
-          <option value="borrador" ${cot.estado==='borrador'?'selected':''}>Borrador</option>
-          <option value="enviada" ${cot.estado==='enviada'?'selected':''}>Enviada</option>
-          <option value="cerrada" ${cot.estado==='cerrada'?'selected':''}>Cerrada</option>
-          <option value="cancelada" ${cot.estado==='cancelada'?'selected':''}>Cancelada</option>
-        </select>
-        <button onclick="updateCotAdmin('${cot.id}')" style="padding:7px 16px;background:var(--blue);color:#fff;border:none;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.8rem;text-transform:uppercase;cursor:pointer">Guardar cambios</button>
-      </div>
-    </div>`;
+  if(!cot){
+    document.getElementById('cotDetailContent').innerHTML='<div style="padding:20px;color:var(--red)">Error al cargar la cotización.</div>';
+    return;
   }
-
-  document.getElementById('cotDetalleBody').innerHTML = html;
-  
-  // Footer buttons
-  document.getElementById('cotDetalleFooter').innerHTML = `
-    <button class="btn btn-g" onclick="downloadCotFromDB('${cot.id}')" style="flex:1">
-      ⬇ Descargar entregable
-    </button>
-    <button class="btn btn-s" onclick="closeCotDetalle()">Cerrar</button>
-  `;
+  _currentCotData = cot;
+  renderCotDetalle(cot);
 }
 
-function renderCotDetalle(cot) {
+function renderCotDetalle(cot){
+  const container = document.getElementById('cotDetailContent');
+  if(!container) return;
   const fm = n => n!=null ? '$'+parseFloat(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
   const fmDate = d => d ? new Date(d).toLocaleDateString('es-PA',{day:'2-digit',month:'long',year:'numeric'}) : '—';
-  const mCls = parseFloat(cot.margen)>=30?'good':parseFloat(cot.margen)>=15?'warn':'bad';
-  const TIPO = {pallet:'Pallet In/Out',bulto:'Bulto In/Out',unit:'Unit In/Out',mixto:'Mixto',vehiculos:'Vehículos'};
-  const FMT = {pallet_pos:'Pallet pos/mes',m2:'m²/mes',cbm:'CBM/día',bulto:'Bulto pico'};
-  const isAdmin = currentUserData?.rol === 'admin';
-  const canEdit = isAdmin || cot.vendedor_id === currentUser?.id;
+  const TIPO_LABELS = {pallet:'Pallet In/Out',bulto:'Bulto In/Out',unit:'Unit In/Out',mixto:'Mixto',vehiculos:'Vehículos'};
+  const margen = parseFloat(cot.margen) || 0;
+  const mCls = margen>=30?'good':margen>=15?'warn':'bad';
+  const isAdmin = currentUserData?.rol==='admin';
+  const lines = Array.isArray(cot.lineas) ? cot.lineas : (typeof cot.lineas==='string' ? JSON.parse(cot.lineas||'[]') : []);
 
   let html = `
-    <div class="qhdr">
-      <div class="q-for">Cotización</div>
-      <div class="q-name">${cot.cliente_nombre}</div>
-      <div class="q-sub">${cot.numero} · Por ${cot.vendedor_nombre||'—'} · ${fmDate(cot.creado_en)}</div>
-      <span class="qbadge">${TIPO[cot.tipo_operacion]||'—'}</span>
-      ${cot.storage_fmt?`<span class="qbadge">${FMT[cot.storage_fmt]||''}</span>`:''}
-      <span class="cot-estado est-${cot.estado}" style="margin-left:6px">${cot.estado}</span>
+  <div class="quote-header" style="margin-bottom:14px">
+    <div class="qh-for">Cotización</div>
+    <div class="qh-name">${cot.cliente_nombre||'—'}</div>
+    <div class="qh-meta">${cot.numero||'—'} · ${fmDate(cot.creado_en)} · Por: ${cot.vendedor_nombre||'—'}</div>
+    <div class="qh-badges">
+      <span class="qh-badge">${TIPO_LABELS[cot.tipo]||cot.tipo||'—'}</span>
+      <span class="qh-badge est-${cot.estado||'borrador'}">${(cot.estado||'borrador').toUpperCase()}</span>
     </div>
+  </div>
+  <div class="kpi-bar" style="margin-bottom:14px">
+    <div class="kpi-card"><div class="kpi-label">Total mensual</div><div class="kpi-value">${fm(cot.total)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Costo estimado</div><div class="kpi-value">${fm(cot.costo_total)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Margen</div><div class="kpi-value ${mCls}">${margen.toFixed(1)}%</div></div>
+  </div>
+  <div class="lines-card">
+    <div class="lines-hdr"><span>Servicio</span><span class="r">Vol.</span><span class="r">Tarifa</span><span class="r">Subtotal</span><span></span></div>
+    ${lines.map(l=>`<div class="line-row${l.isGF?' gf':''}">
+      <div><div class="ln-name">${l.name}</div><div class="ln-unit">${l.unit||''}</div></div>
+      <div class="ln-qty">${l.qty||1}</div>
+      <div class="ln-rate"><span style="font-size:.82rem;color:var(--blue);font-weight:700">$${parseFloat(l.rate||0).toFixed(2)}</span></div>
+      <div class="ln-sub">${l.costoOnly?'<span class="ln-unit">costo</span>':fm(l.sub)}</div>
+      <div></div>
+    </div>`).join('')}
+    <div class="lines-total"><div class="lt-label">Total mensual</div><div class="lt-value">${fm(cot.total)}</div></div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+    <button onclick="editCotizacion('${cot.id}')" class="btn-sm blue" style="padding:11px;width:100%;font-size:.82rem">✏️ Editar esta cotización</button>
+    <button onclick="downloadCotFromDB('${cot.id}')" class="btn-sm green" style="padding:11px;width:100%;font-size:.82rem">🖨️ Ver e imprimir</button>
+    ${isAdmin ? `
+    <select onchange="cambiarEstadoCot('${cot.id}',this.value)" class="finput" style="width:100%;margin-top:4px">
+      <option value="">— Cambiar estado —</option>
+      <option value="borrador">Borrador</option>
+      <option value="enviada">Enviada</option>
+      <option value="cerrada">Cerrada</option>
+      <option value="cancelada">Cancelada</option>
+    </select>` : ''}
+  </div>`;
 
-    <div class="mbar">
-      <div class="mbi"><div class="mbi-lbl">Total mensual</div><div class="mbi-val">${fm(cot.total_tarifa)}</div></div>
-      <div class="mbi"><div class="mbi-lbl">Costo operativo</div><div class="mbi-val">${fm(cot.total_costo)}</div></div>
-      <div class="mbi"><div class="mbi-lbl">Margen</div><div class="mbi-val ${mCls}">${parseFloat(cot.margen||0).toFixed(1)}%</div></div>
-    </div>
-
-    <!-- LINE ITEMS -->
-    <div class="litems" style="margin-bottom:11px">
-      <div class="lihdr"><div>Servicio</div><div style="text-align:right">Vol.</div><div style="text-align:right">Tarifa</div><div style="text-align:right">Subtotal</div></div>
-      ${(cot.lineas||[]).map(l=>`
-        <div class="lirow">
-          <div><div class="li-name">${l.name}</div><div class="li-sub">${l.unit}</div></div>
-          <div class="li-v">${l.qty}</div>
-          <div class="li-v">$${parseFloat(l.rate||0).toFixed(2)}</div>
-          <div class="li-c">${l.costoOnly?'<em style="font-size:.68rem;color:#aaa">costo interno</em>':'$'+parseFloat(l.sub||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-        </div>`).join('')}
-      <div class="li-total"><div class="li-tl">Total mensual</div><div class="li-tv">${fm(cot.total_tarifa)}</div></div>
-    </div>
-
-    <!-- PERFIL DE CARGA -->
-    <div class="asec">
-      <div class="asec-hdr" id="hdr_sec9"><h3><span onclick="toggleAsec('sec9')" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:7px">📦 Perfil de carga</span></h3>
-        <span class="collapse-arrow" onclick="toggleAsec('sec9')" style="cursor:pointer;padding:0 4px">▼</span>
-    </div>
-      <div class="asec-body" id="body_sec9">>
-        <div class="egrid">
-          <div class="eitem"><label>Tipo mercancía</label><div style="font-size:.82rem;font-weight:600">${cot.tipo_mercancia||'—'}</div></div>
-          <div class="eitem"><label>Temperatura</label><div style="font-size:.82rem;font-weight:600">${cot.temperatura||'—'}</div></div>
-          <div class="eitem"><label>Total SKUs</label><div style="font-size:.82rem;font-weight:600">${cot.total_skus||'—'}</div></div>
-          <div class="eitem"><label>% Unidad / % Bulto</label><div style="font-size:.82rem;font-weight:600">${cot.pct_unidad!=null?cot.pct_unidad+'%':'—'} / ${cot.pct_bulto!=null?cot.pct_bulto+'%':'—'}</div></div>
-          <div class="eitem"><label>Rotación</label><div style="font-size:.82rem;font-weight:600">${cot.rotacion||'—'}</div></div>
-          <div class="eitem"><label>Trazabilidad</label><div style="font-size:.82rem;font-weight:600">${cot.trazabilidad||'—'}</div></div>
-        </div>
-        ${cot.obs_carga?`<div style="margin-top:8px;padding:8px 11px;background:#F8F8F8;border-radius:6px;font-size:.75rem"><strong>Obs:</strong> ${cot.obs_carga}</div>`:''}
-      </div>
-    </div>
-
-    <!-- CAPEX/OPEX -->
-    ${(cot.capex_monto>0||cot.opex_total>0)?`
-    <div class="asec">
-      <div class="asec-hdr" id="hdr_sec10"><h3><span onclick="toggleAsec('sec10')" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:7px">💰 CAPEX / OPEX</span></h3>
-        <span class="collapse-arrow" onclick="toggleAsec('sec10')" style="cursor:pointer;padding:0 4px">▼</span>
-    </div>
-      <div class="asec-body" id="body_sec10">>
-        ${cot.capex_monto>0?`<div style="font-size:.78rem;margin-bottom:6px">CAPEX: ${fm(cot.capex_monto)} / ${cot.capex_meses} meses → <strong>${fm(cot.capex_mensual)}/mes</strong></div>`:''}
-        ${(cot.opex_personal||[]).map(p=>`<div style="font-size:.78rem">👤 ${p.nombre}: ${fm(p.costo)}/mes</div>`).join('')}
-        ${(cot.opex_equipo||[]).map(e=>`<div style="font-size:.78rem">🏗️ ${e.nombre}: ${fm(e.costo)}/mes</div>`).join('')}
-      </div>
-    </div>`:''}
-
-    <!-- CONTACTO -->
-    <div class="asec">
-      <div class="asec-hdr" id="hdr_sec11"><h3><span onclick="toggleAsec('sec11')" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:7px">👤 Cliente</span></h3>
-        <span class="collapse-arrow" onclick="toggleAsec('sec11')" style="cursor:pointer;padding:0 4px">▼</span>
-    </div>
-      <div class="asec-body" id="body_sec11">>
-        <div class="egrid">
-          <div class="eitem"><label>Contacto</label><div style="font-size:.82rem;font-weight:600">${cot.cliente_contacto||'—'}</div></div>
-          <div class="eitem"><label>Email</label><div style="font-size:.82rem;font-weight:600">${cot.cliente_email||'—'}</div></div>
-          <div class="eitem"><label>Teléfono</label><div style="font-size:.82rem;font-weight:600">${cot.cliente_telefono||'—'}</div></div>
-          <div class="eitem"><label>Inicio estimado</label><div style="font-size:.82rem;font-weight:600">${fmDate(cot.fecha_inicio_estimada)}</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ADMIN CONTROLS -->
-    ${isAdmin?`
-    <div class="asec">
-      <div class="asec-hdr" id="hdr_sec12"><h3><span onclick="toggleAsec('sec12')" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:7px">⚙️ Gestión admin</span></h3>
-        <span class="collapse-arrow" onclick="toggleAsec('sec12')" style="cursor:pointer;padding:0 4px">▼</span>
-    </div>
-      <div class="asec-body" id="body_sec12">>
-        <div class="field-row" style="margin-bottom:10px">
-          <div class="field"><label>Estado</label>
-            <select id="cotEstadoSel" class="ainput">
-              <option value="borrador" ${cot.estado==='borrador'?'selected':''}>Borrador</option>
-              <option value="enviada" ${cot.estado==='enviada'?'selected':''}>Enviada</option>
-              <option value="cerrada" ${cot.estado==='cerrada'?'selected':''}>Cerrada</option>
-              <option value="cancelada" ${cot.estado==='cancelada'?'selected':''}>Cancelada</option>
-            </select>
-          </div>
-        </div>
-        <div class="field"><label>Notas internas</label>
-          <textarea id="cotNotasAdmin" class="ainput" style="min-height:70px;resize:vertical">${cot.notas_admin||''}</textarea>
-        </div>
-        <button class="btn btn-p" style="width:100%;margin-top:8px" onclick="saveAdminChanges('${cot.id}')">💾 Guardar cambios admin</button>
-      </div>
-    </div>`:''}
-
-    <!-- ACTION BUTTONS -->
-    <div class="brow" style="margin-top:14px">
-      ${canEdit?`<button class="btn btn-o" onclick="editCotizacion('${cot.id}')" style="flex:1">✏️ Editar cotización</button>`:''}
-      <button class="btn btn-g" onclick="downloadCotFromDB('${cot.id}')" style="flex:1">🖨️ Descargar</button>
-    </div>
-  `;
-
-  document.getElementById('cotDetailContent').innerHTML = html;
+  container.innerHTML = html;
 }
 
-function showCotList() {
+async function cambiarEstadoCot(id, estado){
+  if(!estado) return;
+  const{error} = await supa.from('cotizaciones').update({estado}).eq('id',id);
+  if(!error){ showToast('Estado actualizado'); if(_currentCotData) _currentCotData.estado=estado; }
+  else showToast('Error: '+error.message,'error');
+}
+
+let _currentCotData = null;
+
+function showCotList(){
   document.getElementById('cotListView').style.display = 'block';
-  document.getElementById('cotDetailView').classList.remove('active');
+  document.getElementById('cotDetailView').style.display = 'none';
+  _currentCotData = null;
   filterCotizaciones();
 }
 
-async function editCotizacion(id) {
+async function editCotizacion(id){
   const cot = _currentCotData || await loadCotizacion(id);
-  if(!cot) return;
-  
-  // Load all data back into the form
-  document.getElementById('clientName').value  = cot.cliente_nombre||'';
-  document.getElementById('vendedor').value    = cot.vendedor_nombre||'';
-  document.getElementById('vigencia').value    = cot.vigencia||30;
-  document.getElementById('tradeName').value   = cot.cliente_trade_name||'';
-  document.getElementById('contactName').value = cot.cliente_contacto||'';
-  document.getElementById('contactEmail').value= cot.cliente_email||'';
-  document.getElementById('contactPhone').value= cot.cliente_telefono||'';
-  if(document.getElementById('startDate')) document.getElementById('startDate').value = cot.fecha_inicio_estimada||'';
-  
-  // Set operation type
-  if(cot.tipo_operacion) selType(cot.tipo_operacion);
-  if(cot.tipo_mercancia) document.getElementById('tipoMercancia').value = cot.tipo_mercancia;
-  if(cot.temperatura)    document.getElementById('temperatura').value   = cot.temperatura;
-  
-  // Store editing ID
+  if(!cot){ showToast('No se pudo cargar','error'); return; }
+
+  const setVal = (elId,v) => { const el=document.getElementById(elId); if(el) el.value=v||''; };
+  setVal('clientName',   cot.cliente_nombre);
+  setVal('vendedor',     cot.vendedor_nombre);
+  setVal('vigencia',     cot.vigencia||30);
+  setVal('tradeName',    cot.cliente_trade_name);
+  setVal('contactName',  cot.cliente_contacto);
+  setVal('contactEmail', cot.cliente_email);
+  setVal('contactPhone', cot.cliente_telefono);
+  setVal('startDate',    cot.fecha_inicio_estimada);
+
+  if(cot.tipo_operacion) selType(cot.tipo_operacion, true);
+  if(cot.tipo_mercancia) setVal('tipoMercancia', cot.tipo_mercancia);
+  if(cot.temperatura)    setVal('temperatura',   cot.temperatura);
+  if(cot.pos_promedio)   setVal('posPromedio',   cot.pos_promedio);
+  if(cot.pos_pico)       setVal('posPico',       cot.pos_pico);
+  if(cot.storage_fmt)    selStorage(cot.storage_fmt, true);
+
   S._editingCotId = id;
   S._editingCotNumero = cot.numero;
-  
-  // Switch back to cotizador
-  document.getElementById('cotWrap').classList.remove('active');
-  document.getElementById('mainWrap').classList.remove('hidden');
-  
-  // Show edit banner
-  showEditBanner(cot.numero);
-  
+
+  const banner = document.getElementById('editBanner');
+  if(banner){ banner.classList.remove('hidden'); banner.innerHTML='✏️ <strong>Editando '+cot.numero+'</strong> — modifica y genera de nuevo para actualizar.'; }
+
+  showPanel('appWrap');
   goTo(1);
+  showToast('Editando: '+cot.numero,'info',4000);
 }
 
 async function saveAdminChanges(id) {
@@ -3423,14 +3265,23 @@ function renderAdmin(){
     updatePositions();
     renderAdminKpis();
     renderAdminSections();
-    setTimeout(()=>{
-      try{
-        renderCostos();renderCuentas();renderDistrib();renderProdTable();
-        renderCostosVeh();loadCbVehInputs();
-        if(!TARIFAS_EDITABLES.length) initTarifasEditables();
-        renderTarifasBase();loadUserList();updatePositions();
-      }catch(e){console.error('renderAdmin sub-error:',e);}
-    }, 50);
+    // Wait for DOM to update before calling sub-renders
+    requestAnimationFrame(()=>{
+      setTimeout(()=>{
+        try{
+          renderCostos();
+          renderCuentas();
+          renderDistrib();
+          renderProdTable();
+          renderCostosVeh();
+          loadCbVehInputs();
+          if(!TARIFAS_EDITABLES.length) initTarifasEditables();
+          renderTarifasBase();
+          if(currentUserData?.rol==='admin') loadUserList();
+          updatePositions();
+        }catch(e){console.error('renderAdmin sub-error:',e);}
+      }, 100);
+    });
   }catch(e){console.error('renderAdmin error:',e);}
 }
 
@@ -3761,6 +3612,15 @@ async function saveCostosVeh(){
 }
 
 // Calculate vehicle fixed cost % for a cotizacion
+function calcTaskCost(t){
+  const mo = parseFloat(document.getElementById('globalMO')?.value) || 6.50;
+  const fk = parseFloat(document.getElementById('globalFK')?.value) || 0;
+  const moRate = t.moOwn != null ? t.moOwn : mo;
+  const fkRate = t.fkOwn != null ? t.fkOwn : fk;
+  const prod = t.prod || 1;
+  return prod > 0 ? Math.round(((moRate + fkRate) / prod) * 1000) / 1000 : 0;
+}
+
 function initTarifasEditables() {
   TARIFAS_EDITABLES = [];
   let tid = nextTarifaId;
@@ -4305,6 +4165,22 @@ function autoRepartoFromQuote(posPromedio){
   return { pct: Math.round(pct*10)/10, monto, totalCostos };
 }
 
+async function downloadCotFromDB(id){
+  const cot = _currentCotData || await loadCotizacion(id);
+  if(!cot) return;
+  const lines = Array.isArray(cot.lineas) ? cot.lineas : (typeof cot.lineas==='string' ? JSON.parse(cot.lineas||'[]') : []);
+  S.lastQuote = {
+    client: cot.cliente_nombre, seller: cot.vendedor_nombre,
+    type: cot.tipo_operacion||'mixto', storageFmt: cot.storage_fmt||'pallet_pos',
+    tipoMerc: cot.tipo_mercancia||'', vigencia: cot.vigencia||30,
+    today: new Date(cot.creado_en).toLocaleDateString('es-PA',{day:'2-digit',month:'long',year:'numeric'}),
+    numero: cot.numero, lines, totT: cot.total||0, totC: cot.costo_total||0,
+    margen: cot.margen||0, utilidad: (cot.total||0)-(cot.costo_total||0), alerts:[],
+  };
+  downloadQuote();
+}
+
+function showEditBanner(num){ const b=document.getElementById("editBanner"); if(b){b.classList.remove("hidden");b.innerHTML="✏️ <strong>Editando "+num+"</strong> — modifica y genera de nuevo para actualizar.";} }
 </script>
 </body>
-  </html>
+              </html>

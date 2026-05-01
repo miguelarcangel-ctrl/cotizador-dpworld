@@ -3437,6 +3437,9 @@ const TYPE_OPTS = ['pallet','bulto','unit'];
 const CAT_LABELS = {entrada:'Entrada',salida:'Salida',almacenaje:'Almacenaje',maquila:'Maquila'};
 
 
+const CAT_OPTS = ['entrada','salida','almacenaje','maquila'];
+const UNIT_OPTS = ['pallet','bulto','unidad','orden','m2','cbm','mes'];
+
 function renderProdTable(){
   const tbody = document.getElementById('prodTblBody');
   if(!tbody) return;
@@ -4330,4 +4333,4 @@ function updateProdField(id,field,val){
 }
 </script>
 </body>
-  </html>
+</html>

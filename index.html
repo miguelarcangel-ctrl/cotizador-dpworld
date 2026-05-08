@@ -686,6 +686,29 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
 .cot-estado-selector label{
   font-size:.62rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:8px;
 }
+
+/* ── LIVE KPI BAR ─────────────────────────────────────────── */
+.live-kpi-bar{
+  position:sticky;top:calc(var(--hdr-h) + 52px);z-index:80;
+  background:var(--white);border-bottom:2px solid var(--border);
+  padding:8px 16px;display:none;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+.live-kpi-bar.show{display:block}
+.live-kpi-inner{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+  max-width:680px;margin:0 auto;
+}
+.lkpi{
+  background:var(--light);border-radius:8px;padding:8px 10px;
+  border:1.5px solid var(--border);text-align:center;transition:all .3s;
+}
+.lkpi.active{border-color:var(--blue)}
+.lkpi-label{font-size:.55rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px}
+.lkpi-value{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1rem;color:var(--blue)}
+.lkpi-value.good{color:var(--green-dark)}
+.lkpi-value.warn{color:#92400E}
+.lkpi-value.bad{color:var(--red)}
 </style>
 </head>
 <body>
@@ -763,6 +786,24 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
     <div class="progress-step" id="ps-5" onclick="safeGoTo(5)">
       <div class="ps-icon" id="psi-5">💵</div>
       <div class="ps-label">Cotización</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── LIVE KPI BAR ──────────────────────────────────────── -->
+<div class="live-kpi-bar" id="liveKpiBar">
+  <div class="live-kpi-inner">
+    <div class="lkpi">
+      <div class="lkpi-label">Venta estimada</div>
+      <div class="lkpi-value" id="lkVenta">—</div>
+    </div>
+    <div class="lkpi">
+      <div class="lkpi-label">Costo estimado</div>
+      <div class="lkpi-value" id="lkCosto">—</div>
+    </div>
+    <div class="lkpi">
+      <div class="lkpi-label">Margen</div>
+      <div class="lkpi-value" id="lkMargen">—</div>
     </div>
   </div>
 </div>
@@ -1104,12 +1145,12 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
             <div class="vol-grid">
               <div class="vol-card">
                 <div class="vol-label">Posiciones promedio / mes</div>
-                <input type="number" class="vol-input" id="posPromedio" min="0" placeholder="0" oninput="checkPosDisponibles();syncPosToForecast()">
+                <input type="number" class="vol-input" id="posPromedio" min="0" placeholder="0" oninput="checkPosDisponibles();syncPosToForecast();updateLiveKpis()">
                 <div class="vol-unit">pallet positions</div>
               </div>
               <div class="vol-card">
                 <div class="vol-label">Posiciones pico (máximo)</div>
-                <input type="number" class="vol-input" id="posPico" min="0" placeholder="0" oninput="checkPosDisponibles();syncPosToForecast()">
+                <input type="number" class="vol-input" id="posPico" min="0" placeholder="0" oninput="checkPosDisponibles();syncPosToForecast();updateLiveKpis()">
                 <div class="vol-unit">pallet positions</div>
               </div>
             </div>
@@ -1837,6 +1878,8 @@ function showPanel(panel){
   // Show progress bar only when in cotizador
   const pb=document.getElementById('progressBarWrap');
   if(pb) pb.style.display=panel==='appWrap'?'block':'none';
+  const kb=document.getElementById('liveKpiBar');
+  if(kb) kb.classList.toggle('show', panel==='appWrap' && !!S.type);
   // Update header buttons
   document.getElementById('btnCotizador')?.classList.toggle('active',panel==='appWrap');
   document.getElementById('btnCotizador')?.classList.toggle('green',panel==='appWrap');
@@ -2075,8 +2118,8 @@ function buildVolSection(title, fields){
   fields.forEach(f=>{
     html+=`<div class="vol-card">
       <div class="vol-label">${f.label}</div>
-      ${f.prefix?`<div style="display:flex;align-items:center;justify-content:center;gap:4px"><span style="font-size:.8rem;color:var(--mid)">${f.prefix}</span><input type="number" class="vol-input" id="${f.id}" min="0" placeholder="0" style="width:auto;flex:1" oninput="autoSave()"></div>`
-      :`<input type="number" class="vol-input" id="${f.id}" min="0" placeholder="0" oninput="autoSave()">`}
+      ${f.prefix?`<div style="display:flex;align-items:center;justify-content:center;gap:4px"><span style="font-size:.8rem;color:var(--mid)">${f.prefix}</span><input type="number" class="vol-input" id="${f.id}" min="0" placeholder="0" style="width:auto;flex:1" oninput="autoSave();updateLiveKpis()"></div>`
+      :`<input type="number" class="vol-input" id="${f.id}" min="0" placeholder="0" oninput="autoSave();updateLiveKpis()">`}
       <div class="vol-unit">${f.unit}</div>
     </div>`;
   });
@@ -2149,19 +2192,29 @@ function renderRutas(){
   const c=document.getElementById('rutasContainer');
   if(!c) return;
   c.innerHTML=_rutasData.map((r,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:10px 12px;background:var(--light);border-radius:8px;border:1.5px solid var(--border)">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:10px 12px;background:var(--light);border-radius:8px;border:1.5px solid var(--border);flex-wrap:wrap">
       <label class="toggle-switch" style="flex-shrink:0">
         <input type="checkbox" id="rt-${i}" ${r.selected?'checked':''} onchange="_rutasData[${i}].selected=this.checked;autoSave()">
         <span class="toggle-slider"></span>
       </label>
-      <div style="flex:1">
-        <div style="font-weight:600;font-size:.82rem">${r.label}</div>
-        <div style="font-size:.7rem;color:var(--mid)">$${r.tarifa}/viaje</div>
+      <div style="flex:1;min-width:120px">
+        <input type="text" value="${r.label}" placeholder="Nombre de ruta"
+          style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-size:.82rem;font-weight:600;background:var(--white)"
+          oninput="_rutasData[${i}].label=this.value;autoSave()">
       </div>
-      <div class="finput-prefix" style="width:80px">
+      <div class="finput-prefix" style="width:90px">
+        <span class="prefix">$</span>
+        <input type="number" value="${r.tarifa}" min="0" step="5"
+          style="width:55px;padding:6px 8px;font-size:.82rem;border:none"
+          oninput="_rutasData[${i}].tarifa=parseFloat(this.value)||0;autoSave()">
+      </div>
+      <div class="finput-prefix" style="width:70px">
         <span class="prefix">×</span>
-        <input type="number" value="${r.qty}" min="1" style="width:40px;padding:6px 8px;font-size:.82rem" oninput="_rutasData[${i}].qty=parseInt(this.value)||1;autoSave()">
+        <input type="number" value="${r.qty}" min="1"
+          style="width:35px;padding:6px 8px;font-size:.82rem;border:none"
+          oninput="_rutasData[${i}].qty=parseInt(this.value)||1;autoSave()">
       </div>
+      ${r.custom?`<button onclick="_rutasData.splice(${i},1);renderRutas()" style="background:none;border:none;color:#CBD5E1;font-size:.9rem;cursor:pointer;padding:4px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='#CBD5E1'">✕</button>`:''}
     </div>`).join('');
 }
 
@@ -2271,43 +2324,51 @@ function checkTemp(){
   autoSave();
 }
 
-function checkPosDisponibles() {
-  const promedio = parseInt(document.getElementById('posPromedio')?.value) || 0;
-  const pico     = parseInt(document.getElementById('posPico')?.value)     || 0;
-  const ref      = Math.max(promedio, pico);
-  const infoEl   = document.getElementById('posDisponiblesInfo');
-  if (!infoEl) return;
+function checkPosDisponibles(){
+  const prom=parseFloat(document.getElementById('posPromedio')?.value)||0;
+  const pico=parseFloat(document.getElementById('posPico')?.value)||0;
+  const info=document.getElementById('posDisponiblesInfo');
+  if(!info) return;
+  if(!prom&&!pico){ info.style.display='none'; return; }
 
-  // Calculate available positions from admin data
-  const totalPos  = ADMIN.totalPos || 1716;
-  const ocupadas  = ADMIN.cuentas.reduce((s, c) => s + (c.pos || 0), 0);
-  const disponibles = Math.max(0, totalPos - ocupadas);
+  const totalPos=ADMIN.totalPos||1716;
+  const pos=prom||pico;
+  const pct=Math.min(100,Math.round(pos/totalPos*1000)/10);
+  const totalCF=ADMIN.costos?.reduce((s,c)=>s+c.monto,0)||0;
+  const montoGF=totalCF>0?Math.round(totalCF*pct/100*100)/100:0;
+  const fm=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-  if (ref === 0) { infoEl.style.display = 'none'; return; }
-
-  infoEl.style.display = 'block';
-
-  const quedan = disponibles - ref;
-  const pct    = totalPos > 0 ? (ref / totalPos * 100).toFixed(1) : 0;
-
-  if (quedan < 0) {
-    // Over capacity — non-stopper alert
-    infoEl.style.background  = '#FFF8EC';
-    infoEl.style.border      = '1.5px solid #F0C060';
-    infoEl.style.color       = '#7a5a10';
-    infoEl.innerHTML = `⚠️ <strong>El pico declarado (${ref} pos) supera las posiciones disponibles (${disponibles} pos).</strong>
-      Se requiere revisión de capacidad. La cotización puede continuar — coordinar con operaciones.
-      <br><span style="font-size:.68rem;color:#aaa">Total bodega: ${totalPos} · Ocupadas: ${ocupadas} · Disponibles: ${disponibles}</span>`;
-  } else {
-    infoEl.style.background  = '#EEFAF4';
-    infoEl.style.border      = '1.5px solid var(--green)';
-    infoEl.style.color       = '#1a5c30';
-    infoEl.innerHTML = `✅ <strong>${ref} posiciones declaradas (${pct}% de la bodega)</strong> — 
-      Quedan <strong>${quedan} posiciones disponibles</strong> tras esta asignación.
-      <br><span style="font-size:.68rem;color:#aaa">Total bodega: ${totalPos} · Ocupadas: ${ocupadas} · Disponibles: ${disponibles}</span>`;
+  // Reparto por cuentas
+  let cuentasInfo='';
+  if(ADMIN.cuentas?.length){
+    const usedPos=ADMIN.cuentas.reduce((s,c)=>s+(c.pos||0),0);
+    if(usedPos>0){
+      cuentasInfo=`<div style="margin-top:8px;font-size:.72rem;color:var(--mid)">
+        <strong style="color:var(--ink)">Reparto entre cuentas activas:</strong><br>
+        ${ADMIN.cuentas.filter(c=>c.nombre).map(c=>{
+          const cPct=usedPos>0?Math.round(c.pos/usedPos*100*10)/10:0;
+          const cMonto=Math.round(totalCF*cPct/100*100)/100;
+          return `• ${c.nombre}: ${cPct}% → ${fm(cMonto)}/mes`;
+        }).join('<br>')}
+      </div>`;
+    }
   }
-}
 
+  const disponibles=Math.max(0,totalPos-pos);
+  const alertType=pico>totalPos?'danger':pico>totalPos*0.85?'warn':'success';
+  const alertIcon=alertType==='danger'?'🔴':alertType==='warn'?'⚠️':'✅';
+
+  info.style.display='block';
+  info.innerHTML=`<div class="alert ${alertType}" style="margin-top:8px">
+    <span class="alert-icon">${alertIcon}</span>
+    <div>
+      <strong>${pos} posiciones = ${pct}% de la bodega</strong>
+      ${disponibles>0?`<br>${disponibles} posiciones disponibles`:' — ¡Capacidad máxima!'}
+      ${totalCF>0?`<br>Costos fijos imputados: <strong>${fm(montoGF)}/mes</strong> (${pct}% de ${fm(totalCF)})`:' — Configura costos fijos en Insights'}
+      ${cuentasInfo}
+    </div>
+  </div>`;
+}
 // Calculate gasto fijo % based on declared positions
 
 
@@ -2976,6 +3037,8 @@ async function saveCotizacion(estado='borrador'){
     lineas: q.lines||[],
     estado,
     vigencia,
+    margen: q.margen!=null ? parseFloat(q.margen)||0 : 0,
+    utilidad: q.utilidad!=null ? parseFloat(q.utilidad)||0 : 0,
   };
 
   try{
@@ -3046,37 +3109,91 @@ async function getNextNumero(){
 }
 
 async function loadUserList(){
-  const list = document.getElementById('userList');
-  if(!list) return;
-
-  const { data, error } = await supa.from('usuarios').select('*').order('creado_en');
-  if(error){ list.innerHTML='<div style="color:#C0392B;font-size:.75rem">Error cargando usuarios.</div>'; return; }
-  if(!data||!data.length){ list.innerHTML='<div style="color:#aaa;font-size:.75rem;padding:10px">No hay usuarios registrados.</div>'; return; }
-
-  list.innerHTML = data.map(u=>`
-    <div class="usr-card ${u.activo?'':'inactive'}" id="usr-${u.id}">
-      <div class="usr-info">
-        <div class="usr-name">${u.nombre}</div>
-        <div class="usr-email">${u.email}</div>
-        <span class="usr-rol usr-rol-${u.rol}">${u.rol}</span>
+  const c=document.getElementById('userList');
+  if(!c) return;
+  c.innerHTML='<div style="padding:10px;color:var(--mid);font-size:.8rem">Cargando...</div>';
+  const{data,error}=await supa.from('usuarios').select('*').order('nombre');
+  if(error||!data){ c.innerHTML='<div style="color:var(--red);padding:10px;font-size:.8rem">Error: '+(error?.message||'sin datos')+'</div>'; return; }
+  c.innerHTML=data.map(u=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="width:38px;height:38px;border-radius:10px;background:${u.rol==='admin'?'var(--blue)':'var(--green)'};
+        display:flex;align-items:center;justify-content:center;
+        font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1rem;color:#fff;flex-shrink:0">
+        ${(u.nombre||u.email||'?')[0].toUpperCase()}
       </div>
-      <div class="usr-actions">
-        <button class="usr-toggle ${u.activo?'usr-toggle-on':'usr-toggle-off'}"
-          onclick="toggleUserActive('${u.id}',${u.activo})">
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:.88rem;color:var(--ink)">${u.nombre||'—'}</div>
+        <div style="font-size:.72rem;color:var(--mid)">${u.email}</div>
+        <div style="display:flex;gap:6px;margin-top:4px;align-items:center">
+          <span style="padding:2px 8px;border-radius:10px;font-size:.6rem;font-weight:700;text-transform:uppercase;
+            background:${u.rol==='admin'?'#EEF2FF':'#ECFDF5'};
+            color:${u.rol==='admin'?'var(--blue)':'var(--green-dark)'};
+            border:1px solid ${u.rol==='admin'?'#C7D2FE':'#A7F3D0'}">
+            ${u.rol||'vendedor'}
+          </span>
+          ${!u.activo?'<span style="padding:2px 8px;border-radius:10px;font-size:.6rem;font-weight:700;text-transform:uppercase;background:#FEF2F2;color:var(--red);border:1px solid #FCA5A5">Inactivo</span>':''}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+        <button onclick="editarUsuario('${u.id}')" 
+          style="padding:5px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--white);
+          font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.65rem;
+          text-transform:uppercase;color:var(--blue);cursor:pointer">
+          ✏️ Editar
+        </button>
+        <button onclick="toggleUserActive('${u.id}',${!u.activo})"
+          style="padding:5px 10px;border-radius:6px;border:1.5px solid ${u.activo?'#FCA5A5':'#A7F3D0'};
+          background:${u.activo?'#FEF2F2':'#ECFDF5'};
+          font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.65rem;
+          text-transform:uppercase;color:${u.activo?'var(--red)':'var(--green-dark)'};cursor:pointer">
           ${u.activo?'Desactivar':'Activar'}
         </button>
-        <button class="btn-del-row" title="Eliminar usuario"
-          onclick="deleteUser('${u.id}','${u.nombre}')"
-          style="font-size:1rem;padding:4px 8px;color:#ccc">🗑</button>
+        <button onclick="deleteUser('${u.id}')"
+          style="padding:5px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--white);
+          font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.65rem;
+          text-transform:uppercase;color:var(--mid);cursor:pointer">
+          🗑️
+        </button>
       </div>
     </div>`).join('');
+}
 
-  // Populate vendedor filter in reports
-  const sel = document.getElementById('repCotVendedor');
-  if(sel){
-    sel.innerHTML = '<option value="">Todos los vendedores</option>' +
-      data.map(u=>`<option value="${u.id}">${u.nombre}</option>`).join('');
-  }
+function editarUsuario(uid){
+  // Inline edit — replace user card with edit form
+  // Simple: usar prompt por ahora, mejorar después
+  const c=document.getElementById('userList');
+  const cards=c.querySelectorAll('[data-uid]');
+  // Reload with edit form for this user
+  supa.from('usuarios').select('*').eq('id',uid).single().then(({data:u})=>{
+    if(!u) return;
+    const div=document.createElement('div');
+    div.style.cssText='background:var(--light);border-radius:10px;padding:14px;margin-bottom:10px;border:1.5px solid var(--blue)';
+    div.innerHTML=`
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.85rem;color:var(--blue);text-transform:uppercase;margin-bottom:10px">Editando usuario</div>
+      <div class="field-grid" style="margin-bottom:10px">
+        <div class="field"><label>Nombre</label><input type="text" class="finput" id="eu-nombre" value="${u.nombre||''}"></div>
+        <div class="field"><label>Rol</label>
+          <select class="finput" id="eu-rol">
+            <option value="vendedor" ${u.rol==='vendedor'?'selected':''}>Vendedor</option>
+            <option value="admin" ${u.rol==='admin'?'selected':''}>Admin</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="guardarEdicionUsuario('${uid}')" class="btn-sm green" style="padding:8px 16px">💾 Guardar</button>
+        <button onclick="loadUserList()" class="btn-sm outline" style="padding:8px 16px">Cancelar</button>
+      </div>`;
+    c.prepend(div);
+  });
+}
+
+async function guardarEdicionUsuario(uid){
+  const nombre=document.getElementById('eu-nombre')?.value?.trim();
+  const rol=document.getElementById('eu-rol')?.value;
+  if(!nombre){ showToast('Ingresa un nombre','warn'); return; }
+  const{error}=await supa.from('usuarios').update({nombre,rol}).eq('id',uid);
+  if(!error){ showToast('Usuario actualizado','success'); loadUserList(); }
+  else showToast('Error: '+error.message,'error');
 }
 
 async function createUser(){
@@ -4348,6 +4465,75 @@ function downloadCSV(rows,filename){
   showToast('CSV descargado: '+filename,'success');
 }
 
+// ── LIVE KPI ENGINE ───────────────────────────────────────────
+function updateLiveKpis(){
+  if(!S.type) return;
+  const bar=document.getElementById('liveKpiBar');
+  if(bar) bar.classList.add('show');
+
+  let totT=0, totC=0;
+  const fm=n=>'$'+parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+
+  // Calcular venta estimada basado en volúmenes actuales
+  function addT(key,qty){
+    const t=TARIFAS[key]; if(!t||!qty) return;
+    totT+=t.cost*qty;
+    totC+=(CB[key]||0)*qty;
+  }
+
+  const isVeh=S.type==='vehiculos';
+  if(isVeh){
+    addT('vehDesc',    gv('f_vehDescQty'));
+    addT('vehCarga',   gv('f_vehCargaQty'));
+    const dias=gv('f_vehPatio')*gv('f_vehDias');
+    if(dias){ totT+=( TARIFAS['vehAlmac']?.cost||7.5)*dias; totC+=(CB['vehAlmac']||2)*dias; }
+    addT('vehConductor', gv('f_rutasConductor'));
+  } else {
+    addT('desc40p', gv('f_cont40p'));
+    addT('desc20p', gv('f_cont20p'));
+    addT('desc40g', gv('f_cont40g'));
+    addT('desc20g', gv('f_cont20g'));
+    const pal=gv('f_pallets')||gv('f_palletsPico');
+    if(pal){
+      const skey={'pallet_pos':'almacPos','m2':'almacM2','cbm':'almacCBM','bulto':'almacBul'}[S.storageFmt||'pallet_pos'];
+      addT(skey, pal);
+    }
+    addT('pickBul', gv('f_bultosSal'));
+    addT('pickUni', gv('f_unidades'));
+    addT('prepOrd', gv('f_ordenes'));
+    addT('carga40p', gv('f_contSal40p'));
+    addT('carga40g', gv('f_contSal40g'));
+  }
+
+  // CAPEX
+  if(S.capex&&S.capexMensual>0) totC+=S.capexMensual;
+
+  // OPEX
+  totC+=(OPEX.personal||[]).reduce((s,p)=>s+p.costo,0);
+  totC+=(OPEX.equipo||[]).reduce((s,e)=>s+e.costo,0);
+
+  // Costos fijos automáticos
+  const pos=gv('posPromedio')||gv('posPico');
+  if(pos>0){
+    const pct=Math.min(100,pos/(ADMIN.totalPos||1716)*100);
+    const totalCF=ADMIN.costos?.reduce((s,c)=>s+c.monto,0)||0;
+    totC+=totalCF*pct/100;
+  }
+
+  const margen=totT>0?(totT-totC)/totT*100:0;
+  const mCls=margen>=30?'good':margen>=15?'warn':'bad';
+
+  const lkVenta=document.getElementById('lkVenta');
+  const lkCosto=document.getElementById('lkCosto');
+  const lkMargen=document.getElementById('lkMargen');
+  if(lkVenta) lkVenta.textContent=totT>0?fm(totT):'—';
+  if(lkCosto) lkCosto.textContent=totC>0?fm(totC):'—';
+  if(lkMargen){
+    lkMargen.textContent=totT>0?margen.toFixed(1)+'%':'—';
+    lkMargen.className='lkpi-value'+(totT>0?' '+mCls:'');
+  }
+}
+
 // ── INIT ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   initLoginButton();
@@ -4490,9 +4676,13 @@ async function downloadCotFromDB(id){
     client: cot.cliente_nombre, seller: cot.vendedor_nombre,
     type: cot.tipo_operacion||'mixto', storageFmt: cot.storage_fmt||'pallet_pos',
     tipoMerc: cot.tipo_mercancia||'', vigencia: cot.vigencia||30,
-    today: new Date(cot.creado_en).toLocaleDateString('es-PA',{day:'2-digit',month:'long',year:'numeric'}),
-    numero: cot.numero, lines, totT: cot.total||0, totC: cot.costo_total||0,
-    margen: cot.margen||0, utilidad: (cot.total||0)-(cot.costo_total||0), alerts:[],
+    today: new Date(cot.creado_en||Date.now()).toLocaleDateString('es-PA',{day:'2-digit',month:'long',year:'numeric'}),
+    numero: cot.numero, lines,
+    totT: parseFloat(cot.total_tarifa)||0,
+    totC: parseFloat(cot.total_costo)||0,
+    margen: parseFloat(cot.margen)||0,
+    utilidad: (parseFloat(cot.total_tarifa)||0)-(parseFloat(cot.total_costo)||0),
+    alerts:[],
   };
   downloadQuote();
 }
@@ -4527,19 +4717,16 @@ function downloadQuoteHTML(){
   const name=(q?.client||'cliente').replace(/[^a-zA-Z0-9]/g,'_').substring(0,20);
   const filename='Cotizacion_DPWorld_'+name+'.html';
 
-  // Método 1: blob download directo del HTML (siempre funciona)
   try{
     const blob=new Blob([S._lastPrintHTML],{type:'text/html;charset=utf-8'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
-    a.href=url;
-    a.download=filename;
-    document.body.appendChild(a);
-    a.click();
+    a.href=url; a.download=filename;
+    document.body.appendChild(a); a.click();
     setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); },1000);
-    showToast('Descargado — ábrelo en Chrome y usa Imprimir → Guardar como PDF','success',6000);
+    showToast('Descargado — abre en Chrome → Imprimir → Guardar como PDF','success',5000);
   }catch(e){
-    showToast('Error al descargar: '+e.message,'error');
+    showToast('Error: '+e.message,'error');
   }
 }
 

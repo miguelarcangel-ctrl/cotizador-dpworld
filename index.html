@@ -2338,19 +2338,17 @@ function checkPosDisponibles(){
   const montoGF=totalCF>0?Math.round(totalCF*pct/100*100)/100:0;
   const fm=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-  // Reparto por cuentas
+  // Build cuentas breakdown string
   let cuentasInfo='';
-  if(ADMIN.cuentas?.length){
+  if(ADMIN.cuentas&&ADMIN.cuentas.length){
     const usedPos=ADMIN.cuentas.reduce((s,c)=>s+(c.pos||0),0);
     if(usedPos>0){
-      cuentasInfo=`<div style="margin-top:8px;font-size:.72rem;color:var(--mid)">
-        <strong style="color:var(--ink)">Reparto entre cuentas activas:</strong><br>
-        ${ADMIN.cuentas.filter(c=>c.nombre).map(c=>{
-          const cPct=usedPos>0?Math.round(c.pos/usedPos*100*10)/10:0;
-          const cMonto=Math.round(totalCF*cPct/100*100)/100;
-          return `• ${c.nombre}: ${cPct}% → ${fm(cMonto)}/mes`;
-        }).join('<br>')}
-      </div>`;
+      const rows=ADMIN.cuentas.filter(c=>c.nombre).map(c=>{
+        const cPct=Math.round(c.pos/usedPos*100*10)/10;
+        const cMonto=Math.round(totalCF*cPct/100*100)/100;
+        return '&bull; '+c.nombre+': '+cPct+'% &rarr; '+fm(cMonto)+'/mes';
+      }).join('<br>');
+      if(rows) cuentasInfo='<div style="margin-top:6px;font-size:.72rem;color:var(--mid)"><strong style="color:var(--ink)">Reparto cuentas:</strong><br>'+rows+'</div>';
     }
   }
 
@@ -2358,18 +2356,16 @@ function checkPosDisponibles(){
   const alertType=pico>totalPos?'danger':pico>totalPos*0.85?'warn':'success';
   const alertIcon=alertType==='danger'?'🔴':alertType==='warn'?'⚠️':'✅';
 
+  let msg='<strong>'+pos+' posiciones = '+pct+'% de la bodega</strong>';
+  if(disponibles>0) msg+='<br>'+disponibles+' posiciones disponibles';
+  else msg+=' — ¡Capacidad máxima!';
+  if(totalCF>0) msg+='<br>Costos fijos imputados: <strong>'+fm(montoGF)+'/mes</strong> ('+pct+'% de '+fm(totalCF)+')';
+  else msg+='<br><em style="color:var(--mid)">Configura costos fijos en Insights</em>';
+  msg+=cuentasInfo;
+
   info.style.display='block';
-  info.innerHTML=`<div class="alert ${alertType}" style="margin-top:8px">
-    <span class="alert-icon">${alertIcon}</span>
-    <div>
-      <strong>${pos} posiciones = ${pct}% de la bodega</strong>
-      ${disponibles>0?`<br>${disponibles} posiciones disponibles`:' — ¡Capacidad máxima!'}
-      ${totalCF>0?`<br>Costos fijos imputados: <strong>${fm(montoGF)}/mes</strong> (${pct}% de ${fm(totalCF)})`:' — Configura costos fijos en Insights'}
-      ${cuentasInfo}
-    </div>
-  </div>`;
-}
-// Calculate gasto fijo % based on declared positions
+  info.innerHTML='<div class="alert '+alertType+'" style="margin-top:8px"><span class="alert-icon">'+alertIcon+'</span><div>'+msg+'</div></div>';
+}// Calculate gasto fijo % based on declared positions
 
 
 // ── QUOTE ENGINE ──────────────────────────────────────────────
@@ -3363,124 +3359,90 @@ function renderCotDetalle(cot){
   const lines=Array.isArray(cot.lineas)?cot.lineas:(typeof cot.lineas==='string'?JSON.parse(cot.lineas||'[]'):[]);
   const estado=cot.estado||'borrador';
 
-  // Group lines
   const mainLines=lines.filter(l=>!l.costoOnly&&!l.isGF);
   const costoLines=lines.filter(l=>l.costoOnly||l.isGF);
 
-  container.innerHTML=`
-    <!-- HEADER -->
-    <div class="cot-detail-hdr">
-      <div class="cot-detail-name">${cot.cliente_nombre||'—'}</div>
-      <div class="cot-detail-meta">${TIPO[cot.tipo_operacion]||cot.tipo_operacion||'—'} · ${fmDate(cot.creado_en)} · ${cot.numero||'—'}</div>
-      <span class="cot-detail-badge ${estado}">${estado.toUpperCase()}</span>
-    </div>
+  // Build lines HTML without nested templates
+  let mainLinesHtml='';
+  mainLines.forEach(l=>{
+    mainLinesHtml+='<div class="cot-line-row">' +
+      '<div><div class="cot-line-name">'+l.name+'</div>' +
+      '<div class="cot-line-unit">'+(l.qty||1)+' &times; $'+parseFloat(l.rate||0).toFixed(2)+' '+(l.unit||'')+'</div></div>' +
+      '<div class="cot-line-amount">'+fm(l.sub)+'</div></div>';
+  });
 
-    <!-- ACTION BAR -->
-    <div class="cot-action-bar">
-      <button class="cot-action-btn edit" onclick="editCotizacion('${cot.id}')">
-        <span class="cab-icon">✏️</span>Editar
-      </button>
-      <button class="cot-action-btn pdf" onclick="downloadCotFromDB('${cot.id}')">
-        <span class="cab-icon">📄</span>PDF
-      </button>
-      <button class="cot-action-btn share" onclick="compartirCot('${cot.id}')">
-        <span class="cab-icon">📤</span>Compartir
-      </button>
-      <button class="cot-action-btn del" onclick="eliminarCot('${cot.id}')">
-        <span class="cab-icon">🗑️</span>Eliminar
-      </button>
-    </div>
+  let costoLinesHtml='';
+  costoLines.forEach(l=>{
+    costoLinesHtml+='<div class="cot-line-row">' +
+      '<div><div class="cot-line-name">'+l.name+'</div>' +
+      '<div class="cot-line-unit">'+(l.unit||'')+'</div></div>' +
+      '<div class="cot-line-amount costo">'+fm(l.costoB||l.rate)+'</div></div>';
+  });
 
-    <!-- INFO CARD -->
-    <div class="cot-info-card">
-      <div class="cot-info-field">
-        <div class="cif-label">Cliente</div>
-        <div class="cif-value">${cot.cliente_nombre||'—'}</div>
-      </div>
-      <div class="cot-info-field">
-        <div class="cif-label">Vendedor</div>
-        <div class="cif-value">${cot.vendedor_nombre||'—'}</div>
-      </div>
-      <div class="cot-info-field">
-        <div class="cif-label">Tipo de operación</div>
-        <div class="cif-value">${TIPO[cot.tipo_operacion]||cot.tipo_operacion||'—'}</div>
-      </div>
-      <div class="cot-info-field">
-        <div class="cif-label">Vigencia</div>
-        <div class="cif-value">${cot.vigencia||30} días</div>
-      </div>
-      <div class="cot-info-field">
-        <div class="cif-label">Total mensual</div>
-        <div class="cif-value amount">${fm(cot.total_tarifa)}</div>
-      </div>
-      <div class="cot-info-field">
-        <div class="cif-label">Margen</div>
-        <div class="cif-value ${mCls}">${margen.toFixed(1)}%</div>
-      </div>
-      <div class="cot-info-field">
-        <div class="cif-label">Costo estimado</div>
-        <div class="cif-value">${fm(cot.total_costo)}</div>
-      </div>
-      <div class="cot-info-field">
-        <div class="cif-label">Creado</div>
-        <div class="cif-value">${fmDate(cot.creado_en)}</div>
-      </div>
-    </div>
+  // Estado buttons
+  const estados=['borrador','enviada','cerrada','cancelada'];
+  let estadoBtns='';
+  if(isAdmin){
+    estados.forEach(e=>{
+      const isActive=e===estado;
+      estadoBtns+='<button onclick="cambiarEstadoCot(\''+cot.id+'\',\''+e+'\')" '+
+        'style="padding:8px 4px;border-radius:8px;border:1.5px solid '+(isActive?'var(--blue)':'var(--border)')+';'+
+        'background:'+(isActive?'var(--blue)':'var(--white)')+';color:'+(isActive?'#fff':'var(--mid)')+';'+
+        'font-family:\'Barlow Condensed\',sans-serif;font-weight:700;font-size:.7rem;'+
+        'text-transform:uppercase;letter-spacing:.04em;cursor:pointer">'+e+'</button>';
+    });
+  }
 
-    <!-- LÍNEAS DE SERVICIO -->
-    ${mainLines.length?`
-    <div class="cot-section">
-      <div class="cot-section-hdr">
-        <div class="cot-section-num">$</div>
-        <div class="cot-section-title">Detalle de servicios</div>
-      </div>
-      ${mainLines.map(l=>`
-      <div class="cot-line-row">
-        <div>
-          <div class="cot-line-name">${l.name}</div>
-          <div class="cot-line-unit">${l.qty||1} × $${parseFloat(l.rate||0).toFixed(2)} ${l.unit||''}</div>
-        </div>
-        <div class="cot-line-amount">${fm(l.sub)}</div>
-      </div>`).join('')}
-    </div>
-    <div class="cot-total-bar">
-      <div class="cot-total-label">Total mensual</div>
-      <div class="cot-total-value">${fm(cot.total_tarifa)}</div>
-    </div>`:''}
+  let out='';
 
-    <!-- COSTOS INTERNOS -->
-    ${costoLines.length?`
-    <div class="cot-section">
-      <div class="cot-section-hdr">
-        <div class="cot-section-num" style="background:var(--mid)">C</div>
-        <div class="cot-section-title">Costos internos (no visibles al cliente)</div>
-      </div>
-      ${costoLines.map(l=>`
-      <div class="cot-line-row">
-        <div>
-          <div class="cot-line-name">${l.name}</div>
-          <div class="cot-line-unit">${l.unit||''}</div>
-        </div>
-        <div class="cot-line-amount costo">${fm(l.costoB||l.rate)}</div>
-      </div>`).join('')}
-    </div>`:''}
+  // Header
+  out+='<div class="cot-detail-hdr">';
+  out+='<div class="cot-detail-name">'+(cot.cliente_nombre||'—')+'</div>';
+  out+='<div class="cot-detail-meta">'+(TIPO[cot.tipo_operacion]||cot.tipo_operacion||'—')+' &middot; '+fmDate(cot.creado_en)+' &middot; '+(cot.numero||'—')+'</div>';
+  out+='<span class="cot-detail-badge '+estado+'">'+estado.toUpperCase()+'</span>';
+  out+='</div>';
 
-    <!-- CAMBIAR ESTADO (admin) -->
-    ${isAdmin?`
-    <div class="cot-estado-selector">
-      <label>Cambiar estado</label>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
-        ${['borrador','enviada','cerrada','cancelada'].map(e=>`
-        <button onclick="cambiarEstadoCot('${cot.id}','${e}')"
-          style="padding:8px 4px;border-radius:8px;border:1.5px solid ${e===estado?'var(--blue)':'var(--border)'};
-          background:${e===estado?'var(--blue)':'var(--white)'};color:${e===estado?'#fff':'var(--mid)'};
-          font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.7rem;
-          text-transform:uppercase;letter-spacing:.04em;cursor:pointer">
-          ${e}
-        </button>`).join('')}
-      </div>
-    </div>`:''}
-  `;
+  // Action bar
+  out+='<div class="cot-action-bar">';
+  out+='<button class="cot-action-btn edit" onclick="editCotizacion(\''+cot.id+'\')"><span class="cab-icon">✏️</span>Editar</button>';
+  out+='<button class="cot-action-btn pdf" onclick="downloadCotFromDB(\''+cot.id+'\')"><span class="cab-icon">📄</span>PDF</button>';
+  out+='<button class="cot-action-btn share" onclick="compartirCot(\''+cot.id+'\')"><span class="cab-icon">📤</span>Compartir</button>';
+  out+='<button class="cot-action-btn del" onclick="eliminarCot(\''+cot.id+'\')"><span class="cab-icon">🗑️</span>Eliminar</button>';
+  out+='</div>';
+
+  // Info card
+  out+='<div class="cot-info-card">';
+  out+='<div class="cot-info-field"><div class="cif-label">Cliente</div><div class="cif-value">'+(cot.cliente_nombre||'—')+'</div></div>';
+  out+='<div class="cot-info-field"><div class="cif-label">Vendedor</div><div class="cif-value">'+(cot.vendedor_nombre||'—')+'</div></div>';
+  out+='<div class="cot-info-field"><div class="cif-label">Tipo</div><div class="cif-value">'+(TIPO[cot.tipo_operacion]||cot.tipo_operacion||'—')+'</div></div>';
+  out+='<div class="cot-info-field"><div class="cif-label">Vigencia</div><div class="cif-value">'+(cot.vigencia||30)+' días</div></div>';
+  out+='<div class="cot-info-field"><div class="cif-label">Total mensual</div><div class="cif-value amount">'+fm(cot.total_tarifa)+'</div></div>';
+  out+='<div class="cot-info-field"><div class="cif-label">Margen</div><div class="cif-value '+mCls+'">'+margen.toFixed(1)+'%</div></div>';
+  out+='<div class="cot-info-field"><div class="cif-label">Costo estimado</div><div class="cif-value">'+fm(cot.total_costo)+'</div></div>';
+  out+='<div class="cot-info-field"><div class="cif-label">Creado</div><div class="cif-value">'+fmDate(cot.creado_en)+'</div></div>';
+  out+='</div>';
+
+  // Lines
+  if(mainLines.length){
+    out+='<div class="cot-section"><div class="cot-section-hdr"><div class="cot-section-num">$</div><div class="cot-section-title">Detalle de servicios</div></div>';
+    out+=mainLinesHtml;
+    out+='</div>';
+    out+='<div class="cot-total-bar"><div class="cot-total-label">Total mensual</div><div class="cot-total-value">'+fm(cot.total_tarifa)+'</div></div>';
+  }
+
+  if(costoLines.length){
+    out+='<div class="cot-section"><div class="cot-section-hdr"><div class="cot-section-num" style="background:var(--mid)">C</div><div class="cot-section-title">Costos internos</div></div>';
+    out+=costoLinesHtml;
+    out+='</div>';
+  }
+
+  // Estado selector (admin only)
+  if(isAdmin){
+    out+='<div class="cot-estado-selector"><label>Cambiar estado</label>';
+    out+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">'+estadoBtns+'</div></div>';
+  }
+
+  container.innerHTML=out;
 }
 
 async function cambiarEstadoCot(id, estado){

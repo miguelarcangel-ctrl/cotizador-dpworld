@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -2914,135 +2914,128 @@ function downloadQuoteCliente(){
 
   const clientLines=(q.lines||[]).filter(l=>!l.costoOnly&&!l.isGF);
   const vigenciaFin=new Date(Date.now()+(parseInt(q.vigencia)||30)*86400000).toLocaleDateString('es-PA',{day:'2-digit',month:'long',year:'numeric'});
+  const propValue={
+    pallet:['Gestión integral de recepción, almacenamiento y despacho de pallets en racks de 5 niveles con sistema Doble Reach','Operación dentro del recinto portuario DAL — elimina costos de inland transportation, trucking y drayage entre puerto y bodega','SLA: recepción ≤ 24h · despacho mismo día (OT antes 14:00) · exactitud inventario ≥ 99.9%'],
+    bulto:['Picking por caja y bulto con personal entrenado en bodega BASC certificada de 1,500 m²','Acceso directo al terminal portuario DAL — de la nave a su bodega en un solo paso, sin transporte intermedio','SLA: recepción ≤ 24h · fill rate ≥ 99.5% · order accuracy ≥ 99.8%'],
+    unit:['Pick & pack unitario con trazabilidad por SKU, etiquetado y preparación de órdenes a nivel de unidad','Operación end-to-end desde descarga del contenedor hasta despacho al destino final, sin movimientos intermedios','SLA: exactitud de picking ≥ 99.8% · procesamiento de órdenes en 24–48h'],
+    mixto:['Operación flexible pallet + bulto + unidad en un mismo cliente, sin necesidad de múltiples operadores','Costos fijos compartidos en multi-cuentas = tarifas más competitivas para su negocio','SLA: recepción ≤ 24h · despacho en 24–48h · exactitud inventario ≥ 99.9%'],
+    vehiculos:['Almacenaje seguro de vehículos en patio cubierto dentro del área portuaria DAL Colón Logistics Park','Inspección BASC de entrada/salida · PDI disponible (lavado, inspección básica) como servicio adicional','SLA: inspección ≤ 2h · disponibilidad 24/7 · reporte de condición en cada movimiento'],
+  };
+  const bullets=propValue[q.type]||propValue.pallet;
 
   const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Propuesta DP World — ${q.client}</title>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Barlow',sans-serif;font-size:12px;color:#1B1B2F;background:#fff;padding:28px 32px}
-    /* Header */
-    .hdr{display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:14px;border-bottom:3px solid #1A1060;margin-bottom:20px}
-    .hdr img{height:34px}
-    .hdr-info{text-align:right;font-size:11px;color:#64748B;line-height:1.8}
-    .hdr-info strong{display:block;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;color:#1A1060;letter-spacing:.02em}
-    /* Client block */
-    .client-block{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px}
-    .client-for{font-size:.68rem;color:#64748B;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:3px}
-    .client-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;color:#1A1060;letter-spacing:.02em}
-    .client-meta{font-size:.78rem;color:#94A3B8;margin-top:2px}
-    .cot-ref{text-align:right}
-    .cot-num{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.9rem;color:#fff;background:#1A1060;padding:4px 12px;border-radius:14px;letter-spacing:.04em}
-    .cot-date{font-size:.68rem;color:#94A3B8;margin-top:4px}
-    /* Table */
-    .sec-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;color:#1A1060;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 6px;padding-bottom:5px;border-bottom:2px solid #1A1060}
+    body{font-family:'Barlow',sans-serif;font-size:12px;color:#1B1B2F;background:#fff}
+    .page{padding:26px 32px}
+    .pg-end{page-break-after:always;break-after:page}
+    .hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:3px solid #1A1060;margin-bottom:20px}
+    .hdr img{height:32px}
+    .hdr-r{text-align:right;font-size:10px;color:#64748B;line-height:1.7}
+    .hdr-r strong{display:block;color:#1A1060;font-size:11px;font-weight:700}
+    .cover{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;padding:48px 0}
+    .cov-bar{width:56px;height:4px;background:#00C389;border-radius:2px}
+    .cov-tag{font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:.12em;font-weight:700}
+    .cov-client{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:44px;color:#1A1060;line-height:1;margin-top:6px}
+    .cov-type{font-size:13px;color:#64748B;margin-top:4px}
+    .cov-num{font-size:12px;background:#1A1060;color:#fff;padding:6px 18px;border-radius:20px;font-weight:700;letter-spacing:.05em}
+    .cov-meta{font-size:11px;color:#64748B;line-height:2.2}
+    .sec-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;color:#1A1060;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 8px;padding-bottom:4px;border-bottom:2px solid #1A1060}
+    .vbullets{list-style:none;display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+    .vbullets li{display:flex;align-items:flex-start;gap:8px;padding:9px 12px;background:#F0FDF4;border-radius:7px;border-left:3px solid #00C389;font-size:11.5px;line-height:1.5}
+    .vbullets li::before{content:'✓';color:#00C389;font-weight:900;flex-shrink:0;margin-top:1px}
     table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:16px}
     thead tr{background:#1A1060}
-    thead th{padding:7px 10px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.07em;text-align:left}
+    thead th{padding:7px 9px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.07em;text-align:left}
     thead th.r{text-align:right}
     tbody tr:nth-child(even){background:#F8F9FC}
-    tbody td{padding:7px 10px;border-bottom:1px solid #E2E8F0;vertical-align:top}
+    tbody td{padding:7px 9px;border-bottom:1px solid #E2E8F0;vertical-align:top}
     tbody td.r{text-align:right;font-weight:600;color:#1A1060}
-    tfoot td{background:#1A1060;color:#fff;padding:9px 10px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px}
+    tfoot td{background:#1A1060;color:#fff;padding:9px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px}
     tfoot td.r{text-align:right;color:#00C389;font-size:15px}
-    /* Profile box */
-    .profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px}
-    .profile-item{padding:8px 10px;background:#F8F9FC;border-radius:6px;border:1px solid #E2E8F0}
-    .pi-label{font-size:.58rem;color:#94A3B8;text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:2px}
-    .pi-value{font-size:.78rem;color:#1B1B2F;font-weight:600}
-    /* DAL advantage box */
-    .advantage-box{background:#1A1060;color:#fff;border-radius:8px;padding:12px 16px;margin-bottom:16px}
-    .adv-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#00C389;margin-bottom:8px}
-    .adv-items{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-    .adv-item{display:flex;align-items:flex-start;gap:6px;font-size:.75rem;line-height:1.4}
+    .adv-box{background:#1A1060;color:#fff;border-radius:8px;padding:14px 18px;margin-bottom:16px}
+    .adv-ttl{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#00C389;margin-bottom:10px}
+    .adv-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .adv-item{display:flex;align-items:flex-start;gap:7px;font-size:.76rem;line-height:1.5}
     .adv-dot{width:6px;height:6px;border-radius:50%;background:#00C389;flex-shrink:0;margin-top:4px}
-    /* Disclaimers */
-    .disclaimer-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:.07em;margin:14px 0 8px}
-    .disclaimers{display:flex;flex-direction:column;gap:5px}
+    .profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px}
+    .pi{padding:8px 10px;background:#F8F9FC;border-radius:6px;border:1px solid #E2E8F0}
+    .pi-l{font-size:.58rem;color:#94A3B8;text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:2px}
+    .pi-v{font-size:.78rem;color:#1B1B2F;font-weight:600}
+    .d-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:.07em;margin:14px 0 8px}
+    .disclaimers{display:flex;flex-direction:column;gap:5px;margin-bottom:16px}
     .d-item{display:flex;gap:8px;font-size:10px;color:#64748B;line-height:1.5}
     .d-num{font-weight:700;color:#1A1060;flex-shrink:0;min-width:14px}
-    /* Footer */
-    .footer{margin-top:20px;padding-top:10px;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;font-size:9.5px;color:#94A3B8}
-    .footer img{height:20px;opacity:.6}
-    @media print{body{padding:14px 18px}@page{margin:.6cm;size:letter}}
+    .foot{margin-top:20px;padding-top:10px;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;font-size:9.5px;color:#94A3B8}
+    .foot img{height:20px;opacity:.55}
+    @media print{.page{padding:14px 18px}.pg-end{display:none}@page{margin:.6cm;size:letter}}
   </style></head><body>
 
-  <!-- HEADER -->
-  <div class="hdr">
-    <img src="${LOGO}" alt="DP World">
-    <div class="hdr-info">
-      <strong>Propuesta de Servicios Logísticos 3PL</strong>
-      DAL Colón Logistics Park · Área Portuaria de Colón, Panamá<br>
-      BASC Certified · Operación End-to-End
+  <!-- PAGE 1: PORTADA -->
+  <div class="page">
+    <div class="hdr"><img src="${LOGO}" alt="DP World"><div class="hdr-r"><strong>DP World Panamá · DAL Colón Logistics Park</strong>Área Portuaria de Colón, Panamá · BASC Certified</div></div>
+    <div class="cover">
+      <div class="cov-bar"></div>
+      <div>
+        <div class="cov-tag">Propuesta de Servicios Logísticos 3PL</div>
+        <div class="cov-client">${q.client}</div>
+        <div class="cov-type">${TNAMES[q.type]||q.type}${q.tipoMerc?' · '+q.tipoMerc:''}</div>
+      </div>
+      <div class="cov-num">${q.numero||'BORRADOR'}</div>
+      <div class="cov-meta">Fecha: <strong>${q.today}</strong> &nbsp;·&nbsp; Vigente hasta: <strong>${vigenciaFin}</strong><br>Responsable comercial: <strong>${q.seller||'—'}</strong></div>
+      <div class="cov-bar"></div>
     </div>
+    <div class="foot"><div>Confidencial · Solo para uso del destinatario</div><div>DP World Panamá · ${q.today}</div></div>
   </div>
+  <div class="pg-end"></div>
 
-  <!-- CLIENT + REF -->
-  <div class="client-block">
-    <div>
-      <div class="client-for">Cotización para</div>
-      <div class="client-name">${q.client}</div>
-      <div class="client-meta">${TNAMES[q.type]||q.type}${q.tipoMerc?' · '+q.tipoMerc:''}</div>
+  <!-- PAGE 2: PROPUESTA DE VALOR + SERVICIOS -->
+  <div class="page">
+    <div class="hdr"><img src="${LOGO}" alt="DP World"><div class="hdr-r"><strong>Propuesta Comercial — ${q.client}</strong>${q.numero||'Borrador'} · ${q.today}</div></div>
+    <div class="sec-title">Propuesta de valor</div>
+    <ul class="vbullets">${bullets.map(b=>'<li>'+b+'</li>').join('')}</ul>
+    <div class="sec-title">Detalle de servicios cotizados</div>
+    <table>
+      <thead><tr><th>Descripción del servicio</th><th>Unidad</th><th class="r">Vol. est.</th><th class="r">Tarifa</th><th class="r">Subtotal / mes</th></tr></thead>
+      <tbody>${clientLines.map(l=>'<tr><td>'+l.name+'</td><td style="color:#64748B">'+l.unit+'</td><td class="r">'+l.qty+'</td><td class="r">$'+parseFloat(l.rate||0).toFixed(2)+'</td><td class="r">$'+fm(l.sub)+'</td></tr>').join('')}</tbody>
+      <tfoot><tr><td colspan="4">TOTAL ESTIMADO MENSUAL</td><td class="r">$${fm(q.totT)}</td></tr></tfoot>
+    </table>
+    <div class="foot"><div>Confidencial · ${q.client}</div><div>${q.numero||''} · ${q.today}</div></div>
+  </div>
+  <div class="pg-end"></div>
+
+  <!-- PAGE 3: VENTAJA DAL + CONDICIONES -->
+  <div class="page">
+    <div class="hdr"><img src="${LOGO}" alt="DP World"><div class="hdr-r"><strong>Condiciones — ${q.client}</strong>${q.numero||'Borrador'} · ${q.today}</div></div>
+    <div class="adv-box">
+      <div class="adv-ttl">Ventaja DAL — Operación dentro del área portuaria</div>
+      <div class="adv-grid">
+        <div class="adv-item"><div class="adv-dot"></div><div>Bodega <strong>dentro del recinto portuario DAL</strong> — acceso directo al terminal sin desplazamiento terrestre ni trámites adicionales</div></div>
+        <div class="adv-item"><div class="adv-dot"></div><div><strong>Elimina costos</strong> de inland transportation, trucking y drayage entre puerto y bodega</div></div>
+        <div class="adv-item"><div class="adv-dot"></div><div>Operación <strong>end-to-end</strong>: descarga → almacenamiento → despacho en un solo punto sin ruptura de custodia</div></div>
+        <div class="adv-item"><div class="adv-dot"></div><div>Reducción del tiempo operativo portuario de <strong>~7 días a 1 día</strong> en promedio</div></div>
+      </div>
     </div>
-    <div class="cot-ref">
-      <div class="cot-num">${q.numero||'BORRADOR'}</div>
-      <div class="cot-date">Fecha: ${q.today}<br>Vigente hasta: ${vigenciaFin}</div>
+    ${(q.posPromedio&&q.posPromedio!=='—')||(q.totalSkus&&q.totalSkus!=='—')?'<div class="sec-title">Perfil operativo declarado</div><div class="profile-grid">'+
+      (q.posPromedio&&q.posPromedio!=='—'?'<div class="pi"><div class="pi-l">Posiciones promedio</div><div class="pi-v">'+q.posPromedio+'</div></div>':'')+
+      (q.posPico&&q.posPico!=='—'?'<div class="pi"><div class="pi-l">Posiciones pico</div><div class="pi-v">'+q.posPico+'</div></div>':'')+
+      (q.totalSkus&&q.totalSkus!=='—'?'<div class="pi"><div class="pi-l">Total SKUs</div><div class="pi-v">'+q.totalSkus+'</div></div>':'')+
+      (q.rotacion&&q.rotacion!=='—'?'<div class="pi"><div class="pi-l">Rotación</div><div class="pi-v">'+q.rotacion+'</div></div>':'')+
+      (q.storageFmt?'<div class="pi"><div class="pi-l">Formato almacenaje</div><div class="pi-v">'+q.storageFmt+'</div></div>':'')+
+    '</div>':''}
+    <div class="d-title">Condiciones de la propuesta</div>
+    <div class="disclaimers">
+      <div class="d-item"><div class="d-num">1.</div><div>La tarifa de almacenaje contempla posiciones en rack (5 niveles, sistema Doble Reach) y piso, en bodega de 1,500 m².</div></div>
+      <div class="d-item"><div class="d-num">2.</div><div>Tarifa de Entrada: recepción, conteo físico contra packing list, ubicación en sistema y almacenamiento en posición asignada.</div></div>
+      <div class="d-item"><div class="d-num">3.</div><div>Tarifa de Salida: preparación de la orden de trabajo, verificación de cantidad y condición, y carga al transporte de despacho.</div></div>
+      <div class="d-item"><div class="d-num">4.</div><div>No incluye insumos de embalaje (cajas, stretch film, etiquetas). Pueden cotizarse por separado según necesidad.</div></div>
+      <div class="d-item"><div class="d-num">5.</div><div>No incluye gastos aduaneros (DTA, MLC, endoso, pólizas), seguro de la mercancía, ni transporte externo a la operación.</div></div>
+      <div class="d-item"><div class="d-num">6.</div><div>Incluye reportería de movimientos e inventario. No incluye integración con ERP o WMS del cliente.</div></div>
+      <div class="d-item"><div class="d-num">7.</div><div>Validez: <strong>${q.vigencia} días</strong> a partir del <strong>${q.today}</strong>, hasta el ${vigenciaFin}.</div></div>
+      <div class="d-item"><div class="d-num">8.</div><div>Variaciones en volúmenes declarados superiores al ±15% podrán generar revisión de tarifas previo acuerdo entre las partes.</div></div>
     </div>
-  </div>
-
-  <!-- SERVICES TABLE -->
-  <div class="sec-title">Detalle de servicios cotizados</div>
-  <table>
-    <thead><tr>
-      <th>Descripción del servicio</th>
-      <th>Unidad</th>
-      <th class="r">Volumen est.</th>
-      <th class="r">Tarifa</th>
-      <th class="r">Subtotal / mes</th>
-    </tr></thead>
-    <tbody>
-    ${clientLines.map(l=>'<tr><td>'+l.name+'</td><td style="color:#64748B">'+l.unit+'</td><td class="r">'+l.qty+'</td><td class="r">$'+parseFloat(l.rate||0).toFixed(2)+'</td><td class="r">$'+fm(l.sub)+'</td></tr>').join('')}
-    </tbody>
-    <tfoot><tr><td colspan="4">TOTAL ESTIMADO MENSUAL</td><td class="r">$${fm(q.totT)}</td></tr></tfoot>
-  </table>
-
-  <!-- OPERATIONAL PROFILE -->
-  ${(q.posPromedio&&q.posPromedio!=='—')||(q.totalSkus&&q.totalSkus!=='—')?'<div class="sec-title">Perfil operativo declarado</div><div class="profile-grid">'+
-    (q.posPromedio&&q.posPromedio!=='—'?'<div class="profile-item"><div class="pi-label">Posiciones promedio</div><div class="pi-value">'+q.posPromedio+'</div></div>':'')+
-    (q.posPico&&q.posPico!=='—'?'<div class="profile-item"><div class="pi-label">Posiciones pico</div><div class="pi-value">'+q.posPico+'</div></div>':'')+
-    (q.totalSkus&&q.totalSkus!=='—'?'<div class="profile-item"><div class="pi-label">Total SKUs</div><div class="pi-value">'+q.totalSkus+'</div></div>':'')+
-    (q.rotacion&&q.rotacion!=='—'?'<div class="profile-item"><div class="pi-label">Rotación</div><div class="pi-value">'+q.rotacion+'</div></div>':'')+
-    (q.temperatura&&q.temperatura!=='Ambiente'?'<div class="profile-item"><div class="pi-label">Temperatura</div><div class="pi-value">'+q.temperatura+'</div></div>':'')+
-    (q.storageFmt?'<div class="profile-item"><div class="pi-label">Formato almacenaje</div><div class="pi-value">'+q.storageFmt+'</div></div>':'')+
-  '</div>':''}
-
-  <!-- DAL ADVANTAGE -->
-  <div class="advantage-box">
-    <div class="adv-title">Ventaja DP World — Operación dentro del área portuaria</div>
-    <div class="adv-items">
-      <div class="adv-item"><div class="adv-dot"></div><div>Bodega <strong>dentro del recinto portuario DAL</strong>, no en Zona Libre — acceso directo al terminal sin desplazamiento terrestre</div></div>
-      <div class="adv-item"><div class="adv-dot"></div><div><strong>Elimina costos</strong> de inland transportation, trucking y drayage entre puerto y bodega</div></div>
-      <div class="adv-item"><div class="adv-dot"></div><div>Operación <strong>end-to-end</strong>: descarga → almacenamiento → despacho en un solo punto</div></div>
-      <div class="adv-item"><div class="adv-dot"></div><div>Reducción del tiempo operativo portuario de <strong>~7 días a 1 día</strong> en promedio</div></div>
-    </div>
-  </div>
-
-  <!-- DISCLAIMERS -->
-  <div class="disclaimer-title">Condiciones de la propuesta</div>
-  <div class="disclaimers">
-    <div class="d-item"><div class="d-num">1.</div><div>La tarifa de almacenaje contempla posiciones en rack (5 niveles, sistema Doble Reach) y piso, más área operativa en bodega de 1,500 m².</div></div>
-    <div class="d-item"><div class="d-num">2.</div><div>La tarifa de Entrada incluye recepción del contenedor o camión, conteo físico contra packing list, ubicación en sistema y almacenamiento en posición asignada.</div></div>
-    <div class="d-item"><div class="d-num">3.</div><div>La tarifa de Salida incluye preparación de la orden de trabajo, verificación de cantidad y condición, y carga al transporte de despacho.</div></div>
-    <div class="d-item"><div class="d-num">4.</div><div>La propuesta no incluye insumos como materiales de embalaje, cajas de cartón, stretch film u otros materiales de reposición. Estos pueden ser cotizados según necesidad del cliente.</div></div>
-    <div class="d-item"><div class="d-num">5.</div><div>Las tarifas no incluyen gastos aduaneros (DTA, MLC, endoso, pólizas), póliza de seguro de la mercancía, ni transporte externo a la operación.</div></div>
-    <div class="d-item"><div class="d-num">6.</div><div>El servicio incluye reportería de movimientos e inventario. No incluye integración de sistemas con el ERP o WMS del cliente.</div></div>
-    <div class="d-item"><div class="d-num">7.</div><div>Validez de las tarifas: <strong>${q.vigencia} días</strong> a partir del <strong>${q.today}</strong>, hasta el ${vigenciaFin}.</div></div>
-    <div class="d-item"><div class="d-num">8.</div><div>Cualquier variación en los volúmenes declarados superior al ±15% podrá generar una revisión de tarifas previo acuerdo entre las partes.</div></div>
-  </div>
-
-  <!-- FOOTER -->
-  <div class="footer">
-    <div><strong>DP World Panamá</strong> · DAL Colón Logistics Park · +507 XXX-XXXX · dpworld.com/panama</div>
-    <img src="${LOGO}" alt="DP World">
+    <div class="foot"><div><strong>DP World Panamá</strong> · DAL Colón Logistics Park · dpworld.com/panama</div><img src="${LOGO}" alt="DP World"></div>
   </div>
   <script>window.onload=function(){window.print();}<\/script>
   </body></html>`;
@@ -3055,242 +3048,70 @@ function downloadQuote(){
   const q=S.lastQuote;
   if(!q){showToast('Genera la cotización primero','warn');return;}
   const fm=n=>parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const mCls=q.margen>=30?'good':q.margen>=15?'warn':'bad';
+  const TNAMES={pallet:'Pallet In/Out',bulto:'Bulto In/Out',unit:'Unit In/Out',mixto:'Mixto',vehiculos:'Vehículos'};
+  const mClr=q.margen>=30?'#065F46':q.margen>=15?'#92400E':'#9B1C1C';
   const LOGO='data:image/jpeg;base64,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';
-  
-  // Dynamic proposal value by operation type
-  const TNAMES_={pallet:'Pallet In/Out',bulto:'Bulto In/Out',unit:'Unit In/Out',mixto:'Mixto',vehiculos:'Vehículos'};
-  const propValue={
-    pallet:['Gestión completa de recepción, almacenamiento y despacho de pallets en racks de 5 niveles (Doble Reach)','Capacidad en Zona Libre de Colón con régimen aduanero beneficioso para re-exportación sin aranceles','SLA: recepción ≤ 24h · despacho mismo día (OT antes 14:00) · exactitud inventario ≥ 99.9%'],
-    bulto:['Operación picking a nivel de caja/bulto con personal entrenado y equipos propios','Multi-cuentas en 1,500 m² con BASC certificado y visibilidad de inventario en tiempo real','SLA: recepción ≤ 24h · fill rate ≥ 99.5% · order accuracy ≥ 99.8%'],
-    unit:['Pick & pack unitario con trazabilidad por SKU, etiquetado y preparación de órdenes','Flexibilidad operativa: FIFO/FEFO/LIFO · gestión de devoluciones · reportería diaria','SLA: exactitud de picking ≥ 99.8% · procesamiento de ordenes en 24–48h'],
-    mixto:['Operación multicuenta flexible: pallet + bulto + unidad según necesidad del negocio','Costos compartidos entre cuentas: mayor eficiencia = tarifas competitivas','SLA: recepción ≤ 24h · despacho en 24–48h · exactitud inventario ≥ 99.9%'],
-    vehiculos:['Almacenaje seguro de vehículos en patio cubierto · DAL Colón Logistics Park, Zona Libre','Inspección BASC de entrada/salida · PDI básico (lavado, inspección) disponible','SLA: inspección ≤ 2h por vehículo · disponibilidad patio 24/7'],
-  };
-  const bullets=(propValue[q.type]||propValue.pallet);
-  // ROI básico (factor 1.35 = ineficiencia operación propia vs 3PL)
-  const inhouse=q.totT*1.35;
-  const ahorro=inhouse-q.totT;
-  const ahorroP=(ahorro/inhouse*100).toFixed(1);
-  // Benchmark lines relevant to this quote
-  const bmLines=(q.lines||[]).filter(l=>MARKET_BENCHMARK&&MARKET_BENCHMARK[l.key]&&!l.costoOnly);
 
-  const printHTML=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Propuesta DP World — ${q.client}</title>
+  const printHTML=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ficha Interna — ${q.client}</title>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Barlow',sans-serif;font-size:12px;color:#1B1B2F;background:#fff}
-    .page{padding:24px 28px;min-height:100vh}
-    .pb{page-break-before:always}
-    /* Header strip */
-    .hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:3px solid #1A1060;margin-bottom:18px}
-    .hdr img{height:34px}
-    .hdr-r{text-align:right;font-size:10px;color:#666;line-height:1.7}
-    .hdr-r strong{display:block;color:#1A1060;font-size:12px}
-    /* Cover page */
-    .cover{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;min-height:80vh;gap:18px}
-    .cov-tag{font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:.12em;font-weight:700}
-    .cov-client{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:42px;color:#1A1060;line-height:1}
-    .cov-sub{font-size:13px;color:#64748B;margin-top:4px}
-    .cov-num{font-size:12px;background:#1A1060;color:#fff;padding:6px 18px;border-radius:20px;font-weight:700;letter-spacing:.05em}
-    .cov-meta{font-size:11px;color:#64748B;line-height:2}
-    .cov-bar{width:60px;height:4px;background:#00C389;border-radius:2px}
-    /* KPI bar */
-    .kbar{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
-    .kbi{background:#F8F9FC;border-radius:8px;padding:13px;text-align:center;border:1px solid #E2E8F0}
+    body{font-family:'Barlow',sans-serif;font-size:11.5px;color:#1B1B2F;background:#fff;padding:20px 26px}
+    .banner{background:#1A1060;color:#fff;padding:7px 14px;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+    .hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:3px solid #1A1060;margin-bottom:16px}
+    .hdr img{height:28px}
+    .hdr-r{text-align:right;font-size:10px;color:#64748B;line-height:1.7}
+    .hdr-r strong{display:block;color:#1A1060;font-size:11px}
+    .kbar{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+    .kbi{background:#F8F9FC;border-radius:8px;padding:12px;text-align:center;border:1px solid #E2E8F0}
     .kbi-l{font-size:10px;color:#64748B;text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:4px}
     .kbi-v{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;color:#1A1060}
-    .kbi-v.green{color:#065F46}.kbi-v.amber{color:#92400E}
-    /* Section title */
-    .stitle{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;color:#1A1060;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 8px;border-bottom:2px solid #1A1060;padding-bottom:4px}
-    /* Value bullets */
-    .vbullets{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
-    .vbullets li{display:flex;align-items:flex-start;gap:8px;padding:9px 12px;background:#F0FDF4;border-radius:7px;border-left:3px solid #00C389;font-size:11.5px;line-height:1.5}
-    .vbullets li::before{content:'✓';color:#00C389;font-weight:900;flex-shrink:0;margin-top:1px}
-    /* Table */
-    table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:11px}
-    th{padding:7px 9px;text-align:left;font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.07em;background:#F8F9FC;border-bottom:2px solid #E2E8F0}
+    .stitle{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;color:#1A1060;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 7px;border-bottom:2px solid #1A1060;padding-bottom:3px}
+    table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px}
+    th{padding:6px 8px;text-align:left;font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.07em;background:#F8F9FC;border-bottom:2px solid #E2E8F0}
     th.r{text-align:right}
-    td{padding:7px 9px;border-bottom:1px solid #E2E8F0}
+    td{padding:6px 8px;border-bottom:1px solid #E2E8F0}
     td.r{text-align:right;font-weight:700;color:#1A1060}
     td.gray{color:#94A3B8;font-style:italic;font-weight:400}
-    tfoot td{font-weight:700;background:#1A1060;color:#fff;padding:9px}
-    tfoot td.r{color:#00C389;font-family:'Barlow Condensed',sans-serif;font-size:14px}
-    /* ROI */
-    .roi-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
-    .roi-card{border:1.5px solid #E2E8F0;border-radius:8px;padding:12px;text-align:center}
-    .roi-card.hi{border-color:#00C389;background:#F0FDF4}
-    .roi-lbl{font-size:10px;color:#64748B;text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:4px}
-    .roi-val{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:19px;color:#1A1060}
-    .roi-val.g{color:#065F46}
-    /* Badge */
-    .badge{display:inline-block;padding:2px 8px;border-radius:10px;background:#EEF2FF;color:#3730A3;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-right:4px;border:1px solid #C7D2FE}
-    /* Conditions */
-    .cond-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-    .cond-item{padding:10px 12px;background:#F8F9FC;border-radius:7px;border:1px solid #E2E8F0}
-    .cond-lbl{font-size:10px;color:#64748B;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:3px}
-    .cond-val{font-size:12px;color:#1B1B2F;font-weight:600}
-    /* Footer */
-    .foot{margin-top:20px;padding-top:10px;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;font-size:10px;color:#aaa}
-    /* Internal section */
-    .int-banner{background:#1A1060;color:#fff;padding:8px 14px;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
-    @media print{.page{padding:14px 16px}@page{margin:.7cm;size:letter}}
+    tfoot td{font-weight:700;background:#1A1060;color:#fff;padding:8px}
+    tfoot td.r{color:#00C389;font-family:'Barlow Condensed',sans-serif;font-size:13px}
+    .foot{margin-top:16px;padding-top:8px;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;font-size:9.5px;color:#94A3B8}
+    @media print{body{padding:12px 16px}@page{margin:.5cm;size:letter}}
   </style></head><body>
-
-  <!-- ══ PORTADA ══ -->
-  <div class="page">
-    <div class="hdr">
-      <img src="${LOGO}" alt="DP World">
-      <div class="hdr-r"><strong>DP World Panamá · DAL Colón Logistics Park</strong>Zona Libre de Colón · Panamá · BASC Certified</div>
-    </div>
-    <div class="cover">
-      <div class="cov-bar"></div>
-      <div>
-        <div class="cov-tag">Propuesta de Servicios Logísticos 3PL</div>
-        <div class="cov-client">${q.client}</div>
-        <div class="cov-sub">${TNAMES_[q.type]||q.type} · Zona Libre de Colón</div>
-      </div>
-      <div class="cov-num">${q.numero||'Borrador'}</div>
-      <div class="cov-meta">
-        Fecha: <strong>${q.today}</strong><br>
-        Vigencia: <strong>${q.vigencia} días</strong><br>
-        Responsable comercial: <strong>${q.seller}</strong>
-      </div>
-      <div class="cov-bar"></div>
-    </div>
-    <div class="foot"><div>Confidencial · Solo para uso del destinatario</div><div>DP World Panamá · ${q.today}</div></div>
+  <div class="banner">Ficha Operacional — Uso Exclusivo Interno · No distribuir al cliente</div>
+  <div class="hdr">
+    <img src="${LOGO}" alt="DP World">
+    <div class="hdr-r"><strong>Ficha Interna — ${q.client}</strong>${q.numero||'Borrador'} · ${q.today}</div>
   </div>
-
-  <!-- ══ RESUMEN EJECUTIVO ══ -->
-  <div class="page pb">
-    <div class="hdr">
-      <img src="${LOGO}" alt="DP World">
-      <div class="hdr-r"><strong>Propuesta Comercial — ${q.client}</strong>${q.numero||'Borrador'} · ${q.today}</div>
-    </div>
-    <div class="kbar">
-      <div class="kbi"><div class="kbi-l">Total mensual estimado</div><div class="kbi-v">$${fm(q.totT)}</div></div>
-      <div class="kbi"><div class="kbi-l">Vigencia oferta</div><div class="kbi-v" style="font-size:16px">${q.vigencia} días</div></div>
-      <div class="kbi"><div class="kbi-l">Tipo de operación</div><div class="kbi-v" style="font-size:14px">${TNAMES_[q.type]||q.type}</div></div>
-    </div>
-    <div class="stitle">Propuesta de valor</div>
-    <ul class="vbullets">${bullets.map(b=>`<li>${b}</li>`).join('')}</ul>
-    <div class="stitle">¿Por qué DP World DAL Colón?</div>
-    <ul class="vbullets">
-      <li>1,500 m² · 12m altura · 5 niveles racks Doble Reach — <strong>1,716 posiciones operativas</strong></li>
-      <li>Ubicación estratégica en Zona Libre de Colón — acceso a mercados del Caribe y Latinoamérica sin aranceles de re-exportación</li>
-      <li>Operación multi-cuentas: costos fijos compartidos = <strong>tarifas más competitivas</strong> que operación dedicada</li>
-    </ul>
-    <div class="foot"><div>Confidencial · ${q.client}</div><div>${q.numero||''} · ${q.today}</div></div>
+  <div class="kbar">
+    <div class="kbi"><div class="kbi-l">Total tarifa cliente</div><div class="kbi-v">$${fm(q.totT)}</div></div>
+    <div class="kbi"><div class="kbi-l">Costo estimado</div><div class="kbi-v" style="color:#92400E">$${fm(q.totC)}</div></div>
+    <div class="kbi"><div class="kbi-l">Margen</div><div class="kbi-v" style="color:${mClr}">${q.margen.toFixed(1)}%</div></div>
   </div>
-
-  <!-- ══ DETALLE DE SERVICIOS ══ -->
-  <div class="page pb">
-    <div class="hdr">
-      <img src="${LOGO}" alt="DP World">
-      <div class="hdr-r"><strong>Detalle de Servicios — ${q.client}</strong>${q.numero||'Borrador'} · ${q.today}</div>
-    </div>
-    <div class="stitle">Servicios cotizados</div>
-    <table>
-      <thead><tr><th>Servicio</th><th>Unidad</th><th class="r">Vol.</th><th class="r">Tarifa</th><th class="r">Subtotal</th></tr></thead>
-      <tbody>
-      ${(q.lines||[]).filter(l=>!l.costoOnly).map(l=>`<tr>
-        <td>${l.name}</td><td>${l.unit}</td>
-        <td class="r">${l.qty}</td>
-        <td class="r">$${parseFloat(l.rate||0).toFixed(2)}</td>
-        <td class="r">$${fm(l.sub)}</td>
-      </tr>`).join('')}
-      </tbody>
-      <tfoot><tr><td colspan="4">TOTAL MENSUAL ESTIMADO</td><td class="r">$${fm(q.totT)}</td></tr></tfoot>
-    </table>
-    ${bmLines.length>0?`
-    <div class="stitle">Comparativo de mercado</div>
-    <table>
-      <thead><tr><th>Servicio</th><th>Unidad</th><th class="r">DP World</th><th class="r">Mín mercado</th><th class="r">Máx mercado</th><th class="r">Posición</th></tr></thead>
-      <tbody>${bmLines.map(l=>{const bm=MARKET_BENCHMARK[l.key];const pos=l.rate<bm.min?'▼ Por debajo':l.rate>bm.max?'▲ Por encima':'✓ En mercado';const posC=l.rate<bm.min?'#92400E':l.rate>bm.max?'#9B1C1C':'#065F46';return`<tr>
-        <td>${l.name}</td><td>${l.unit}</td>
-        <td class="r"><strong>$${l.rate.toFixed(2)}</strong></td>
-        <td class="r">$${bm.min.toFixed(2)}</td>
-        <td class="r">$${bm.max.toFixed(2)}</td>
-        <td class="r" style="color:${posC};font-weight:700">${pos}</td>
-      </tr>`;}).join('')}</tbody>
-    </table>`:''}
-    <div class="foot"><div>Confidencial · ${q.client}</div><div>${q.numero||''} · ${q.today}</div></div>
-  </div>
-
-  <!-- ══ ROI + CONDICIONES ══ -->
-  <div class="page pb">
-    <div class="hdr">
-      <img src="${LOGO}" alt="DP World">
-      <div class="hdr-r"><strong>Análisis de Valor — ${q.client}</strong>${q.numero||'Borrador'} · ${q.today}</div>
-    </div>
-    <div class="stitle">Estimado de ahorro vs operación propia</div>
-    <div class="roi-grid">
-      <div class="roi-card"><div class="roi-lbl">Costo estimado in-house</div><div class="roi-val">$${fm(inhouse)}</div><div style="font-size:10px;color:#94A3B8;margin-top:4px">Factor: 1.35× sobre tarifa 3PL</div></div>
-      <div class="roi-card hi"><div class="roi-lbl">Con DP World</div><div class="roi-val g">$${fm(q.totT)}</div><div style="font-size:10px;color:#065F46;margin-top:4px">Por mes estimado</div></div>
-      <div class="roi-card hi"><div class="roi-lbl">Ahorro estimado</div><div class="roi-val g">$${fm(ahorro)}/mes</div><div style="font-size:10px;color:#065F46;margin-top:4px">${ahorroP}% vs in-house</div></div>
-    </div>
-    <div style="font-size:10px;color:#94A3B8;margin-bottom:16px">* Estimado referencial. El ahorro real depende de la estructura de costos específica del cliente.</div>
-    <div class="stitle">Condiciones comerciales</div>
-    <div class="cond-grid">
-      <div class="cond-item"><div class="cond-lbl">Vigencia de la oferta</div><div class="cond-val">${q.vigencia} días a partir del ${q.today}</div></div>
-      <div class="cond-item"><div class="cond-lbl">Forma de pago</div><div class="cond-val">Neto 30 días · Facturación mensual</div></div>
-      <div class="cond-item"><div class="cond-lbl">Escalador anual</div><div class="cond-val">IPC + 3% anual (revisión cada 12 meses)</div></div>
-      <div class="cond-item"><div class="cond-lbl">Plazo mínimo contrato</div><div class="cond-val">12 meses (para amortizar setup)</div></div>
-      <div class="cond-item"><div class="cond-lbl">SLA garantizado</div><div class="cond-val">Recepción ≤ 24h · Exactitud inventario ≥ 99.9%</div></div>
-      <div class="cond-item"><div class="cond-lbl">Exclusiones</div><div class="cond-val">Aduanas, seguros de mercancía, transporte externo</div></div>
-    </div>
-    <div class="stitle">Contacto comercial</div>
-    <table><tbody>
-      <tr><td><strong>Vendedor responsable</strong></td><td>${q.seller}</td><td><strong>Empresa</strong></td><td>DP World Panamá</td></tr>
-      <tr><td><strong>Operación</strong></td><td>DAL Colón Logistics Park</td><td><strong>Certificación</strong></td><td>BASC · Zona Libre de Colón</td></tr>
-    </tbody></table>
-    <div class="foot"><div>Confidencial · Solo para uso del destinatario · ${q.client}</div><div>${q.numero||''} · v5.0 · ${q.today}</div></div>
-  </div>
-
-  <!-- ══ SECCIÓN B — USO INTERNO ══ -->
-  <div class="page pb">
-    <div class="hdr">
-      <img src="${LOGO}" alt="DP World">
-      <div class="hdr-r"><strong>Ficha Operacional — USO INTERNO</strong>${q.numero||'Borrador'} · ${q.today}</div>
-    </div>
-    <div class="int-banner">🔒 Sección B — Uso exclusivo interno de operaciones · No distribuir al cliente</div>
-    <div class="kbar">
-      <div class="kbi"><div class="kbi-l">Total tarifa</div><div class="kbi-v">$${fm(q.totT)}</div></div>
-      <div class="kbi"><div class="kbi-l">Costo estimado</div><div class="kbi-v amber">$${fm(q.totC)}</div></div>
-      <div class="kbi"><div class="kbi-l">Margen</div><div class="kbi-v ${q.margen>=30?'green':'amber'}">${q.margen.toFixed(1)}%</div></div>
-    </div>
-    <div class="stitle">Perfil de la operación</div>
-    <table><tbody>
-      <tr><td><strong>Tipo de operación</strong></td><td>${TNAMES_[q.type]||q.type}</td><td><strong>Tipo mercancía</strong></td><td>${q.tipoMerc||'—'}</td></tr>
-      <tr><td><strong>Temperatura</strong></td><td>${q.temperatura||'Ambiente'}</td><td><strong>UoM</strong></td><td>${q.uom||'—'}</td></tr>
-      <tr><td><strong>Rotación</strong></td><td>${q.rotacion||'—'}</td><td><strong>Trazabilidad</strong></td><td>${q.trazabilidad||'—'}</td></tr>
-      <tr><td><strong>Total SKUs</strong></td><td>${q.totalSkus||'—'}</td><td><strong>Posiciones promedio</strong></td><td>${q.posPromedio||'—'}</td></tr>
-      <tr><td><strong>Posiciones pico</strong></td><td>${q.posPico||'—'}</td><td><strong>Formato almacenaje</strong></td><td>${q.storageFmt||'—'}</td></tr>
-    </tbody></table>
-    ${q.contactName?`<div class="stitle">Contacto del cliente</div>
-    <table><tbody>
-      <tr><td><strong>Contacto</strong></td><td>${q.contactName}</td><td><strong>Email</strong></td><td>${q.contactEmail||'—'}</td></tr>
-      <tr><td><strong>Teléfono</strong></td><td>${q.contactPhone||'—'}</td><td><strong>Inicio estimado</strong></td><td>${q.startDate||'—'}</td></tr>
-    </tbody></table>`:''}
-    <div class="stitle">Todas las líneas (incluyendo costos)</div>
-    <table>
-      <thead><tr><th>Concepto</th><th>Unidad</th><th class="r">Vol.</th><th class="r">Tarifa/Monto</th><th class="r">Subtotal cliente</th></tr></thead>
-      <tbody>${(q.lines||[]).map(l=>`<tr>
-        <td>${l.name}</td><td>${l.unit}</td>
-        <td class="r">${l.qty}</td>
-        <td class="r">$${parseFloat(l.rate||0).toFixed(2)}</td>
-        <td class="${l.costoOnly?'gray':'r'}">${l.costoOnly?'costo interno':'$'+fm(l.sub)}</td>
-      </tr>`).join('')}</tbody>
-      <tfoot><tr><td colspan="4">TOTAL MENSUAL AL CLIENTE</td><td class="r">$${fm(q.totT)}</td></tr></tfoot>
-    </table>
-    <div class="foot"><div><strong>DP World Panamá</strong> · DAL Colón Logistics Park · 3PL · Uso interno exclusivo</div><div>v5.0 · ${q.today}</div></div>
-  </div>
+  <div class="stitle">Perfil de la operación</div>
+  <table><tbody>
+    <tr><td><strong>Tipo de operación</strong></td><td>${TNAMES[q.type]||q.type}</td><td><strong>Tipo mercancía</strong></td><td>${q.tipoMerc||'—'}</td></tr>
+    <tr><td><strong>Temperatura</strong></td><td>${q.temperatura||'Ambiente'}</td><td><strong>UoM</strong></td><td>${q.uom||'—'}</td></tr>
+    <tr><td><strong>Rotación</strong></td><td>${q.rotacion||'—'}</td><td><strong>Trazabilidad</strong></td><td>${q.trazabilidad||'—'}</td></tr>
+    <tr><td><strong>Total SKUs</strong></td><td>${q.totalSkus||'—'}</td><td><strong>Posiciones promedio</strong></td><td>${q.posPromedio||'—'}</td></tr>
+    <tr><td><strong>Posiciones pico</strong></td><td>${q.posPico||'—'}</td><td><strong>Formato almacenaje</strong></td><td>${q.storageFmt||'—'}</td></tr>
+    <tr><td><strong>Vendedor</strong></td><td>${q.seller||'—'}</td><td><strong>Vigencia</strong></td><td>${q.vigencia} días</td></tr>
+  </tbody></table>
+  ${q.contactName?'<div class="stitle">Contacto del cliente</div><table><tbody><tr><td><strong>Nombre</strong></td><td>'+q.contactName+'</td><td><strong>Email</strong></td><td>'+(q.contactEmail||'—')+'</td></tr><tr><td><strong>Teléfono</strong></td><td>'+(q.contactPhone||'—')+'</td><td><strong>Inicio estimado</strong></td><td>'+(q.startDate||'—')+'</td></tr></tbody></table>':''}
+  <div class="stitle">Todas las líneas (incluye costos internos)</div>
+  <table>
+    <thead><tr><th>Concepto</th><th>Unidad</th><th class="r">Vol.</th><th class="r">Tarifa</th><th class="r">Subtotal cliente</th></tr></thead>
+    <tbody>${(q.lines||[]).map(l=>'<tr><td>'+l.name+'</td><td>'+l.unit+'</td><td class="r">'+l.qty+'</td><td class="r">$'+parseFloat(l.rate||0).toFixed(2)+'</td><td class="'+(l.costoOnly?'gray':'r')+'">'+(l.costoOnly?'costo interno':'$'+fm(l.sub))+'</td></tr>').join('')}</tbody>
+    <tfoot><tr><td colspan="4">TOTAL MENSUAL AL CLIENTE</td><td class="r">$${fm(q.totT)}</td></tr></tfoot>
+  </table>
+  <div class="foot"><div><strong>DP World Panamá</strong> · DAL Colón Logistics Park · Uso interno exclusivo</div><div>${q.numero||''} · ${q.today}</div></div>
   <script>window.onload=function(){window.print();}<\/script>
   </body></html>`;
-  
+
   S._lastPrintHTML=printHTML;
   showDocPreview(printHTML);
 }
+
 
 function showDocPreview(printHTML){
   S._lastPrintHTML=printHTML;

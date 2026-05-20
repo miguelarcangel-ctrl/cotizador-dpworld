@@ -837,7 +837,8 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
             <div class="field-grid" style="margin-bottom:14px">
               <div class="field span-2">
                 <label>Nombre del cliente / empresa <span class="req">*</span></label>
-                <input type="text" class="finput" id="clientName" placeholder="Nombre legal de la empresa">
+                <input type="text" class="finput" id="clientName" placeholder="Nombre legal de la empresa" list="clientAutocompleteList" oninput="onClientNameInput(this.value)" autocomplete="off">
+                <datalist id="clientAutocompleteList"></datalist>
               </div>
               <div class="field">
                 <label>Vendedor responsable <span class="req">*</span></label>
@@ -1499,6 +1500,16 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
           </div>
         </div>
 
+        <!-- Notas internas -->
+        <div class="card">
+          <div class="card-body">
+            <div class="field">
+              <label style="font-size:.72rem;color:#64748B;text-transform:uppercase;letter-spacing:.06em;font-weight:700">📝 Notas internas <span style="font-weight:400;text-transform:none;letter-spacing:0">(no aparece en PDF)</span></label>
+              <textarea id="notasInternas" class="finput" rows="2" placeholder="Contexto, acuerdos verbales, próximos pasos..." style="resize:vertical;min-height:54px;font-size:.82rem" oninput="autoSave()"></textarea>
+            </div>
+          </div>
+        </div>
+
         <!-- Actions -->
         <div class="card">
           <div class="card-body">
@@ -1538,14 +1549,34 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
         <button onclick="showCotizador()" class="btn-sm green" style="padding:10px 18px">+ Nueva cotización</button>
       </div>
       <div class="cot-filters">
-        <input type="text" class="cot-filter-input" id="cotSearch" placeholder="🔍 Buscar por cliente o número..." oninput="filterCotizaciones()">
-        <select class="cot-filter-input" id="filtroEstado" onchange="filterCotizaciones()" style="flex:0 0 auto;min-width:140px">
+        <input type="text" class="cot-filter-input" id="cotSearch" placeholder="🔍 Buscar por cliente, número o vendedor..." oninput="filterCotizaciones()" style="flex:2">
+        <select class="cot-filter-input" id="filtroEstado" onchange="filterCotizaciones()" style="flex:0 0 auto;min-width:130px">
           <option value="">Todos los estados</option>
           <option value="borrador">Borrador</option>
           <option value="enviada">Enviada</option>
+          <option value="ganada">Ganada</option>
+          <option value="aprobada">Aprobada</option>
+          <option value="perdida">Perdida</option>
+          <option value="rechazada">Rechazada</option>
           <option value="cerrada">Cerrada</option>
           <option value="cancelada">Cancelada</option>
         </select>
+        <select class="cot-filter-input" id="filtroTipo" onchange="filterCotizaciones()" style="flex:0 0 auto;min-width:120px">
+          <option value="">Todos los tipos</option>
+          <option value="pallet">Pallet In/Out</option>
+          <option value="bulto">Bulto In/Out</option>
+          <option value="unit">Unit In/Out</option>
+          <option value="mixto">Mixto</option>
+          <option value="vehiculos">Vehículos</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="font-size:.7rem;color:#64748B;font-weight:600">Monto:</span>
+        <input type="number" id="filtroMinMonto" placeholder="Mín $" style="width:80px;padding:5px 8px;border:1.5px solid #E2E8F0;border-radius:7px;font-size:.75rem" oninput="filterCotizaciones()">
+        <span style="font-size:.7rem;color:#94A3B8">—</span>
+        <input type="number" id="filtroMaxMonto" placeholder="Máx $" style="width:80px;padding:5px 8px;border:1.5px solid #E2E8F0;border-radius:7px;font-size:.75rem" oninput="filterCotizaciones()">
+        <button onclick="limpiarFiltros()" style="padding:5px 10px;border-radius:7px;background:#F8F9FC;border:1.5px solid #E2E8F0;font-size:.7rem;color:#64748B;cursor:pointer;font-weight:600">✕ Limpiar</button>
+        <span id="cotCount" style="margin-left:auto;font-size:.7rem;color:#94A3B8"></span>
       </div>
       <div id="cotListContainer">
         <div style="text-align:center;padding:40px;color:var(--mid);font-size:.85rem">Cargando cotizaciones...</div>
@@ -3214,6 +3245,37 @@ async function onLoginSuccess(){
   if(restoreDraft()){
     showToast('Borrador restaurado — continúa donde lo dejaste','info',4000);
   }
+  loadClientAutocomplete();
+}
+
+let _clientHistory=[]; // cache of past clients
+
+async function loadClientAutocomplete(){
+  try{
+    const filters=currentUserData?.rol==='admin'?{}:{vendedor_id:currentUser.id};
+    const data=await loadCotizaciones(filters);
+    // Deduplicate by client name, keep latest contact data
+    const map={};
+    data.forEach(c=>{
+      if(c.cliente_nombre&&!map[c.cliente_nombre]) map[c.cliente_nombre]=c;
+    });
+    _clientHistory=Object.values(map);
+    const dl=document.getElementById('clientAutocompleteList');
+    if(dl) dl.innerHTML=_clientHistory.map(c=>`<option value="${c.cliente_nombre}">`).join('');
+  }catch(e){}
+}
+
+function onClientNameInput(val){
+  if(!val||!_clientHistory.length) return;
+  const match=_clientHistory.find(c=>(c.cliente_nombre||'').toLowerCase()===val.toLowerCase());
+  if(!match) return;
+  // Auto-fill contact fields if they exist in history
+  const setIfEmpty=(id,v)=>{const el=document.getElementById(id);if(el&&!el.value&&v) el.value=v;};
+  setIfEmpty('vendedor',    match.vendedor_nombre);
+  setIfEmpty('tradeName',   match.cliente_trade_name);
+  setIfEmpty('contactName', match.cliente_contacto);
+  setIfEmpty('contactEmail',match.cliente_email);
+  setIfEmpty('contactPhone',match.cliente_telefono);
 }
 
 async function doSignOut(){
@@ -3291,6 +3353,7 @@ async function saveCotizacion(estado='borrador'){
   };
   // Add optional columns only if they have values (may not exist in all schemas)
   const extras={
+    notas_internas: document.getElementById('notasInternas')?.value||null,
     cliente_trade_name: document.getElementById('tradeName')?.value||null,
     cliente_contacto: document.getElementById('contactName')?.value||null,
     cliente_email: document.getElementById('contactEmail')?.value||null,
@@ -3569,17 +3632,26 @@ async function filterCotizaciones() {
     fecha_hasta: '',
   };
   if(currentUserData?.rol !== 'admin') filters.vendedor_id = currentUser.id;
-  
+
   _allCots = await loadCotizaciones(filters);
-  
-  // Client-side search filter
+
+  // Client-side filters
   let filtered = _allCots;
-  if(search) filtered = filtered.filter(c => 
+  if(search) filtered = filtered.filter(c =>
     (c.cliente_nombre||'').toLowerCase().includes(search) ||
     (c.numero||'').toLowerCase().includes(search) ||
     (c.vendedor_nombre||'').toLowerCase().includes(search)
   );
-  
+  const tipo = document.getElementById('filtroTipo')?.value||'';
+  if(tipo) filtered = filtered.filter(c=>(c.tipo_operacion||'')=== tipo);
+  const minM = parseFloat(document.getElementById('filtroMinMonto')?.value)||0;
+  const maxM = parseFloat(document.getElementById('filtroMaxMonto')?.value)||0;
+  if(minM>0) filtered = filtered.filter(c=>parseFloat(c.total_tarifa||0)>=minM);
+  if(maxM>0) filtered = filtered.filter(c=>parseFloat(c.total_tarifa||0)<=maxM);
+
+  const countEl=document.getElementById('cotCount');
+  if(countEl) countEl.textContent=filtered.length+' resultado'+(filtered.length!==1?'s':'');
+
     renderCotList(filtered);
   }catch(e){
     console.error('filterCotizaciones error:',e);
@@ -3723,6 +3795,7 @@ function renderCotDetalle(cot){
   out+='<div class="cot-info-field"><div class="cif-label">Margen</div><div class="cif-value '+mCls+'">'+margen.toFixed(1)+'%</div></div>';
   out+='<div class="cot-info-field"><div class="cif-label">Costo estimado</div><div class="cif-value">'+fm(cot.total_costo)+'</div></div>';
   out+='<div class="cot-info-field"><div class="cif-label">Creado</div><div class="cif-value">'+fmDate(cot.creado_en)+'</div></div>';
+  if(cot.notas_internas) out+='<div class="cot-info-field" style="grid-column:span 2"><div class="cif-label">📝 Notas internas</div><div class="cif-value" style="font-weight:400;color:#64748B;font-size:.82rem;white-space:pre-wrap">'+cot.notas_internas+'</div></div>';
   out+='</div>';
 
   // Lines
@@ -3883,6 +3956,16 @@ function showCotList(){
   filterCotizaciones();
 }
 
+function limpiarFiltros(){
+  ['cotSearch','filtroTipo','filtroMinMonto','filtroMaxMonto'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
+  });
+  const est=document.getElementById('filtroEstado');
+  if(est) est.value='';
+  filterCotizaciones();
+}
+
 async function editCotizacion(id){
   const cot = _currentCotData || await loadCotizacion(id);
   if(!cot){ showToast('No se pudo cargar','error'); return; }
@@ -3895,7 +3978,8 @@ async function editCotizacion(id){
   setVal('contactName',  cot.cliente_contacto);
   setVal('contactEmail', cot.cliente_email);
   setVal('contactPhone', cot.cliente_telefono);
-  setVal('startDate',    cot.fecha_inicio_estimada);
+  setVal('startDate',      cot.fecha_inicio_estimada);
+  setVal('notasInternas',  cot.notas_internas);
 
   if(cot.tipo_operacion) selType(cot.tipo_operacion, true);
   if(cot.tipo_mercancia) setVal('tipoMercancia', cot.tipo_mercancia);

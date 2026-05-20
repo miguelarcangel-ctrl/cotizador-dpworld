@@ -1350,13 +1350,25 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
               </label>
             </div>
             <div id="opexDetail" style="display:none;margin-top:16px">
+              <div id="moRefBar" style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:#F8F9FC;border-radius:8px;border:1px solid #E2E8F0;margin-bottom:12px;font-size:.78rem;color:#64748B">
+                <span>📊 Referencia Insights:</span>
+                <span>MO base: <strong id="moRefVal">$6.50</strong>/h</span>
+                <span>·</span>
+                <span>FK base: <strong id="fkRefVal">$0.00</strong>/h</span>
+                <span>·</span>
+                <span>Días/mes: <strong>22</strong></span>
+              </div>
               <div class="sec-divider" style="margin-top:0">
                 <div class="sec-divider-line"></div>
                 <div class="sec-divider-label">👤 Personal dedicado</div>
                 <div class="sec-divider-line"></div>
               </div>
               <div id="opexPersonalList"></div>
-              <button onclick="addOpexPersonal()" class="btn-add-row">+ Agregar persona</button>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button onclick="addOpexPersonal()" class="btn-add-row">+ Agregar persona</button>
+                <button onclick="calcMOSugerida()" class="btn-add-row" style="background:#EEF2FF;color:#3730A3;border-color:#C7D2FE">🧮 Calcular MO sugerida</button>
+              </div>
+              <div id="moUtilizacion" style="display:none;margin-top:10px;padding:10px 14px;border-radius:8px;font-size:.82rem"></div>
 
               <div class="sec-divider">
                 <div class="sec-divider-line"></div>
@@ -1923,6 +1935,7 @@ function goTo(n){
   
   // Update sidebar
   updateSidebar(n);
+  if(n===4) updateMORefBar();
 }
 
 function safeGoTo(n){
@@ -2249,6 +2262,90 @@ function calcCapex(){
 function toggleOpex(){
   S.opex=document.getElementById('opexToggle').checked;
   document.getElementById('opexDetail').style.display=S.opex?'block':'none';
+  if(S.opex) updateMORefBar();
+}
+
+function updateMORefBar(){
+  const mo=getGlobalMO(), fk=getGlobalFK();
+  const moEl=document.getElementById('moRefVal');
+  const fkEl=document.getElementById('fkRefVal');
+  if(moEl) moEl.textContent='$'+mo.toFixed(2);
+  if(fkEl) fkEl.textContent='$'+fk.toFixed(2);
+}
+
+function calcMOSugerida(){
+  const type=S.type||'pallet';
+  const mo=getGlobalMO();
+  const dias=22;
+  const hp=7; // horas productivas/día
+
+  // Read volumes from Paso 3 inputs
+  const gv=id=>parseFloat(document.getElementById(id)?.value)||0;
+
+  let hEntrada=0, hSalida=0;
+
+  // Productividades efectivas desde PROD_TASKS
+  function prodEf(cat,unit){
+    const tasks=PROD_TASKS.filter(t=>t.cat===cat&&t.unit===unit);
+    if(!tasks.length) return null;
+    const totalH=tasks.reduce((s,t)=>s+(t.prod>0?(1/t.prod)*t.ops:0),0);
+    return totalH>0?1/totalH:null;
+  }
+
+  const pPal  = prodEf('entrada','pallet')  || 9.6;
+  const pBul  = prodEf('entrada','bulto')   || 42.9;
+  const pSalP = prodEf('salida','pallet')   || 10.4;
+  const pSalB = prodEf('salida','bulto')    || 42.9;
+  const pSalU = prodEf('salida','unidad')   || 67.5;
+
+  if(type==='pallet'||type==='mixto'){
+    const palIn  = gv('cont40p')*40 + gv('cont20p')*20 + gv('bultosRec')*0;
+    const palOut = gv('contSal40p')*40 + gv('contSal20p')*20;
+    hEntrada += palIn  / pPal;
+    hSalida  += palOut / pSalP;
+  }
+  if(type==='bulto'||type==='mixto'){
+    hEntrada += gv('bultosRec')  / pBul;
+    hSalida  += gv('bultosDesp') / pSalB;
+  }
+  if(type==='unit'||type==='mixto'){
+    hEntrada += (gv('uniRec')||gv('bultosRec'))  / pBul;
+    hSalida  += (gv('uniDesp')||gv('bultosDesp')) / pSalU;
+  }
+
+  const hTotal = hEntrada + hSalida;
+  if(hTotal <= 0){
+    showToast('Ingresa volúmenes en el Paso 3 primero','warn');
+    return;
+  }
+
+  const personas = Math.ceil(hTotal / (hp * dias));
+  const costoMes = Math.round(personas * mo * hp * dias * 100) / 100;
+  const utilizacion = hTotal / (personas * hp * dias) * 100;
+
+  // Pre-fill OPEX
+  if(personas > 0){
+    if(!document.getElementById('opexToggle').checked){
+      document.getElementById('opexToggle').checked=true;
+      toggleOpex();
+    }
+    OPEX.personal=[{nombre:'Operador 3PL (sugerido)',costo:costoMes}];
+    renderOpexPersonal();
+  }
+
+  // Show utilization indicator
+  const uEl=document.getElementById('moUtilizacion');
+  if(uEl){
+    const color=utilizacion>=80&&utilizacion<=110?'#065F46':utilizacion>=60&&utilizacion<=130?'#92400E':'#9B1C1C';
+    const bg=utilizacion>=80&&utilizacion<=110?'#D1FAE5':utilizacion>=60&&utilizacion<=130?'#FEF3C7':'#FEE2E2';
+    const icon=utilizacion>=80&&utilizacion<=110?'✅':utilizacion>=60&&utilizacion<=130?'⚠️':'🔴';
+    uEl.style.display='block';
+    uEl.style.background=bg;
+    uEl.style.color=color;
+    uEl.innerHTML=`${icon} <strong>Sugerencia:</strong> ${personas} persona(s) · ${hTotal.toFixed(0)}h/mes necesarias · `+
+      `Utilización estimada: <strong>${utilizacion.toFixed(0)}%</strong> · `+
+      `Costo MO: <strong>$${costoMes.toLocaleString('en-US',{minimumFractionDigits:2})}/mes</strong>`;
+  }
 }
 
 function renderOpexPersonal(){
@@ -2307,7 +2404,10 @@ function updateOpexTotal(){
   if(el&&txt){
     el.classList.toggle('hidden',S.opexMensual===0);
     const fm=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-    txt.innerHTML=`Total OPEX exclusivo: <strong>${fm(S.opexMensual)}/mes</strong>`;
+    const moRef=getGlobalMO()*7*22;
+    const personasEquiv=moRef>0?S.opexMensual/moRef:0;
+    txt.innerHTML=`Total OPEX exclusivo: <strong>${fm(S.opexMensual)}/mes</strong>`+
+      (personasEquiv>0?` <span style="color:#64748B;font-size:.85em">(≈ ${personasEquiv.toFixed(1)} personas)</span>`:'');
   }
 }
 
@@ -4165,11 +4265,11 @@ function renderAdminSections(){
         <div class="field-grid" style="margin-bottom:14px">
           <div class="field">
             <label>MO base ($/hr)</label>
-            <div class="finput-prefix"><span class="prefix">$</span><input type="number" id="globalMO" value="6.50" min="0" step="0.25" oninput="syncProdToTarifas()"></div>
+            <div class="finput-prefix"><span class="prefix">$</span><input type="number" id="globalMO" value="6.50" min="0" step="0.25" oninput="syncProdToTarifas();updateMORefBar()"></div>
           </div>
           <div class="field">
             <label>FK base ($/hr)</label>
-            <div class="finput-prefix"><span class="prefix">$</span><input type="number" id="globalFK" value="0" min="0" step="0.25" oninput="syncProdToTarifas()"></div>
+            <div class="finput-prefix"><span class="prefix">$</span><input type="number" id="globalFK" value="0" min="0" step="0.25" oninput="syncProdToTarifas();updateMORefBar()"></div>
           </div>
           <div class="field">
             <label>Margen mínimo (%)</label>

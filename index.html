@@ -2379,6 +2379,17 @@ function calcAndShow(){
   q.tipoMerc=document.getElementById('tipoMercancia')?.value||'';
   q.today=new Date().toLocaleDateString('es-PA',{day:'2-digit',month:'long',year:'numeric'});
   q.numero=S._editingCotNumero||null;
+  q.temperatura=document.getElementById('temperatura')?.value||'Ambiente';
+  q.uom=document.getElementById('uom')?.value||'—';
+  q.rotacion=document.getElementById('rotacion')?.value||'—';
+  q.trazabilidad=document.getElementById('trazabilidad')?.value||'—';
+  q.totalSkus=document.getElementById('totalSkus')?.value||'—';
+  q.posPromedio=document.getElementById('posPromedio')?.value||'—';
+  q.posPico=document.getElementById('posPico')?.value||'—';
+  q.contactName=document.getElementById('contactName')?.value||'';
+  q.contactEmail=document.getElementById('contactEmail')?.value||'';
+  q.contactPhone=document.getElementById('contactPhone')?.value||'';
+  q.startDate=document.getElementById('startDate')?.value||'';
   
   const fm=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   
@@ -2502,6 +2513,17 @@ function calcAndShow(){
     } else { S._autoGF = null; }
   }
   
+  // HAZMAT recargo (25% sobre subtotal de handling si mercancía es HAZMAT)
+  if(!isVeh && q.tipoMerc==='hazmat'){
+    const handlingKeys=['manejoIn','manejoOut','recepPal','recepBul','desc40p','desc20p','desc40g','desc20g','carga40p','carga20p','carga40g','carga20g'];
+    const baseHandling=lines.filter(l=>handlingKeys.includes(l.key)).reduce((s,l)=>s+l.sub,0);
+    if(baseHandling>0){
+      const recargo=Math.round(baseHandling*0.25*100)/100;
+      totT+=recargo;
+      lines.push({name:'Recargo HAZMAT (25% handling)',unit:'/mes',qty:1,rate:recargo,sub:recargo,costoB:0,key:'hazmat'});
+    }
+  }
+
   // CAPEX
   if(S.capex&&S.capexMensual>0){
     totC+=S.capexMensual;
@@ -2804,9 +2826,9 @@ function downloadQuote(){
     <div><span class="badge">${TNAMES_[q.type]||q.type}</span>${q.tipoMerc?`<span class="badge">${q.tipoMerc}</span>`:''}</div>
   </div>
   <div class="mbar">
-    <div class="mbi"><div class="mbi-l">Total mensual</div><div class="mbi-v">$${fm(q.totT)}</div></div>
-    <div class="mbi"><div class="mbi-l">Costo estimado</div><div class="mbi-v">$${fm(q.totC)}</div></div>
-    <div class="mbi"><div class="mbi-l">Margen</div><div class="mbi-v ${mCls}">${q.margen.toFixed(1)}%</div></div>
+    <div class="mbi"><div class="mbi-l">Total mensual estimado</div><div class="mbi-v">$${fm(q.totT)}</div></div>
+    <div class="mbi"><div class="mbi-l">Vigencia</div><div class="mbi-v" style="font-size:15px">${q.vigencia} días</div></div>
+    <div class="mbi"><div class="mbi-l">N° Cotización</div><div class="mbi-v" style="font-size:13px">${q.numero||'Borrador'}</div></div>
   </div>
   ${q.alerts?.filter(a=>a.type!=='success').map(a=>`<div class="alert-p">${a.icon} <strong>${a.title}</strong>${a.msg}</div>`).join('')||''}
   <div class="stitle">Detalle de servicios</div>
@@ -2828,16 +2850,16 @@ function downloadQuote(){
     <div class="stitle">Perfil de la operación</div>
     <table><tbody>
       <tr><td><strong>Tipo de operación</strong></td><td>${TNAMES_[q.type]||q.type}</td><td><strong>Tipo mercancía</strong></td><td>${q.tipoMerc||'—'}</td></tr>
-      <tr><td><strong>Temperatura</strong></td><td>${document.getElementById('temperatura')?.value||'Ambiente'}</td><td><strong>UoM</strong></td><td>${document.getElementById('uom')?.value||'—'}</td></tr>
-      <tr><td><strong>Rotación</strong></td><td>${document.getElementById('rotacion')?.value||'—'}</td><td><strong>Trazabilidad</strong></td><td>${document.getElementById('trazabilidad')?.value||'—'}</td></tr>
-      <tr><td><strong>Total SKUs</strong></td><td>${document.getElementById('totalSkus')?.value||'—'}</td><td><strong>Posiciones promedio</strong></td><td>${document.getElementById('posPromedio')?.value||'—'}</td></tr>
-      <tr><td><strong>Posiciones pico</strong></td><td>${document.getElementById('posPico')?.value||'—'}</td><td><strong>Formato almacenaje</strong></td><td>${q.storageFmt||'—'}</td></tr>
+      <tr><td><strong>Temperatura</strong></td><td>${q.temperatura||'Ambiente'}</td><td><strong>UoM</strong></td><td>${q.uom||'—'}</td></tr>
+      <tr><td><strong>Rotación</strong></td><td>${q.rotacion||'—'}</td><td><strong>Trazabilidad</strong></td><td>${q.trazabilidad||'—'}</td></tr>
+      <tr><td><strong>Total SKUs</strong></td><td>${q.totalSkus||'—'}</td><td><strong>Posiciones promedio</strong></td><td>${q.posPromedio||'—'}</td></tr>
+      <tr><td><strong>Posiciones pico</strong></td><td>${q.posPico||'—'}</td><td><strong>Formato almacenaje</strong></td><td>${q.storageFmt||'—'}</td></tr>
     </tbody></table>
-    ${document.getElementById('contactName')?.value?`
+    ${q.contactName?`
     <div class="stitle">Contacto del cliente</div>
     <table><tbody>
-      <tr><td><strong>Contacto</strong></td><td>${document.getElementById('contactName')?.value||'—'}</td><td><strong>Email</strong></td><td>${document.getElementById('contactEmail')?.value||'—'}</td></tr>
-      <tr><td><strong>Teléfono</strong></td><td>${document.getElementById('contactPhone')?.value||'—'}</td><td><strong>Inicio estimado</strong></td><td>${document.getElementById('startDate')?.value||'—'}</td></tr>
+      <tr><td><strong>Contacto</strong></td><td>${q.contactName||'—'}</td><td><strong>Email</strong></td><td>${q.contactEmail||'—'}</td></tr>
+      <tr><td><strong>Teléfono</strong></td><td>${q.contactPhone||'—'}</td><td><strong>Inicio estimado</strong></td><td>${q.startDate||'—'}</td></tr>
     </tbody></table>`:''}
   </div>
   <div class="foot">
@@ -3036,6 +3058,10 @@ async function saveCotizacion(estado='borrador'){
     fecha_inicio_estimada: document.getElementById('startDate')?.value||null,
     tipo_mercancia: document.getElementById('tipoMercancia')?.value||null,
     temperatura: document.getElementById('temperatura')?.value||null,
+    uom: document.getElementById('uom')?.value||null,
+    rotacion: document.getElementById('rotacion')?.value||null,
+    trazabilidad: document.getElementById('trazabilidad')?.value||null,
+    total_skus: document.getElementById('totalSkus')?.value||null,
     storage_fmt: q.storageFmt||null,
     pos_promedio: parseFloat(document.getElementById('posPromedio')?.value)||null,
     pos_pico: parseFloat(document.getElementById('posPico')?.value)||null,
@@ -3058,7 +3084,23 @@ async function saveCotizacion(estado='borrador'){
         const{data:rpcData,error:rpcErr}=await supa.rpc('next_cotizacion_numero');
         if(!rpcErr&&rpcData) numero=rpcData;
       }catch(e){}
-      if(!numero) numero='COT-'+new Date().getFullYear()+'-'+Date.now().toString().slice(-4);
+      if(!numero){
+        // Fallback: query last cotización this month and increment
+        try{
+          const now=new Date();
+          const ym=now.getFullYear().toString()+(now.getMonth()+1).toString().padStart(2,'0');
+          const prefix='COT-'+ym+'-';
+          const{data:lastRows}=await supa.from('cotizaciones')
+            .select('numero').like('numero',prefix+'%')
+            .order('numero',{ascending:false}).limit(1);
+          const lastNum=lastRows?.length?parseInt((lastRows[0].numero||'').split('-').pop())||0:0;
+          numero=prefix+(lastNum+1).toString().padStart(3,'0');
+        }catch(e){
+          const now=new Date();
+          const ym=now.getFullYear().toString()+(now.getMonth()+1).toString().padStart(2,'0');
+          numero='COT-'+ym+'-001';
+        }
+      }
       payload.numero=numero;
       const{data,error}=await supa.from('cotizaciones').insert([payload]).select().single();
       if(error) throw error;
@@ -4507,6 +4549,7 @@ function updateLiveKpis(){
 
 // ── INIT ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+  syncProdToTarifas(); // pre-calibrate CB from default PROD_TASKS before login
   initLoginButton();
   
   // Check existing session
@@ -4547,13 +4590,13 @@ function updateCuentaPos(id,val){
   c.pos=Math.max(0,parseInt(val)||0);
   const used=ADMIN.cuentas.reduce((s,x)=>s+x.pos,0);
   ADMIN.cuentas.forEach(x=>{x.pct=used>0?Math.round(x.pos/used*1000)/10:0;});
-  updatePctBar(); updatePositions(); renderAdminKpis();
+  updatePctBar(); updatePositions(); renderAdminKpis(); renderDistrib();
 }
 
 function updateCuentaPct(id,val){
   const c=ADMIN.cuentas.find(x=>x.id===id); if(!c) return;
   c.pct=Math.min(100,Math.max(0,parseFloat(val)||0));
-  updatePctBar();
+  updatePctBar(); renderDistrib(); renderAdminKpis();
 }
 
 function updatePctBar(){
@@ -4731,6 +4774,17 @@ async function compartirCot(id){
     margen:parseFloat(cot.margen)||0,
     utilidad:(parseFloat(cot.total_tarifa)||0)-(parseFloat(cot.total_costo)||0),
     alerts:[],
+    temperatura:cot.temperatura||'Ambiente',
+    uom:cot.uom||'—',
+    rotacion:cot.rotacion||'—',
+    trazabilidad:cot.trazabilidad||'—',
+    totalSkus:cot.total_skus||'—',
+    posPromedio:cot.pos_promedio!=null?String(cot.pos_promedio):'—',
+    posPico:cot.pos_pico!=null?String(cot.pos_pico):'—',
+    contactName:cot.cliente_contacto||'',
+    contactEmail:cot.cliente_email||'',
+    contactPhone:cot.cliente_telefono||'',
+    startDate:cot.fecha_inicio_estimada||'',
   };
   downloadQuote(); // builds S._lastPrintHTML and shows preview
   await new Promise(r=>setTimeout(r,200));

@@ -3370,7 +3370,7 @@ async function loadCotizacion(id){
 }
 
 async function loadCotizaciones(filters = {}) {
-  let query = supa.from('cotizaciones').select('id,numero,cliente_nombre,vendedor_nombre,tipo_operacion,total_tarifa,margen,estado,creado_en,actualizado_en').order('creado_en', { ascending: false });
+  let query = supa.from('cotizaciones').select('id,numero,cliente_nombre,vendedor_nombre,tipo_operacion,total_tarifa,margen,estado,creado_en,actualizado_en,vigencia').order('creado_en', { ascending: false });
   if (filters.vendedor_id) query = query.eq('vendedor_id', filters.vendedor_id);
   if (filters.estado) query = query.eq('estado', filters.estado);
   if (filters.fecha_desde) query = query.gte('creado_en', filters.fecha_desde);
@@ -3600,13 +3600,23 @@ function renderCotList(cots) {
   const TIPO = {pallet:'Pallet In/Out',bulto:'Bulto In/Out',unit:'Unit In/Out',mixto:'Mixto',vehiculos:'Vehículos'};
   const isAdmin = currentUserData?.rol === 'admin';
   
-  container.innerHTML = cots.map(c => `
-    <div class="cot-list-item" onclick="openCotDetalle('${c.id}')">
+  const now=Date.now();
+  container.innerHTML = cots.map(c => {
+    // Alerta de vencimiento para cotizaciones enviadas
+    let venceTag='';
+    if(c.estado==='enviada'&&c.creado_en&&c.vigencia){
+      const expMs=new Date(c.creado_en).getTime()+(parseInt(c.vigencia)||30)*86400000;
+      const diasRest=Math.ceil((expMs-now)/86400000);
+      if(diasRest<=0) venceTag='<span style="padding:2px 7px;border-radius:8px;font-size:.58rem;font-weight:700;background:#FEE2E2;color:#9B1C1C;border:1px solid #FCA5A5">⚠️ VENCIDA</span>';
+      else if(diasRest<=5) venceTag=`<span style="padding:2px 7px;border-radius:8px;font-size:.58rem;font-weight:700;background:#FEF3C7;color:#92400E;border:1px solid #FCD34D">⏰ Vence en ${diasRest}d</span>`;
+    }
+    return`<div class="cot-list-item" onclick="openCotDetalle('${c.id}')">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px">
             <span class="cot-numero">${c.numero}</span>
             <span class="cot-estado est-${c.estado}">${c.estado}</span>
+            ${venceTag}
           </div>
           <div class="cot-cliente">${c.cliente_nombre}</div>
           <div class="cot-meta">
@@ -3618,9 +3628,11 @@ function renderCotList(cots) {
         <div style="text-align:right;flex-shrink:0">
           <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.95rem;color:var(--blue)">${fm(c.total_tarifa)}<span style="font-size:.6rem;color:#aaa">/mes</span></div>
           <div style="font-size:.72rem;font-weight:700;color:${parseFloat(c.margen)>=30?'var(--green)':parseFloat(c.margen)>=15?'var(--orange)':'#E8003D'}">${fmPct(c.margen)} margen</div>
+          <button onclick="event.stopPropagation();duplicarCotizacion('${c.id}')" style="margin-top:4px;padding:3px 8px;border-radius:6px;background:#F8F9FC;border:1px solid #E2E8F0;font-size:.6rem;font-weight:700;color:#64748B;cursor:pointer">⎘ Duplicar</button>
         </div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 async function openCotDetalle(id){
@@ -3727,6 +3739,24 @@ function renderCotDetalle(cot){
     out+='</div>';
   }
 
+  // Alerta de vencimiento
+  if(cot.estado==='enviada'&&cot.creado_en&&cot.vigencia){
+    const expMs=new Date(cot.creado_en).getTime()+(parseInt(cot.vigencia)||30)*86400000;
+    const diasRest=Math.ceil((expMs-Date.now())/86400000);
+    if(diasRest<=0) out+='<div style="padding:10px 14px;background:#FEE2E2;border-radius:8px;border:1px solid #FCA5A5;margin-bottom:10px;font-size:.8rem;color:#9B1C1C">⚠️ <strong>Cotización vencida</strong> — venció hace '+Math.abs(diasRest)+' día(s).</div>';
+    else if(diasRest<=5) out+='<div style="padding:10px 14px;background:#FEF3C7;border-radius:8px;border:1px solid #FCD34D;margin-bottom:10px;font-size:.8rem;color:#92400E">⏰ <strong>Vence en '+diasRest+' día(s)</strong> — considera renovar o cerrar esta cotización.</div>';
+  }
+
+  // Historial de estados
+  if(cot.historial_estados){
+    out+='<div style="margin-top:12px;padding:10px 14px;background:#F8F9FC;border-radius:8px;border:1px solid #E2E8F0">';
+    out+='<div style="font-size:.65rem;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Historial de estados</div>';
+    cot.historial_estados.split('\n').filter(Boolean).reverse().forEach(entry=>{
+      out+='<div style="font-size:.72rem;color:#64748B;padding:2px 0">'+entry+'</div>';
+    });
+    out+='</div>';
+  }
+
   // Estado selector (admin only)
   if(isAdmin){
     out+='<div class="cot-estado-selector"><label>Cambiar estado</label>';
@@ -3738,9 +3768,110 @@ function renderCotDetalle(cot){
 
 async function cambiarEstadoCot(id, estado){
   if(!estado) return;
-  const{error} = await supa.from('cotizaciones').update({estado}).eq('id',id);
-  if(!error){ showToast('Estado actualizado'); if(_currentCotData) _currentCotData.estado=estado; }
-  else showToast('Error: '+error.message,'error');
+  const ahora=new Date().toISOString();
+  const payload={estado, actualizado_en:ahora};
+  const{error} = await supa.from('cotizaciones').update(payload).eq('id',id);
+  if(!error){
+    showToast('Estado → '+estado,'success');
+    if(_currentCotData){
+      const prev=_currentCotData.estado;
+      _currentCotData.estado=estado;
+      _currentCotData.actualizado_en=ahora;
+      // Append to historial_estados text (best-effort, column may not exist)
+      const entry=`${ahora.slice(0,16).replace('T',' ')} · ${prev}→${estado} [${currentUserData?.nombre||'?'}]`;
+      const prevH=_currentCotData.historial_estados||'';
+      const nuevoH=(prevH?prevH+'\n':'')+entry;
+      _currentCotData.historial_estados=nuevoH;
+      try{ await supa.from('cotizaciones').update({historial_estados:nuevoH}).eq('id',id); }catch(e){}
+      renderCotDetalle(_currentCotData);
+    }
+  } else showToast('Error: '+error.message,'error');
+}
+
+async function duplicarCotizacion(id){
+  showToast('Duplicando cotización…','success');
+  const cot=await loadCotizacion(id);
+  if(!cot){ showToast('Error al cargar','error'); return; }
+  let numero;
+  try{
+    const{data:rpcData,error:rpcErr}=await supa.rpc('next_cotizacion_numero');
+    if(!rpcErr&&rpcData) numero=rpcData;
+  }catch(e){}
+  if(!numero){
+    try{
+      const now=new Date();
+      const ym=now.getFullYear().toString()+(now.getMonth()+1).toString().padStart(2,'0');
+      const prefix='COT-'+ym+'-';
+      const{data:lastRows}=await supa.from('cotizaciones').select('numero').like('numero',prefix+'%').order('numero',{ascending:false}).limit(1);
+      const lastNum=lastRows?.length?parseInt((lastRows[0].numero||'').split('-').pop())||0:0;
+      numero=prefix+(lastNum+1).toString().padStart(3,'0');
+    }catch(e){const now=new Date();numero='COT-'+now.getFullYear()+(now.getMonth()+1).toString().padStart(2,'0')+'-001';}
+  }
+  const{id:_,numero:_n,creado_en:_c,actualizado_en:_u,...rest}=cot;
+  const payload={...rest,numero,estado:'borrador',vendedor_id:currentUser.id,vendedor_nombre:currentUserData?.nombre||currentUser.email,creado_en:new Date().toISOString()};
+  const{data,error}=await supa.from('cotizaciones').insert([payload]).select().single();
+  if(!error){
+    showToast('Cotización duplicada: '+data.numero,'success');
+    filterCotizaciones();
+  } else showToast('Error al duplicar: '+error.message,'error');
+}
+
+async function renderPipeline(){
+  const el=document.getElementById('pipelineContent');
+  if(!el) return;
+  el.innerHTML='<div style="padding:16px;color:var(--mid);font-size:.8rem">Cargando pipeline…</div>';
+  try{
+    const{data}=await supa.from('cotizaciones').select('estado,total_tarifa,vigencia,creado_en').order('creado_en',{ascending:false}).limit(500);
+    if(!data||!data.length){el.innerHTML='<div style="padding:16px;color:var(--mid);font-size:.8rem">Sin cotizaciones aún.</div>';return;}
+    const estados={borrador:[],enviada:[],ganada:[],aprobada:[],perdida:[],rechazada:[],cancelada:[]};
+    const now=Date.now();
+    let porVencer=[];
+    data.forEach(c=>{
+      const e=c.estado||'borrador';
+      if(!estados[e]) estados[e]=[];
+      estados[e].push(c);
+      if(e==='enviada'&&c.creado_en&&c.vigencia){
+        const dias=Math.ceil((new Date(c.creado_en).getTime()+(parseInt(c.vigencia)||30)*86400000-now)/86400000);
+        if(dias>=0&&dias<=5) porVencer.push({...c,diasRest:dias});
+      }
+    });
+    const ganadas=[...(estados.ganada||[]),...(estados.aprobada||[])];
+    const perdidas=[...(estados.perdida||[]),...(estados.rechazada||[])];
+    const sum=arr=>arr.reduce((s,c)=>s+(parseFloat(c.total_tarifa)||0),0);
+    const fm=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+    const conv=ganadas.length+perdidas.length>0?Math.round(ganadas.length/(ganadas.length+perdidas.length)*100):null;
+    const ticket=data.length>0?sum(data)/data.length:0;
+    el.innerHTML=`
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px">
+        <div style="padding:12px;background:#F8F9FC;border-radius:8px;border:1px solid #E2E8F0;text-align:center">
+          <div style="font-size:.65rem;color:#64748B;text-transform:uppercase;font-weight:700;letter-spacing:.06em;margin-bottom:4px">Total cotizaciones</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.4rem;color:#1A1060">${data.length}</div>
+          <div style="font-size:.68rem;color:#64748B">${fm(sum(data))} en pipeline</div>
+        </div>
+        <div style="padding:12px;background:${conv!=null?'#F0FDF4':'#F8F9FC'};border-radius:8px;border:1px solid ${conv!=null?'#A7F3D0':'#E2E8F0'};text-align:center">
+          <div style="font-size:.65rem;color:#64748B;text-transform:uppercase;font-weight:700;letter-spacing:.06em;margin-bottom:4px">Tasa de conversión</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.4rem;color:${conv!=null?'#065F46':'#94A3B8'}">${conv!=null?conv+'%':'—'}</div>
+          <div style="font-size:.68rem;color:#64748B">${ganadas.length} ganadas / ${ganadas.length+perdidas.length} cerradas</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">
+        ${[
+          {lbl:'Borradores',arr:estados.borrador||[],color:'#64748B',bg:'#F8F9FC'},
+          {lbl:'Enviadas',arr:estados.enviada||[],color:'#1A1060',bg:'#EEF2FF'},
+          {lbl:'Ganadas',arr:ganadas,color:'#065F46',bg:'#F0FDF4'},
+          {lbl:'Perdidas',arr:perdidas,color:'#9B1C1C',bg:'#FEF2F2'},
+        ].map(s=>`<div style="padding:10px 8px;background:${s.bg};border-radius:8px;text-align:center;border:1px solid #E2E8F0">
+          <div style="font-size:.6rem;color:#64748B;text-transform:uppercase;font-weight:700;margin-bottom:3px">${s.lbl}</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.2rem;color:${s.color}">${s.arr.length}</div>
+          <div style="font-size:.62rem;color:#94A3B8">${fm(sum(s.arr))}</div>
+        </div>`).join('')}
+      </div>
+      ${porVencer.length>0?`<div style="padding:10px 12px;background:#FEF3C7;border-radius:8px;border:1px solid #FCD34D;margin-bottom:8px;font-size:.78rem;color:#92400E">
+        ⏰ <strong>${porVencer.length} cotización(es) por vencer</strong> en los próximos 5 días
+        ${porVencer.map(c=>`<div style="margin-top:4px;font-size:.72rem">· ${c.cliente_nombre||'—'} — vence en <strong>${c.diasRest}d</strong></div>`).join('')}
+      </div>`:''}
+      <div style="font-size:.68rem;color:#94A3B8">Ticket promedio: ${fm(ticket)}/mes</div>`;
+  }catch(e){el.innerHTML='<div style="padding:16px;color:var(--red);font-size:.78rem">Error al cargar pipeline: '+e.message+'</div>';}
 }
 
 let _currentCotData = null;
@@ -3811,6 +3942,7 @@ function renderAdmin(){
     updatePositions();
     renderAdminKpis();
     renderAdminSections();
+    setTimeout(()=>renderPipeline(),200); // async after sections render
     // Abrir secciones por defecto
     requestAnimationFrame(()=>{
       ['costos','cuentas','prod','tarifas'].forEach(id=>{
@@ -4344,6 +4476,21 @@ function renderAdminSections(){
   const c=document.getElementById('adminSections');
   if(!c) return;
   c.innerHTML=`
+    <!-- PIPELINE COMERCIAL -->
+    <div class="admin-section">
+      <div class="admin-sec-hdr" id="ash-pipeline" onclick="toggleAdminSec('pipeline')" style="cursor:pointer">
+        <span class="ash-icon">📊</span>
+        <span class="ash-title">Pipeline Comercial</span>
+        <div class="ash-actions">
+          <button class="btn-sm outline" onclick="event.stopPropagation();renderPipeline()" style="color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.3)">↺ Actualizar</button>
+          <span class="ash-arrow" onclick="toggleAdminSec('pipeline')">▼</span>
+        </div>
+      </div>
+      <div class="admin-sec-body" id="asb-pipeline">
+        <div id="pipelineContent"><div style="padding:16px;color:var(--mid);font-size:.8rem">Cargando…</div></div>
+      </div>
+    </div>
+
     <!-- COSTOS FIJOS -->
     <div class="admin-section">
       <div class="admin-sec-hdr" id="ash-costos" onclick="toggleAdminSec('costos')" style="cursor:pointer">

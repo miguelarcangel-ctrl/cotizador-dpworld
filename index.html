@@ -1520,10 +1520,10 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
               <button onclick="saveCotizacion('enviada')" class="btn-sm blue" style="padding:11px;width:100%;font-size:.82rem">
                 📤 Guardar y marcar como enviada
               </button>
-              <button onclick="downloadQuoteCliente()" class="btn-sm green" style="padding:11px;width:100%;font-size:.82rem">
+              <button onclick="S._previewContext='paso5';downloadQuoteCliente()" class="btn-sm green" style="padding:11px;width:100%;font-size:.82rem">
                 📄 Cotización para el cliente
               </button>
-              <button onclick="downloadQuote()" class="btn-sm outline" style="padding:11px;width:100%;font-size:.82rem;border-color:#94A3B8;color:#64748B">
+              <button onclick="S._previewContext='paso5';downloadQuote()" class="btn-sm outline" style="padding:11px;width:100%;font-size:.82rem;border-color:#94A3B8;color:#64748B">
                 🔒 Ficha operativa interna
               </button>
             </div>
@@ -1609,11 +1609,11 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
 <!-- ── PREVIEW OVERLAY ───────────────────────────────────── -->
 <div class="preview-overlay" id="previewOverlay">
   <div class="preview-toolbar">
-    <div class="preview-toolbar-title" style="font-size:.8rem">📄 Vista previa</div>
-    <div style="display:flex;gap:6px;align-items:center">
-      <button onclick="downloadQuoteHTML()" style="padding:8px 14px;border-radius:7px;background:var(--green);color:#fff;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;cursor:pointer">⬇ Descargar</button>
-      <button onclick="printFromPreview()" style="padding:8px 14px;border-radius:7px;background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.3);font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;cursor:pointer">🖨️</button>
-      <button onclick="closePreview()" style="padding:8px 12px;border-radius:7px;background:rgba(255,255,255,.1);color:#fff;border:1.5px solid rgba(255,255,255,.25);font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.9rem;cursor:pointer">✕</button>
+    <button id="previewBackBtn" onclick="closePreview()" style="padding:8px 16px;border-radius:7px;background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.3);font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;white-space:nowrap;flex-shrink:0">← Volver</button>
+    <div class="preview-toolbar-title" id="previewTitle" style="flex:1;text-align:center;font-size:.78rem;padding:0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📄 Vista previa</div>
+    <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+      <button onclick="printFromPreview()" style="padding:8px 16px;border-radius:7px;background:var(--green);color:#fff;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;white-space:nowrap">🖨️ Guardar como PDF</button>
+      <button onclick="closePreview()" style="padding:8px 12px;border-radius:7px;background:rgba(255,255,255,.08);color:#fff;border:1.5px solid rgba(255,255,255,.2);font-size:.9rem;cursor:pointer;line-height:1">✕</button>
     </div>
   </div>
   <div class="preview-frame">
@@ -3044,8 +3044,10 @@ function downloadQuoteCliente(){
   <script>window.onload=function(){window.print();}<\/script>
   </body></html>`;
 
-  S._lastPrintHTML=html;
-  showDocPreview(html);
+  showDocPreview(html,{
+    title:'📄 Cotización para el cliente — '+q.client,
+    context:S._previewContext||'paso5'
+  });
 }
 
 function downloadQuote(){
@@ -3112,13 +3114,23 @@ function downloadQuote(){
   <script>window.onload=function(){window.print();}<\/script>
   </body></html>`;
 
-  S._lastPrintHTML=printHTML;
-  showDocPreview(printHTML);
+  showDocPreview(printHTML,{
+    title:'🔒 Ficha Interna — '+q.client,
+    context:S._previewContext||'paso5'
+  });
 }
 
 
-function showDocPreview(printHTML){
+function showDocPreview(printHTML, opts){
+  opts=opts||{};
   S._lastPrintHTML=printHTML;
+  S._previewContext=opts.context||'paso5';
+  // Update toolbar title
+  const titleEl=document.getElementById('previewTitle');
+  if(titleEl) titleEl.textContent=opts.title||'📄 Vista previa';
+  // Update back button label based on context
+  const backBtn=document.getElementById('previewBackBtn');
+  if(backBtn) backBtn.textContent=S._previewContext==='listado'?'← Volver al listado':'← Volver a la cotización';
   const bodyMatch=printHTML.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
   const content=bodyMatch?bodyMatch[1]:printHTML;
   const clean=content.replace(/<script>[\s\S]*?<\/script>/gi,'');
@@ -3132,6 +3144,14 @@ function showDocPreview(printHTML){
 
 function closePreview(){
   document.getElementById('previewOverlay')?.classList.remove('show');
+  // Scroll back to the relevant panel
+  if(S._previewContext==='listado'){
+    document.getElementById('cotWrap')?.scrollIntoView({behavior:'smooth',block:'start'});
+  } else {
+    // Paso 5 — scroll to the action buttons so they're visible
+    const actCard=document.querySelector('#step5 .card:last-of-type');
+    if(actCard) actCard.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
 }
 
 function printFromPreview(){
@@ -5203,6 +5223,7 @@ async function downloadCotFromDB(id){
     contactPhone: cot.cliente_telefono||'',
     startDate: cot.fecha_inicio_estimada||'',
   };
+  S._previewContext='listado';
   downloadQuote();
 }
 
@@ -5291,6 +5312,7 @@ async function compartirCot(id){
     contactPhone:cot.cliente_telefono||'',
     startDate:cot.fecha_inicio_estimada||'',
   };
+  S._previewContext='listado';
   downloadQuoteCliente(); // builds S._lastPrintHTML and shows preview
   await new Promise(r=>setTimeout(r,200));
   S.lastQuote=savedQuote;

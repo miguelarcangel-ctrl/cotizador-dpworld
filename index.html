@@ -1709,6 +1709,17 @@ let CB={
   vehDesc:130,vehCarga:130,vehAlmac:2.00,vehConductor:50,vehManejo:0,vehSeguro:0.00012,
 };
 
+let PDF_DISCLAIMERS = [
+  'La tarifa de almacenaje contempla posiciones en rack (5 niveles, sistema Doble Reach) y piso, en bodega de 1,500 m².',
+  'Tarifa de Entrada: recepción, conteo físico contra packing list, ubicación en sistema y almacenamiento en posición asignada.',
+  'Tarifa de Salida: preparación de la orden de trabajo, verificación de cantidad y condición, y carga al transporte de despacho.',
+  'No incluye insumos de embalaje (cajas, stretch film, etiquetas). Pueden cotizarse por separado según necesidad.',
+  'No incluye gastos aduaneros (DTA, MLC, endoso, pólizas), seguro de la mercancía, ni transporte externo a la operación.',
+  'Incluye reportería de movimientos e inventario. No incluye integración con ERP o WMS del cliente.',
+  'Validez: VIGENCIA_DIAS días a partir de FECHA_HOY, hasta FECHA_FIN.',
+  'Variaciones en volúmenes declarados superiores al ±15% podrán generar revisión de tarifas previo acuerdo entre las partes.',
+];
+
 let PROD_TASKS = [
   {id:1,  name:'Descarga MC 4 horquillas',       cat:'entrada',    unit:'pallet', prod:72,  ops:1, eqs:0, moOwn:null, fkOwn:null, uses:['pallet','bulto','unit']},
   {id:2,  name:'Rampa → Racks (MC contrabal.)',  cat:'entrada',    unit:'pallet', prod:36,  ops:2, eqs:0, moOwn:null, fkOwn:null, uses:['pallet','bulto','unit']},
@@ -3026,14 +3037,7 @@ function downloadQuoteCliente(){
     '</div>':''}
     <div class="d-title">Condiciones de la propuesta</div>
     <div class="disclaimers">
-      <div class="d-item"><div class="d-num">1.</div><div>La tarifa de almacenaje contempla posiciones en rack (5 niveles, sistema Doble Reach) y piso, en bodega de 1,500 m².</div></div>
-      <div class="d-item"><div class="d-num">2.</div><div>Tarifa de Entrada: recepción, conteo físico contra packing list, ubicación en sistema y almacenamiento en posición asignada.</div></div>
-      <div class="d-item"><div class="d-num">3.</div><div>Tarifa de Salida: preparación de la orden de trabajo, verificación de cantidad y condición, y carga al transporte de despacho.</div></div>
-      <div class="d-item"><div class="d-num">4.</div><div>No incluye insumos de embalaje (cajas, stretch film, etiquetas). Pueden cotizarse por separado según necesidad.</div></div>
-      <div class="d-item"><div class="d-num">5.</div><div>No incluye gastos aduaneros (DTA, MLC, endoso, pólizas), seguro de la mercancía, ni transporte externo a la operación.</div></div>
-      <div class="d-item"><div class="d-num">6.</div><div>Incluye reportería de movimientos e inventario. No incluye integración con ERP o WMS del cliente.</div></div>
-      <div class="d-item"><div class="d-num">7.</div><div>Validez: <strong>${q.vigencia} días</strong> a partir del <strong>${q.today}</strong>, hasta el ${vigenciaFin}.</div></div>
-      <div class="d-item"><div class="d-num">8.</div><div>Variaciones en volúmenes declarados superiores al ±15% podrán generar revisión de tarifas previo acuerdo entre las partes.</div></div>
+      ${PDF_DISCLAIMERS.map(function(d,i){var txt=d.replace('VIGENCIA_DIAS',q.vigencia).replace('FECHA_HOY',q.today).replace('FECHA_FIN',vigenciaFin);return'<div class="d-item"><div class="d-num">'+(i+1)+'.</div><div>'+txt+'</div></div>';}).join('')}
     </div>
     <div class="foot"><div><strong>DP World Panamá</strong> · DAL Colón Logistics Park · dpworld.com/panama</div><img src="${LOGO}" alt="DP World"></div>
   </div>
@@ -3749,8 +3753,8 @@ function renderCotDetalle(cot){
   // Action bar
   out+='<div class="cot-action-bar">';
   out+='<button class="cot-action-btn edit" onclick="editCotizacion(\''+cot.id+'\')"><span class="cab-icon">✏️</span>Editar</button>';
-  out+='<button class="cot-action-btn pdf" onclick="downloadCotFromDB(\''+cot.id+'\')"><span class="cab-icon">📄</span>PDF</button>';
-  out+='<button class="cot-action-btn share" onclick="compartirCot(\''+cot.id+'\')"><span class="cab-icon">📤</span>Compartir</button>';
+  out+='<button class="cot-action-btn pdf" onclick="compartirCot(\''+cot.id+'\')"><span class="cab-icon">📄</span>Cotización</button>';
+  out+='<button class="cot-action-btn share" onclick="downloadCotFromDB(\''+cot.id+'\')"><span class="cab-icon">🔒</span>Ficha Int.</button>';
   out+='<button class="cot-action-btn del" onclick="eliminarCot(\''+cot.id+'\')"><span class="cab-icon">🗑️</span>Eliminar</button>';
   out+='</div>';
 
@@ -4711,6 +4715,23 @@ function renderAdminSections(){
       </div>
     </div>
 
+    <!-- CONDICIONES DEL PDF -->
+    <div class="admin-section">
+      <div class="admin-sec-hdr" id="ash-condpdf" onclick="toggleAdminSec('condpdf')" style="cursor:pointer">
+        <span class="ash-icon">📝</span>
+        <span class="ash-title">Condiciones del PDF</span>
+        <div class="ash-actions">
+          <button class="btn-sm green" onclick="event.stopPropagation();savePdfConditions()">💾 Guardar</button>
+          <span class="ash-arrow" onclick="toggleAdminSec('condpdf')">▼</span>
+        </div>
+      </div>
+      <div class="admin-sec-body collapsed" id="asb-condpdf">
+        <div style="font-size:.68rem;color:var(--mid);margin-bottom:10px;font-style:italic">Estos textos aparecen en la sección "Condiciones de la propuesta" del PDF comercial para el cliente. Usa <strong>VIGENCIA_DIAS</strong>, <strong>FECHA_HOY</strong> y <strong>FECHA_FIN</strong> como marcadores que se sustituyen automáticamente.</div>
+        <div id="pdfCondBody"></div>
+        <button class="btn-add-row" onclick="addPdfDisclaimer()" style="margin-top:8px">+ Agregar condición</button>
+      </div>
+    </div>
+
     <!-- REPORTERÍA -->
     <div class="admin-section">
       <div class="admin-sec-hdr" id="ash-rep" onclick="toggleAdminSec('rep')" style="cursor:pointer">
@@ -4740,8 +4761,40 @@ function renderAdminSections(){
   loadCbVehInputs();
   if(!TARIFAS_EDITABLES.length) initTarifasEditables();
   renderTarifasBase();
+  renderPdfConditions();
   loadUserList();
   updatePositions();
+}
+
+function renderPdfConditions(){
+  const el=document.getElementById('pdfCondBody');
+  if(!el) return;
+  el.innerHTML=PDF_DISCLAIMERS.map(function(d,i){
+    return '<div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start">'
+      +'<span style="font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:12px;color:var(--blue);width:18px;flex-shrink:0;padding-top:9px">'+(i+1)+'.</span>'
+      +'<textarea class="finput" rows="2" style="flex:1;font-size:.78rem;line-height:1.5;resize:vertical" oninput="PDF_DISCLAIMERS['+i+']=this.value">'+d+'</textarea>'
+      +'<button onclick="removePdfDisclaimer('+i+')" style="flex-shrink:0;background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:6px">✕</button>'
+      +'</div>';
+  }).join('');
+}
+
+function addPdfDisclaimer(){
+  PDF_DISCLAIMERS.push('Nueva condición — edita este texto.');
+  renderPdfConditions();
+}
+
+function removePdfDisclaimer(i){
+  PDF_DISCLAIMERS.splice(i,1);
+  renderPdfConditions();
+}
+
+async function savePdfConditions(){
+  if(!currentUser||currentUserData?.rol!=='admin') return;
+  const els=document.querySelectorAll('#pdfCondBody textarea');
+  PDF_DISCLAIMERS=Array.from(els).map(function(t){return t.value;});
+  const{error}=await supa.from('insights_config').update({pdf_disclaimers:PDF_DISCLAIMERS}).eq('id',1);
+  if(!error) showToast('Condiciones del PDF guardadas');
+  else showToast('Error: '+error.message,'error');
 }
 
 function toggleAdminSec(id){
@@ -4818,6 +4871,7 @@ async function loadInsights(){
     if(data.global_mgn){ const el=document.getElementById('globalMGN');if(el)el.value=data.global_mgn; }
     if(data.costos_fijos_veh?.length>0) ADMIN.costosVeh=data.costos_fijos_veh;
     if(data.cb_veh){ ADMIN.cbVeh=data.cb_veh; loadCbVehInputs(); }
+    if(data.pdf_disclaimers?.length>0) PDF_DISCLAIMERS=data.pdf_disclaimers;
     if(data.tarifas_base){
       if(Array.isArray(data.tarifas_base)&&data.tarifas_base.length>0){
         TARIFAS_EDITABLES=data.tarifas_base.map(t=>({id:nextTarifaId++,key:t.key,label:t.label,unit:t.unit,cost:t.cost,bmMin:t.bmMin||null,bmMax:t.bmMax||null,bmAvg:null}));
@@ -5137,6 +5191,17 @@ async function downloadCotFromDB(id){
     margen: parseFloat(cot.margen)||0,
     utilidad: (parseFloat(cot.total_tarifa)||0)-(parseFloat(cot.total_costo)||0),
     alerts:[],
+    temperatura: cot.temperatura||'Ambiente',
+    uom: cot.uom||'—',
+    rotacion: cot.rotacion||'—',
+    trazabilidad: cot.trazabilidad||'—',
+    totalSkus: cot.total_skus||'—',
+    posPromedio: cot.pos_promedio!=null?String(cot.pos_promedio):'—',
+    posPico: cot.pos_pico!=null?String(cot.pos_pico):'—',
+    contactName: cot.cliente_contacto||'',
+    contactEmail: cot.cliente_email||'',
+    contactPhone: cot.cliente_telefono||'',
+    startDate: cot.fecha_inicio_estimada||'',
   };
   downloadQuote();
 }

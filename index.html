@@ -750,6 +750,9 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
     <button class="hdr-btn" id="btnCotizaciones" onclick="showMisCotizaciones()">
       📋 Cotizaciones
     </button>
+    <button class="hdr-btn" id="btnLiquidacion" onclick="showLiquidacion()">
+      🏛️ Liquidación
+    </button>
     <button class="hdr-btn" id="btnInsights" style="display:none" onclick="showInsights()">
       📊 Insights
     </button>
@@ -1571,6 +1574,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
           <option value="unit">Unit In/Out</option>
           <option value="mixto">Mixto</option>
           <option value="vehiculos">Vehículos</option>
+          <option value="liquidacion">Gestión Liquidación</option>
         </select>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
@@ -1589,6 +1593,218 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
       <button onclick="showCotList()" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;background:var(--blue);border:none;color:#fff;font-size:1rem;cursor:pointer;margin-bottom:12px">‹</button>
       <div id="cotDetailContent"></div>
     </div>
+  </div>
+</div>
+
+<!-- ── HOME SCREEN ───────────────────────────────────────── -->
+<div class="app hidden" id="homeWrap">
+  <div style="max-width:680px;margin:0 auto;padding:48px 20px">
+    <div style="text-align:center;margin-bottom:40px">
+      <div style="font-size:.65rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px">DP World Panamá · DAL Colón Logistics Park</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:2.2rem;color:var(--blue);text-transform:uppercase;line-height:1">¿Qué deseas cotizar?</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <button onclick="showCotizador()" style="background:var(--white);border:2px solid var(--border);border-radius:16px;padding:32px 24px;cursor:pointer;text-align:left;transition:var(--transition);box-shadow:var(--shadow)" onmouseover="this.style.borderColor='#1A1060';this.style.boxShadow='0 8px 32px rgba(26,16,96,.14)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow)'">
+        <div style="width:48px;height:48px;background:var(--blue);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:16px">📦</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.25rem;color:var(--blue);text-transform:uppercase;margin-bottom:8px">Cotizar 3PL</div>
+        <div style="font-size:.8rem;color:var(--mid);line-height:1.6">Almacenaje, manejo de carga, distribución nacional. Wizard de 5 pasos con CAPEX, OPEX y análisis de margen.</div>
+        <div style="margin-top:20px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.82rem;color:var(--blue);text-transform:uppercase;letter-spacing:.05em">Iniciar →</div>
+      </button>
+      <button onclick="showLiquidacion()" style="background:var(--white);border:2px solid var(--border);border-radius:16px;padding:32px 24px;cursor:pointer;text-align:left;transition:var(--transition);box-shadow:var(--shadow)" onmouseover="this.style.borderColor='#00C389';this.style.boxShadow='0 8px 32px rgba(0,195,137,.14)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow)'">
+        <div style="width:48px;height:48px;background:var(--green);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:16px">🏛️</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.25rem;color:var(--green-dark);text-transform:uppercase;margin-bottom:8px">Gestión de Liquidación</div>
+        <div style="font-size:.8rem;color:var(--mid);line-height:1.6">Agenciamiento aduanal, DAI, trámites conexos. Cotiza honorarios de importación al territorio nacional.</div>
+        <div style="margin-top:20px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.82rem;color:var(--green-dark);text-transform:uppercase;letter-spacing:.05em">Iniciar →</div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── LIQUIDACIÓN PANEL ───────────────────────────────────── -->
+<div class="app hidden" id="liqWrap">
+  <div class="main" style="max-width:720px;margin:0 auto;padding:24px 16px 80px">
+    <div style="margin-bottom:20px">
+      <div class="step-eyebrow">Cotización Aduanal</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.8rem;color:var(--blue);text-transform:uppercase">Gestión de Liquidación</div>
+      <div style="font-size:.8rem;color:var(--mid);margin-top:4px">Agenciamiento aduanal · Importación al territorio nacional de Panamá</div>
+    </div>
+
+    <!-- DATOS CLIENTE -->
+    <div class="card">
+      <div class="card-hdr"><div class="card-icon">👤</div><div><div class="card-title">Datos del cliente</div></div></div>
+      <div class="card-body">
+        <div class="field-grid">
+          <div class="field span-2"><label>Nombre empresa / cliente</label><input type="text" class="finput" id="liqCliente" placeholder="Razón social o nombre comercial"></div>
+          <div class="field"><label>Contacto</label><input type="text" class="finput" id="liqContacto" placeholder="Nombre del contacto"></div>
+          <div class="field"><label>Teléfono</label><input type="tel" class="finput" id="liqTelefono" placeholder="+507 6000-0000"></div>
+          <div class="field span-2"><label>Email</label><input type="email" class="finput" id="liqEmail" placeholder="correo@empresa.com"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPERACIÓN -->
+    <div class="card">
+      <div class="card-hdr"><div class="card-icon">🚢</div><div><div class="card-title">Datos de la operación</div></div></div>
+      <div class="card-body">
+        <div class="field-grid">
+          <div class="field"><label>Vía de ingreso</label>
+            <select class="finput" id="liqVia">
+              <option value="Maritimo">Marítimo</option>
+              <option value="Aereo">Aéreo</option>
+              <option value="Terrestre">Terrestre</option>
+            </select>
+          </div>
+          <div class="field"><label>Certificado / TLC</label>
+            <select class="finput" id="liqTlc">
+              <option value="N/A">N/A</option>
+              <option value="Certificado de Origen">Certificado de Origen</option>
+              <option value="EUR1">EUR1</option>
+              <option value="DUCA-F">DUCA-F</option>
+              <option value="DUCA-T">DUCA-T</option>
+              <option value="TLC">TLC</option>
+            </select>
+          </div>
+          <div class="field"><label>País de origen <span class="tip">(producción)</span></label><input type="text" class="finput" id="liqOrigen" placeholder="Ej: China, USA, México"></div>
+          <div class="field"><label>País de procedencia <span class="tip">(exportación)</span></label><input type="text" class="finput" id="liqProcedencia" placeholder="País desde donde se exporta"></div>
+          <div class="field span-2"><label>POD / Recinto</label><input type="text" class="finput" id="liqPod" placeholder="Puerto, aeropuerto o zona aduanera"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VALOR CIF -->
+    <div class="card">
+      <div class="card-hdr"><div class="card-icon">💰</div><div><div class="card-title">Valor CIF</div><div class="card-subtitle">Ingresa 1 valor — los demás se calculan automáticamente</div></div></div>
+      <div class="card-body">
+        <div class="field-grid">
+          <div class="field">
+            <label>Valor FOB (USD)</label>
+            <div class="finput-prefix"><span class="prefix">$</span><input type="number" id="liqFob" min="0" step="0.01" placeholder="Valor en factura" oninput="liqInferFromFob()"></div>
+            <div id="liqFobBadge" style="font-size:.64rem;color:var(--green);margin-top:3px;min-height:14px"></div>
+          </div>
+          <div class="field">
+            <label>Flete (USD) <span class="tip">auto 13% FOB</span></label>
+            <div class="finput-prefix"><span class="prefix">$</span><input type="number" id="liqFlete" min="0" step="0.01" placeholder="auto" oninput="liqInferFromFlete()"></div>
+            <div id="liqFleteBadge" style="font-size:.64rem;color:var(--green);margin-top:3px;min-height:14px"></div>
+          </div>
+          <div class="field">
+            <label>Seguro (USD) <span class="tip">auto 1% FOB</span></label>
+            <div class="finput-prefix"><span class="prefix">$</span><input type="number" id="liqSeguro" min="0" step="0.01" placeholder="auto" oninput="liqInferFromSeguro()"></div>
+            <div id="liqSeguroBadge" style="font-size:.64rem;color:var(--green);margin-top:3px;min-height:14px"></div>
+          </div>
+          <div class="field">
+            <label style="color:var(--blue);font-weight:700">Valor CIF (USD)</label>
+            <div class="finput-prefix" style="border-color:var(--blue)"><span class="prefix" style="background:#EEF2FF;color:var(--blue);font-weight:700">$</span><input type="number" id="liqCif" min="0" step="0.01" placeholder="o ingresa directo" oninput="liqInferFromCif()" style="color:var(--blue);font-weight:700"></div>
+            <div id="liqCifBadge" style="font-size:.64rem;color:var(--green);margin-top:3px;min-height:14px"></div>
+          </div>
+        </div>
+        <button onclick="liqResetCif()" style="margin-top:4px;padding:5px 12px;border-radius:6px;border:1.5px solid var(--border);background:var(--light);font-size:.7rem;color:var(--mid);cursor:pointer;font-family:'Barlow',sans-serif">↺ Limpiar valores CIF</button>
+      </div>
+    </div>
+
+    <!-- MERCANCÍA -->
+    <div class="card">
+      <div class="card-hdr"><div class="card-icon">📦</div><div><div class="card-title">Mercancía & Líneas</div></div></div>
+      <div class="card-body">
+        <div class="field-grid">
+          <div class="field span-2">
+            <label>Tipo de producto</label>
+            <select class="finput" id="liqTipoProducto" onchange="liqOnTipoProducto()">
+              <option value="Carga General">Carga General</option>
+              <option value="Medicamentos y Cosméticos">Medicamentos y Cosméticos</option>
+              <option value="Muestras sin valor comercial">Muestras sin valor comercial</option>
+              <option value="Inflamables / Químicos">Inflamables / Tintes / Químicos</option>
+              <option value="Alimentos">Alimentos (consumo humano/animal)</option>
+              <option value="Madera / Especies Protegidas">Madera / Especies Protegidas</option>
+              <option value="Corrugados / Veterinario">Corrugados / Veterinario / Madera</option>
+              <option value="Exportación / Consumo">Exportación / Consumo humano o animal</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Entidad reguladora</label>
+            <input type="text" class="finput" id="liqEntidad" readonly style="background:var(--light);color:var(--mid);cursor:default" value="N/A">
+          </div>
+          <div class="field">
+            <label>Tiempo estimado permiso</label>
+            <input type="text" class="finput" id="liqTiempoPermiso" readonly style="background:var(--light);color:var(--mid);cursor:default" value="24 horas">
+          </div>
+          <div class="field">
+            <label>Líneas / HS Codes <span class="tip">(ítems en declaración)</span></label>
+            <input type="number" class="finput" id="liqLineas" min="1" value="1" oninput="calcLiquidacion()">
+          </div>
+          <div class="field">
+            <label>Formularios</label>
+            <input type="number" class="finput" id="liqFormularios" min="0" value="0" oninput="calcLiquidacion()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRÁMITES CONEXOS -->
+    <div class="card">
+      <div class="card-hdr"><div class="card-icon">📋</div><div><div class="card-title">Trámites conexos</div><div class="card-subtitle">Marca los que apliquen según la mercancía</div></div></div>
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:.82rem">
+            <input type="checkbox" id="liqChk_memorial" onchange="calcLiquidacion()" style="margin-top:2px;flex-shrink:0">
+            <div><div style="font-weight:600">Memorial</div><div style="font-size:.7rem;color:var(--mid)">ANA · Mercancía restringida</div></div>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:.82rem">
+            <input type="checkbox" id="liqChk_bombero" onchange="calcLiquidacion()" style="margin-top:2px;flex-shrink:0">
+            <div><div style="font-weight:600">Trámite Bombero</div><div style="font-size:.7rem;color:var(--mid)">BCBRP · Hazmat / Químicos</div></div>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:.82rem">
+            <input type="checkbox" id="liqChk_cuarentena" onchange="calcLiquidacion()" style="margin-top:2px;flex-shrink:0">
+            <div><div style="font-weight:600">Trámite Cuarentena</div><div style="font-size:.7rem;color:var(--mid)">MIDA · Alimentos / Plantas</div></div>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:.82rem">
+            <input type="checkbox" id="liqChk_anam" onchange="calcLiquidacion()" style="margin-top:2px;flex-shrink:0">
+            <div><div style="font-weight:600">Trámite ANAM</div><div style="font-size:.7rem;color:var(--mid)">MiAmbiente · Madera / Flora</div></div>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:.82rem">
+            <input type="checkbox" id="liqChk_apa" onchange="calcLiquidacion()" style="margin-top:2px;flex-shrink:0">
+            <div><div style="font-weight:600">Notificación APA</div><div style="font-size:.7rem;color:var(--mid)">APA · Alimentos procesados</div></div>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:.82rem">
+            <input type="checkbox" id="liqChk_mensajeria" onchange="calcLiquidacion()" style="margin-top:2px;flex-shrink:0">
+            <div><div style="font-weight:600">Mensajería</div><div style="font-size:.7rem;color:var(--mid)">Entrega de documentos</div></div>
+          </label>
+        </div>
+        <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#FFF8F0;border:1.5px solid #FDE68A;border-radius:8px;cursor:pointer;font-size:.82rem">
+          <input type="checkbox" id="liqFinanciamiento" onchange="calcLiquidacion()" style="flex-shrink:0">
+          <div><span style="font-weight:600;color:#92400E">Financiamiento de impuestos y pagos a terceros</span> <span style="color:var(--mid)">— 3% del total, mín. $15 · Reembolsable en 7 días hábiles</span></div>
+        </label>
+      </div>
+    </div>
+
+    <!-- NOTAS -->
+    <div class="card">
+      <div class="card-body">
+        <div class="field">
+          <label>📝 Notas internas <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--mid)">(no aparecen en PDF)</span></label>
+          <textarea id="liqNotas" class="finput" rows="2" placeholder="Contexto, acuerdos, próximos pasos..." style="resize:vertical;min-height:54px;font-size:.82rem"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTADO -->
+    <div id="liqResultado" style="display:none">
+      <div class="kpi-bar" id="liqKpiBar" style="margin-bottom:16px"></div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-icon">📊</div><div class="card-title">Desglose del presupuesto</div></div>
+        <div class="card-body" style="padding:0"><div id="liqTablasWrap"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button onclick="saveLiquidacion('borrador')" class="btn-sm outline" style="padding:11px;width:100%;font-size:.82rem">💾 Guardar borrador</button>
+            <button onclick="saveLiquidacion('enviada')" class="btn-sm blue" style="padding:11px;width:100%;font-size:.82rem">📤 Guardar y marcar como enviada</button>
+            <button onclick="S._previewContext='liq';downloadLiquidacionCliente()" class="btn-sm green" style="padding:11px;width:100%;font-size:.82rem">📄 Cotización para el cliente</button>
+            <button onclick="S._previewContext='liq';downloadLiquidacionInterna()" class="btn-sm outline" style="padding:11px;width:100%;font-size:.82rem;border-color:#94A3B8;color:#64748B">🔒 Ficha operativa interna</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1925,7 +2141,7 @@ function showToast(msg,type='success',duration=3000){
 
 // ── NAVIGATION ────────────────────────────────────────────────
 function showPanel(panel){
-  ['appWrap','cotWrap','adminWrap'].forEach(id=>{
+  ['appWrap','cotWrap','adminWrap','homeWrap','liqWrap'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el) return;
     const active=el.id===panel;
@@ -1938,8 +2154,10 @@ function showPanel(panel){
   const kb=document.getElementById('liveKpiBar');
   if(kb) kb.classList.toggle('show', panel==='appWrap' && !!S.type);
   // Update header buttons
-  document.getElementById('btnCotizador')?.classList.toggle('active',panel==='appWrap');
-  document.getElementById('btnCotizador')?.classList.toggle('green',panel==='appWrap');
+  document.getElementById('btnCotizador')?.classList.toggle('active',panel==='appWrap'||panel==='homeWrap');
+  document.getElementById('btnCotizador')?.classList.toggle('green',panel==='appWrap'||panel==='homeWrap');
+  document.getElementById('btnLiquidacion')?.classList.toggle('active',panel==='liqWrap');
+  document.getElementById('btnLiquidacion')?.classList.toggle('green',panel==='liqWrap');
   document.getElementById('btnCotizaciones')?.classList.toggle('active',panel==='cotWrap');
   document.getElementById('btnInsights')?.classList.toggle('active',panel==='adminWrap');
 }
@@ -3231,8 +3449,8 @@ async function onLoginSuccess(){
   const isAdmin=currentUserData?.rol==='admin';
   document.getElementById('btnInsights').style.display=isAdmin?'flex':'none';
   
-  // Show cotizador
-  showCotizador();
+  // Show home screen
+  showHomeScreen();
   
   // Restore draft if exists
   if(restoreDraft()){
@@ -3280,6 +3498,9 @@ async function doSignOut(){
   document.getElementById('appWrap').classList.remove('show');
   document.getElementById('cotWrap').classList.add('hidden');
   document.getElementById('adminWrap').classList.add('hidden');
+  document.getElementById('homeWrap')?.classList.add('hidden');
+  document.getElementById('liqWrap')?.classList.add('hidden');
+  LIQ={};_liqEditingId=null;
 }
 
 function initLoginButton(){
@@ -4752,6 +4973,21 @@ function renderAdminSections(){
       </div>
     </div>
 
+    <!-- TARIFAS LIQUIDACIÓN -->
+    <div class="admin-section">
+      <div class="admin-sec-hdr" id="ash-liq" onclick="toggleAdminSec('liq')" style="cursor:pointer">
+        <span class="ash-icon">💱</span>
+        <span class="ash-title">Tarifas Liquidación — Parámetros de Cálculo</span>
+        <div class="ash-actions">
+          <button class="btn-sm green" onclick="event.stopPropagation();saveLiqConfig()">💾 Guardar</button>
+          <span class="ash-arrow" onclick="toggleAdminSec('liq')">▼</span>
+        </div>
+      </div>
+      <div class="admin-sec-body collapsed" id="asb-liq">
+        <div style="padding:14px;color:var(--mid);font-size:.78rem">Cargando…</div>
+      </div>
+    </div>
+
     <!-- REPORTERÍA -->
     <div class="admin-section">
       <div class="admin-sec-hdr" id="ash-rep" onclick="toggleAdminSec('rep')" style="cursor:pointer">
@@ -4832,6 +5068,7 @@ function toggleAdminSec(id){
       else if(id==='tarifas'){ if(!TARIFAS_EDITABLES.length) initTarifasEditables(); renderTarifasBase(); }
       else if(id==='veh'){ renderCostosVeh(); loadCbVehInputs(); }
       else if(id==='users') loadUserList();
+      else if(id==='liq') renderLiqInsightsBody();
     }catch(e){
       console.error('render section '+id+':',e);
       showToast('Error al cargar sección: '+e.message,'error');
@@ -4899,6 +5136,7 @@ async function loadInsights(){
       }
     }
     syncProdToTarifas();
+    if(data.liq_config) loadLiqConfig(data);
   }catch(e){ console.error('loadInsights error:',e); }
 }
 
@@ -5376,6 +5614,475 @@ function cancelarEdicion(){
   S.lastQuote=null;
   document.getElementById('editBanner')?.classList.add('hidden');
   showMisCotizaciones();
+}
+
+// ── MÓDULO LIQUIDACIÓN ────────────────────────────────────────
+
+let LIQ_CONFIG={
+  pct_flete:0.13,pct_seguro:0.01,
+  venta_t1_lim:4999,venta_t1:50,venta_t2_lim:9999,venta_t2:80,venta_t3_tasa:0.0027,venta_t3_base:80,
+  venta_linea:4,venta_form:10,venta_manejo:50,venta_tramite:25,
+  itbms:0.07,fin_tasa:0.03,fin_min:15,
+  proveedor:'See More Logistics',
+  costo_t1_lim:4999,costo_t1:21,costo_t2_lim:9999,costo_t2:26,costo_t3_tasa:0.0017,costo_t3_base:26,
+  costo_linea:3.50,costo_form:7,costo_manejo:35,
+  costo_memorial:20,costo_bombero:10,costo_cuarentena:10,costo_anam:10,costo_apa:3,costo_mensajeria:10
+};
+let LIQ={};
+let _liqEditingId=null;
+const _liqAuto={fob:false,flete:false,seguro:false,cif:false};
+
+const LIQ_ENTIDADES={
+  'Carga General':{entidad:'N/A',tiempo:'24 horas'},
+  'Medicamentos y Cosméticos':{entidad:'Farmacia & Drogas',tiempo:'3–8 días'},
+  'Muestras sin valor comercial':{entidad:'Valoración',tiempo:'72 horas'},
+  'Inflamables / Químicos':{entidad:'Bomberos (BCBRP)',tiempo:'48 horas'},
+  'Alimentos':{entidad:'APA',tiempo:'72 horas'},
+  'Madera / Especies Protegidas':{entidad:'ANAM / MiAmbiente',tiempo:'72 horas'},
+  'Corrugados / Veterinario':{entidad:'Cuarentena (MIDA)',tiempo:'72 horas'},
+  'Exportación / Consumo':{entidad:'Fito Sanitario',tiempo:'72 horas'}
+};
+const LIQ_TRAMITES_KEYS=['memorial','bombero','cuarentena','anam','apa','mensajeria'];
+const LIQ_TRAMITES_LABELS={memorial:'Memorial',bombero:'Trámite Bombero',cuarentena:'Trámite Cuarentena',anam:'Trámite ANAM',apa:'Notificación APA',mensajeria:'Mensajería'};
+
+function showHomeScreen(){showPanel('homeWrap');}
+function showLiquidacion(){showPanel('liqWrap');liqOnTipoProducto();}
+
+function liqV(id){return parseFloat(document.getElementById(id)?.value)||0;}
+function liqBadge(id,msg){const el=document.getElementById(id);if(el)el.textContent=msg;}
+function liqSetVal(id,val,isAuto){
+  const el=document.getElementById(id);if(!el)return;
+  el.value=val>0?val.toFixed(2):'';
+  const key=id.replace('liq','').toLowerCase();_liqAuto[key]=!!isAuto;
+}
+
+function liqInferFromFob(){
+  const c=LIQ_CONFIG;const fob=liqV('liqFob');_liqAuto.fob=false;liqBadge('liqFobBadge','');
+  if(!fob){calcLiquidacion();return;}
+  if(_liqAuto.flete||!document.getElementById('liqFlete').value){
+    liqSetVal('liqFlete',fob*c.pct_flete,true);
+    liqBadge('liqFleteBadge','auto — '+(c.pct_flete*100)+'% del FOB');
+  }
+  if(_liqAuto.seguro||!document.getElementById('liqSeguro').value){
+    liqSetVal('liqSeguro',fob*c.pct_seguro,true);
+    liqBadge('liqSeguroBadge','auto — '+(c.pct_seguro*100)+'% del FOB');
+  }
+  liqRecalcCif();
+}
+function liqInferFromCif(){
+  const c=LIQ_CONFIG;const cif=liqV('liqCif');_liqAuto.cif=false;liqBadge('liqCifBadge','');
+  if(!cif){calcLiquidacion();return;}
+  const factor=1+c.pct_flete+c.pct_seguro;
+  if(_liqAuto.fob||!document.getElementById('liqFob').value){
+    liqSetVal('liqFob',Math.round(cif/factor*100)/100,true);
+    liqBadge('liqFobBadge','auto — inferido del CIF');
+  }
+  const fob=liqV('liqFob');
+  if(_liqAuto.flete||!document.getElementById('liqFlete').value){
+    liqSetVal('liqFlete',fob*c.pct_flete,true);
+    liqBadge('liqFleteBadge','auto — '+(c.pct_flete*100)+'% del FOB');
+  }
+  if(_liqAuto.seguro||!document.getElementById('liqSeguro').value){
+    liqSetVal('liqSeguro',fob*c.pct_seguro,true);
+    liqBadge('liqSeguroBadge','auto — '+(c.pct_seguro*100)+'% del FOB');
+  }
+  calcLiquidacion();
+}
+function liqInferFromFlete(){_liqAuto.flete=false;liqBadge('liqFleteBadge','');if(liqV('liqFob'))liqRecalcCif();else calcLiquidacion();}
+function liqInferFromSeguro(){_liqAuto.seguro=false;liqBadge('liqSeguroBadge','');if(liqV('liqFob'))liqRecalcCif();else calcLiquidacion();}
+function liqRecalcCif(){
+  const cif=liqV('liqFob')+liqV('liqFlete')+liqV('liqSeguro');
+  if(cif>0){const el=document.getElementById('liqCif');if(el)el.value=cif.toFixed(2);_liqAuto.cif=true;liqBadge('liqCifBadge','auto — FOB + Flete + Seguro');}
+  calcLiquidacion();
+}
+function liqResetCif(){
+  ['liqFob','liqFlete','liqSeguro','liqCif'].forEach(function(id){const el=document.getElementById(id);if(el)el.value='';});
+  Object.keys(_liqAuto).forEach(function(k){_liqAuto[k]=false;});
+  ['liqFobBadge','liqFleteBadge','liqSeguroBadge','liqCifBadge'].forEach(function(id){liqBadge(id,'');});
+  calcLiquidacion();
+}
+function liqOnTipoProducto(){
+  const tipo=document.getElementById('liqTipoProducto')?.value||'Carga General';
+  const info=LIQ_ENTIDADES[tipo]||{entidad:'N/A',tiempo:'24 horas'};
+  const eEl=document.getElementById('liqEntidad');const tEl=document.getElementById('liqTiempoPermiso');
+  if(eEl)eEl.value=info.entidad;if(tEl)tEl.value=info.tiempo;
+}
+function liqCalcHonorariosVenta(cif){
+  const c=LIQ_CONFIG;
+  if(cif<=c.venta_t1_lim)return c.venta_t1;
+  if(cif<=c.venta_t2_lim)return c.venta_t2;
+  return(cif*c.venta_t3_tasa)+c.venta_t3_base;
+}
+function liqCalcRefrendoCosto(cif){
+  const c=LIQ_CONFIG;
+  if(cif<=c.costo_t1_lim)return c.costo_t1;
+  if(cif<=c.costo_t2_lim)return c.costo_t2;
+  return(cif*c.costo_t3_tasa)+c.costo_t3_base;
+}
+function calcLiquidacion(){
+  const cif=liqV('liqCif');const resEl=document.getElementById('liqResultado');
+  if(!cif||cif<=0){if(resEl)resEl.style.display='none';return;}
+  const c=LIQ_CONFIG;
+  const numLineas=Math.max(1,parseInt(document.getElementById('liqLineas')?.value)||1);
+  const numForms=Math.max(0,parseInt(document.getElementById('liqFormularios')?.value)||0);
+  const lineasAd=Math.max(0,numLineas-1);
+  const selTramites=LIQ_TRAMITES_KEYS.filter(function(k){const el=document.getElementById('liqChk_'+k);return el&&el.checked;});
+  const vHon=Math.round(liqCalcHonorariosVenta(cif)*100)/100;
+  const vLineas=Math.round(lineasAd*c.venta_linea*100)/100;
+  const vForms=Math.round(numForms*c.venta_form*100)/100;
+  const vManejo=c.venta_manejo;
+  const vTramites=Math.round(selTramites.length*c.venta_tramite*100)/100;
+  const vSub=vHon+vLineas+vForms+vManejo+vTramites;
+  const vITBMS=Math.round(vSub*c.itbms*100)/100;
+  const vTotal=vSub+vITBMS;
+  const financiamiento=document.getElementById('liqFinanciamiento')?.checked;
+  const vFin=financiamiento?Math.max(c.fin_min,Math.round(vTotal*c.fin_tasa*100)/100):0;
+  const vFinal=vTotal+vFin;
+  const cRef=Math.round(liqCalcRefrendoCosto(cif)*100)/100;
+  const cLineas=Math.round(lineasAd*c.costo_linea*100)/100;
+  const cForms=Math.round(numForms*c.costo_form*100)/100;
+  const cManejo=c.costo_manejo;
+  const cTramites=selTramites.reduce(function(s,k){return s+(c['costo_'+k]||0);},0);
+  const cTotal=Math.round((cRef+cLineas+cForms+cManejo+cTramites)*100)/100;
+  const profit=Math.round((vSub-cTotal)*100)/100;
+  const gpm=vSub>0?Math.round(profit/vSub*1000)/10:0;
+  LIQ={
+    cif,fob:liqV('liqFob'),flete:liqV('liqFlete'),seguro:liqV('liqSeguro'),
+    numLineas,numForms,lineasAd,selTramites,financiamiento,
+    vHon,vLineas,vForms,vManejo,vTramites,vSub,vITBMS,vTotal,vFin,vFinal,
+    cRef,cLineas,cForms,cManejo,cTramites,cTotal,profit,gpm,
+    cliente:document.getElementById('liqCliente')?.value||'',
+    contacto:document.getElementById('liqContacto')?.value||'',
+    telefono:document.getElementById('liqTelefono')?.value||'',
+    email:document.getElementById('liqEmail')?.value||'',
+    via:document.getElementById('liqVia')?.value||'Maritimo',
+    tlc:document.getElementById('liqTlc')?.value||'N/A',
+    origen:document.getElementById('liqOrigen')?.value||'',
+    procedencia:document.getElementById('liqProcedencia')?.value||'',
+    pod:document.getElementById('liqPod')?.value||'',
+    tipoProducto:document.getElementById('liqTipoProducto')?.value||'Carga General',
+    entidad:document.getElementById('liqEntidad')?.value||'N/A',
+    tiempoPermiso:document.getElementById('liqTiempoPermiso')?.value||'24 horas',
+    notas:document.getElementById('liqNotas')?.value||'',
+    today:new Date().toLocaleDateString('es-PA',{day:'2-digit',month:'long',year:'numeric'})
+  };
+  renderLiqResultado();
+  if(resEl)resEl.style.display='block';
+}
+function renderLiqResultado(){
+  const q=LIQ;if(!q.cif)return;
+  const fm=function(n){return parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});};
+  const gpmClr=q.gpm>=40?'var(--green-dark)':q.gpm>=25?'#92400E':'var(--red)';
+  const gpmBg=q.gpm>=40?'#F0FDF4':q.gpm>=25?'#FFF8F0':'#FFF0F3';
+  const kpiEl=document.getElementById('liqKpiBar');
+  if(kpiEl){
+    kpiEl.innerHTML='<div class="kpi-card"><div class="kpi-label">Total cliente</div>'
+      +'<div class="kpi-value">$'+fm(q.vFinal)+'</div>'
+      +'<div class="kpi-sub">incl. ITBMS'+(q.vFin>0?' + financiamiento':'')+'</div></div>'
+      +'<div class="kpi-card"><div class="kpi-label">Costo '+LIQ_CONFIG.proveedor+'</div>'
+      +'<div class="kpi-value" style="color:#92400E">$'+fm(q.cTotal)+'</div>'
+      +'<div class="kpi-sub">costo DP World</div></div>'
+      +'<div class="kpi-card" style="background:'+gpmBg+'">'
+      +'<div class="kpi-label">GPM</div>'
+      +'<div class="kpi-value" style="color:'+gpmClr+'">'+q.gpm.toFixed(1)+'%</div>'
+      +'<div class="kpi-sub" style="color:'+gpmClr+'">${'+fm(q.profit)+' profit}</div></div>';
+  }
+  const tramiteRows=q.selTramites.map(function(k){
+    return '<tr><td style="padding:7px 12px;border-bottom:1px solid #E2E8F0">'+(LIQ_TRAMITES_LABELS[k]||k)+'</td>'
+      +'<td style="padding:7px 12px;border-bottom:1px solid #E2E8F0;text-align:right;font-weight:700;color:var(--blue)">$'+fm(LIQ_CONFIG.venta_tramite)+'</td>'
+      +'<td style="padding:7px 12px;border-bottom:1px solid #E2E8F0;text-align:right;font-weight:600;color:#64748B">$'+fm(LIQ_CONFIG['costo_'+k]||0)+'</td></tr>';
+  }).join('');
+  const tablaEl=document.getElementById('liqTablasWrap');
+  if(tablaEl){
+    tablaEl.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:11.5px">'
+      +'<thead><tr style="background:var(--blue)">'
+      +'<th style="padding:8px 12px;color:#fff;text-align:left;font-family:\'Barlow Condensed\',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.07em">Cargo</th>'
+      +'<th style="padding:8px 12px;color:#00C389;text-align:right;font-family:\'Barlow Condensed\',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase">Venta cliente</th>'
+      +'<th style="padding:8px 12px;color:rgba(255,255,255,.7);text-align:right;font-family:\'Barlow Condensed\',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase">Costo '+LIQ_CONFIG.proveedor+'</th>'
+      +'</tr></thead><tbody>'
+      +'<tr style="background:#F8F9FC"><td style="padding:7px 12px;border-bottom:1px solid #E2E8F0">Honorarios / Refrendo</td>'
+      +'<td style="padding:7px 12px;border-bottom:1px solid #E2E8F0;text-align:right;font-weight:700;color:var(--blue)">$'+fm(q.vHon)+'</td>'
+      +'<td style="padding:7px 12px;border-bottom:1px solid #E2E8F0;text-align:right;font-weight:600;color:#64748B">$'+fm(q.cRef)+'</td></tr>'
+      +'<tr><td style="padding:7px 12px;border-bottom:1px solid #E2E8F0">Manejo</td>'
+      +'<td style="padding:7px 12px;border-bottom:1px solid #E2E8F0;text-align:right;font-weight:700;color:var(--blue)">$'+fm(q.vManejo)+'</td>'
+      +'<td style="padding:7px 12px;border-bottom:1px solid #E2E8F0;text-align:right;font-weight:600;color:#64748B">$'+fm(q.cManejo)+'</td></tr>'
+      +(q.lineasAd>0?'<tr style="background:#F8F9FC"><td style="padding:7px 12px;border-bottom:1px solid #E2E8F0">Líneas adicionales ('+q.lineasAd+')</td>'
+        +'<td style="padding:7px 12px;border-bottom:1px solid #E2E8F0;text-align:right;font-weight:700;color:var(--blue)">$'+fm(q.vLineas)+'</td>'
+        +'<td style="padding:7px 12px;border-bottom:1px solid #E2E8F0;text-align:right;font-weight:600;color:#64748B">$'+fm(q.cLineas)+'</td></tr>':'')
+      +(q.numForms>0?'<tr><td style="padding:7px 12px;border-bottom:1px solid #E2E8F0">Formularios ('+q.numForms+')</td>'
+        +'<td style="padding:7px 12px;border-bottom:1px solid #E2E8F0;text-align:right;font-weight:700;color:var(--blue)">$'+fm(q.vForms)+'</td>'
+        +'<td style="padding:7px 12px;border-bottom:1px solid #E2E8F0;text-align:right;font-weight:600;color:#64748B">$'+fm(q.cForms)+'</td></tr>':'')
+      +tramiteRows
+      +'<tr style="background:var(--blue)"><td style="padding:9px 12px;color:#fff;font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:12px">SUBTOTAL</td>'
+      +'<td style="padding:9px 12px;text-align:right;color:#00C389;font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:14px">$'+fm(q.vSub)+'</td>'
+      +'<td style="padding:9px 12px;text-align:right;color:rgba(255,255,255,.8);font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:14px">$'+fm(q.cTotal)+'</td></tr>'
+      +'<tr><td style="padding:7px 12px;border-bottom:1px solid #E2E8F0;color:#64748B;font-size:11px">ITBMS 7%</td>'
+      +'<td style="padding:7px 12px;border-bottom:1px solid #E2E8F0;text-align:right;color:#64748B;font-size:11px">$'+fm(q.vITBMS)+'</td>'
+      +'<td style="padding:7px 12px;border-bottom:1px solid #E2E8F0;text-align:right;color:#94A3B8;font-size:11px">—</td></tr>'
+      +(q.vFin>0?'<tr style="background:#FFF8F0"><td style="padding:7px 12px;border-bottom:1px solid #E2E8F0;font-size:11px">Financiamiento (3%, mín. $15)</td>'
+        +'<td style="padding:7px 12px;border-bottom:1px solid #E2E8F0;text-align:right;color:#92400E;font-size:11px">$'+fm(q.vFin)+'</td>'
+        +'<td style="padding:7px 12px;border-bottom:1px solid #E2E8F0;text-align:right;color:#94A3B8;font-size:11px">—</td></tr>':'')
+      +'<tr style="background:#1A1060"><td style="padding:10px 12px;color:#fff;font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.05em">TOTAL ESTIMADO</td>'
+      +'<td style="padding:10px 12px;text-align:right;color:#00C389;font-family:\'Barlow Condensed\',sans-serif;font-weight:900;font-size:16px">$'+fm(q.vFinal)+'</td>'
+      +'<td style="padding:10px 12px;text-align:right;color:rgba(255,255,255,.6);font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:13px">$'+fm(q.cTotal)+'</td></tr>'
+      +'</tbody></table>';
+  }
+}
+async function saveLiquidacion(estado){
+  estado=estado||'borrador';
+  if(!currentUser){showToast('Debes iniciar sesión','error');return;}
+  if(!LIQ.cif){showToast('Completa el valor CIF primero','warn');return;}
+  const q=LIQ;
+  const lineas=[
+    {_liqMeta:true,cif:q.cif,fob:q.fob,flete:q.flete,seguro:q.seguro,via:q.via,tlc:q.tlc,
+     origen:q.origen,procedencia:q.procedencia,pod:q.pod,tipoProducto:q.tipoProducto,
+     entidad:q.entidad,tiempoPermiso:q.tiempoPermiso,numLineas:q.numLineas,
+     numForms:q.numForms,tramites:q.selTramites,financiamiento:q.financiamiento},
+    {name:'Honorarios / Refrendo',unit:'/trámite',qty:1,rate:q.vHon,sub:q.vHon},
+    {name:'Manejo',unit:'/trámite',qty:1,rate:q.vManejo,sub:q.vManejo}
+  ];
+  if(q.lineasAd>0) lineas.push({name:'Líneas adicionales',unit:'/línea',qty:q.lineasAd,rate:LIQ_CONFIG.venta_linea,sub:q.vLineas});
+  if(q.numForms>0) lineas.push({name:'Formularios',unit:'/u',qty:q.numForms,rate:LIQ_CONFIG.venta_form,sub:q.vForms});
+  q.selTramites.forEach(function(k){lineas.push({name:LIQ_TRAMITES_LABELS[k]||k,unit:'/trámite',qty:1,rate:LIQ_CONFIG.venta_tramite,sub:LIQ_CONFIG.venta_tramite});});
+  lineas.push({name:'ITBMS 7%',unit:'',qty:1,rate:q.vITBMS,sub:q.vITBMS});
+  if(q.vFin>0) lineas.push({name:'Financiamiento',unit:'',qty:1,rate:q.vFin,sub:q.vFin});
+  const payload={
+    vendedor_id:currentUser.id,vendedor_nombre:currentUserData?.nombre||currentUser.email,
+    cliente_nombre:q.cliente||'Sin nombre',tipo_operacion:'liquidacion',
+    total_tarifa:q.vFinal,total_costo:q.cTotal,margen:q.gpm,
+    lineas:lineas,estado:estado,vigencia:30,
+    cliente_contacto:q.contacto||null,cliente_email:q.email||null,
+    cliente_telefono:q.telefono||null,notas_internas:q.notas||null,
+    tipo_mercancia:q.tipoProducto||null
+  };
+  try{
+    if(_liqEditingId){
+      const{data,error}=await supa.from('cotizaciones').update(payload).eq('id',_liqEditingId).select().single();
+      if(error)throw error;
+      showToast('Liquidación actualizada: '+(data?.numero||''),'success');
+    }else{
+      let numero;
+      try{const{data:rd,error:re}=await supa.rpc('next_cotizacion_numero');if(!re&&rd)numero=rd;}catch(e){}
+      if(!numero){
+        const now=new Date();const ym=now.getFullYear().toString()+(now.getMonth()+1).toString().padStart(2,'0');
+        const prefix='COT-'+ym+'-';
+        const{data:lastRows}=await supa.from('cotizaciones').select('numero').like('numero',prefix+'%').order('numero',{ascending:false}).limit(1);
+        const lastNum=lastRows?.length?parseInt((lastRows[0].numero||'').split('-').pop())||0:0;
+        numero=prefix+(lastNum+1).toString().padStart(3,'0');
+      }
+      payload.numero=numero;
+      const{data,error}=await supa.from('cotizaciones').insert([payload]).select().single();
+      if(error)throw error;
+      _liqEditingId=data.id;LIQ._numero=data.numero;
+      showToast('Liquidación guardada: '+data.numero,'success');
+    }
+  }catch(e){showToast('Error al guardar: '+(e.message||''),'error');}
+}
+function downloadLiquidacionCliente(){
+  if(!LIQ.cif){showToast('Completa la cotización primero','warn');return;}
+  const q=LIQ;const c=LIQ_CONFIG;
+  const fm=function(n){return parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});};
+  const LOGO='data:image/jpeg;base64,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';
+  const tramiteRowsClient=q.selTramites.map(function(k){
+    return '<tr><td style="padding:7px 9px;border-bottom:1px solid #E2E8F0">'+(LIQ_TRAMITES_LABELS[k]||k)+'</td>'
+      +'<td class="r" style="padding:7px 9px;border-bottom:1px solid #E2E8F0;text-align:right;font-weight:600;color:#1A1060">$'+fm(c.venta_tramite)+'</td></tr>';
+  }).join('');
+  const docTiempo=q.numLineas>10?'48 horas (trámite complejo, >'+q.numLineas+' líneas)':'24 horas (trámite sencillo)';
+  const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Cotización Aduanal — '+(q.cliente||'Cliente')+'</title>'
+    +'<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">'
+    +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:\'Barlow\',sans-serif;font-size:12px;color:#1B1B2F;background:#fff}'
+    +'.page{padding:26px 32px}.pg-end{page-break-after:always;break-after:page}'
+    +'.hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:3px solid #1A1060;margin-bottom:18px}'
+    +'.hdr img{height:30px}.hdr-r{text-align:right;font-size:10px;color:#64748B;line-height:1.7}'
+    +'.hdr-r strong{display:block;color:#1A1060;font-size:11px;font-weight:700}'
+    +'.sec-title{font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:11px;color:#1A1060;text-transform:uppercase;letter-spacing:.07em;margin:14px 0 8px;padding-bottom:3px;border-bottom:2px solid #1A1060}'
+    +'.meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}'
+    +'.mi{padding:7px 10px;background:#F8F9FC;border-radius:6px;border:1px solid #E2E8F0}'
+    +'.mi-l{font-size:.58rem;color:#94A3B8;text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:2px}'
+    +'.mi-v{font-size:.78rem;color:#1B1B2F;font-weight:600}'
+    +'table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px}'
+    +'thead tr{background:#1A1060}thead th{padding:7px 9px;color:#fff;font-family:\'Barlow Condensed\',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.07em;text-align:left}'
+    +'thead th.r{text-align:right}tbody tr:nth-child(even){background:#F8F9FC}'
+    +'tbody td{padding:7px 9px;border-bottom:1px solid #E2E8F0}tbody td.r{text-align:right;font-weight:600;color:#1A1060}'
+    +'tfoot td{background:#1A1060;color:#fff;padding:9px;font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:13px}'
+    +'.note{font-size:9.5px;color:#64748B;line-height:1.5;margin-bottom:6px;padding-left:10px;border-left:2px solid #E2E8F0}'
+    +'.note strong{color:#1A1060}'
+    +'.legal{background:#F8F9FC;border:1px solid #E2E8F0;border-radius:6px;padding:8px 10px;font-size:9px;color:#64748B;line-height:1.6;margin-bottom:10px}'
+    +'@media print{.page{padding:14px 18px}.pg-end{display:none}@page{margin:.6cm;size:letter}}</style></head><body>'
+    +'<div class="page">'
+    +'<div class="hdr"><img src="'+LOGO+'" alt="DP World"><div class="hdr-r"><strong>DP World Panamá · DAL Colón Logistics Park</strong>'+q.today+' · '+(LIQ._numero||'BORRADOR')+'</div></div>'
+    +'<div class="sec-title">Datos de la operación</div>'
+    +'<div class="meta-grid">'
+    +'<div class="mi"><div class="mi-l">Cliente</div><div class="mi-v">'+(q.cliente||'—')+'</div></div>'
+    +'<div class="mi"><div class="mi-l">Valor CIF</div><div class="mi-v">$'+fm(q.cif)+'</div></div>'
+    +'<div class="mi"><div class="mi-l">Tipo de producto</div><div class="mi-v">'+q.tipoProducto+'</div></div>'
+    +'<div class="mi"><div class="mi-l">Vía de ingreso</div><div class="mi-v">'+q.via+'</div></div>'
+    +'<div class="mi"><div class="mi-l">POD / Recinto</div><div class="mi-v">'+(q.pod||'—')+'</div></div>'
+    +'<div class="mi"><div class="mi-l">Entidad reguladora</div><div class="mi-v">'+(q.entidad||'N/A')+'</div></div>'
+    +'<div class="mi"><div class="mi-l">País de origen</div><div class="mi-v">'+(q.origen||'—')+'</div></div>'
+    +'<div class="mi"><div class="mi-l">País procedencia</div><div class="mi-v">'+(q.procedencia||'—')+'</div></div>'
+    +'<div class="mi"><div class="mi-l">Certificado / TLC</div><div class="mi-v">'+(q.tlc||'N/A')+'</div></div>'
+    +'</div>'
+    +'<div class="sec-title">Cargos de aduana</div>'
+    +'<table><thead><tr><th>Concepto</th><th class="r">USD Tarifa</th></tr></thead><tbody>'
+    +'<tr><td>Honorarios de Aduana (Refrendo)</td><td class="r">$'+fm(q.vHon)+'</td></tr>'
+    +'<tr><td>Manejo (*)</td><td class="r">$'+fm(q.vManejo)+'</td></tr>'
+    +(q.lineasAd>0?'<tr><td>Líneas de Aforo adicionales ('+q.lineasAd+')</td><td class="r">$'+fm(q.vLineas)+'</td></tr>':'')
+    +(q.numForms>0?'<tr><td>Formularios ('+q.numForms+')</td><td class="r">$'+fm(q.vForms)+'</td></tr>':'')
+    +tramiteRowsClient
+    +'</tbody><tfoot><tr><td>Total de Honorarios</td><td class="r" style="text-align:right;color:#00C389;font-size:14px">$'+fm(q.vSub)+'</td></tr></tfoot></table>'
+    +'<div style="display:flex;justify-content:flex-end;gap:24px;margin-bottom:4px;font-size:11px">'
+    +'<div style="color:#64748B">ITBMS 7%:</div><div style="font-weight:600;color:#1A1060">$'+fm(q.vITBMS)+'</div></div>'
+    +(q.vFin>0?'<div style="display:flex;justify-content:flex-end;gap:24px;margin-bottom:4px;font-size:11px"><div style="color:#64748B">Financiamiento (3%, mín. $15):</div><div style="font-weight:600;color:#92400E">$'+fm(q.vFin)+'</div></div>':'')
+    +'<div style="display:flex;justify-content:flex-end;gap:24px;margin-bottom:16px;padding:8px 12px;background:#1A1060;border-radius:6px">'
+    +'<div style="color:#fff;font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.05em">Total Estimado:</div>'
+    +'<div style="color:#00C389;font-family:\'Barlow Condensed\',sans-serif;font-weight:900;font-size:16px">$'+fm(q.vFinal)+'</div></div>'
+    +'<div class="sec-title">Documentos requeridos</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px">'
+    +'<div style="font-size:10px;color:#64748B;padding:3px 0">• HBL / AWB / Conocimiento Postal</div>'
+    +'<div style="font-size:10px;color:#64748B;padding:3px 0">• Factura Comercial</div>'
+    +'<div style="font-size:10px;color:#64748B;padding:3px 0">• Packing List</div>'
+    +(q.selTramites.indexOf('bombero')>=0||q.selTramites.indexOf('anam')>=0||q.selTramites.indexOf('cuarentena')>=0?'<div style="font-size:10px;color:#64748B;padding:3px 0">• Ficha Técnica / MSDS</div>':'')
+    +(q.tlc!=='N/A'?'<div style="font-size:10px;color:#64748B;padding:3px 0">• '+q.tlc+'</div>':'')
+    +'</div>'
+    +'<div class="note"><strong>Tiempo estimado de trámite:</strong> '+docTiempo+'</div>'
+    +'<div class="legal">Los trámites de aduanas son realizados por corredores de aduanas con idoneidad en la República de Panamá, los cuales son subcontratados por DWPL Panama S.A. En ese sentido, DPWL Panama S.A. no presta servicios relacionados a las funciones de corredores de aduanas y solo facilita la logística frente al cliente.</div>'
+    +'<div class="note">(*) Manejo de Trámites Conexos según requerimiento de entidad correspondiente.</div>'
+    +'<div class="note">(*) Financiamiento: 3% del monto cancelado. Mínimo $15.00. Reembolsable en máximo 7 días laborables. Aplica a embarques negociados con incoterms DDP.</div>'
+    +'<div class="note">El cliente da fe que todas sus operaciones y transacciones provienen de actividades lícitas, conforme a la política de seguridad de DPWL Panama S.A. y en cumplimiento de la normativa BASC.</div>'
+    +'<div style="margin-top:16px;padding-top:8px;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;font-size:9.5px;color:#94A3B8">'
+    +'<div><strong>DP World Panamá</strong> · DAL Colón Logistics Park · Área Portuaria · Colón, Panamá</div>'
+    +'<img src="'+LOGO+'" alt="DP World" style="height:18px;opacity:.5"></div>'
+    +'</div>'
+    +'<script>window.onload=function(){window.print();}<\/script>'
+    +'</body></html>';
+  showDocPreview(html,{title:'📄 Cotización Aduanal — '+(q.cliente||'Cliente'),context:S._previewContext||'liq'});
+}
+function downloadLiquidacionInterna(){
+  if(!LIQ.cif){showToast('Completa la cotización primero','warn');return;}
+  const q=LIQ;
+  const fm=function(n){return parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});};
+  const mClr=q.gpm>=40?'#065F46':q.gpm>=25?'#92400E':'#9B1C1C';
+  const LOGO='data:image/jpeg;base64,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';
+  const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ficha Interna Liquidación — '+(q.cliente||'Sin nombre')+'</title>'
+    +'<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">'
+    +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:\'Barlow\',sans-serif;font-size:11.5px;color:#1B1B2F;background:#fff;padding:20px 26px}'
+    +'.banner{background:#1A1060;color:#fff;padding:7px 14px;border-radius:6px;font-family:\'Barlow Condensed\',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}'
+    +'.hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:3px solid #1A1060;margin-bottom:14px}'
+    +'.hdr img{height:26px}.hdr-r{text-align:right;font-size:10px;color:#64748B;line-height:1.7}'
+    +'.kbar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}'
+    +'.kbi{background:#F8F9FC;border-radius:7px;padding:10px;text-align:center;border:1px solid #E2E8F0}'
+    +'.kbi-l{font-size:9px;color:#64748B;text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:3px}'
+    +'.kbi-v{font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:17px;color:#1A1060}'
+    +'.stitle{font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:11px;color:#1A1060;text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px;border-bottom:2px solid #1A1060;padding-bottom:2px}'
+    +'table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:10px}'
+    +'th{padding:5px 8px;text-align:left;font-size:9.5px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.07em;background:#F8F9FC;border-bottom:2px solid #E2E8F0}'
+    +'th.r{text-align:right}td{padding:5px 8px;border-bottom:1px solid #E2E8F0}td.r{text-align:right;font-weight:700;color:#1A1060}'
+    +'tfoot td{font-weight:700;background:#1A1060;color:#fff;padding:7px 8px}'
+    +'tfoot td.r{color:#00C389;font-family:\'Barlow Condensed\',sans-serif;font-size:13px}'
+    +'@media print{body{padding:12px 16px}@page{margin:.5cm;size:letter}}</style></head><body>'
+    +'<div class="banner">Gestión de Liquidación — Uso Exclusivo Interno · No distribuir al cliente</div>'
+    +'<div class="hdr"><img src="'+LOGO+'" alt="DP World"><div class="hdr-r"><strong>Ficha Interna — '+(q.cliente||'Sin nombre')+'</strong>'+q.today+'</div></div>'
+    +'<div class="kbar">'
+    +'<div class="kbi"><div class="kbi-l">Total cliente</div><div class="kbi-v">$'+fm(q.vFinal)+'</div></div>'
+    +'<div class="kbi"><div class="kbi-l">Costo '+LIQ_CONFIG.proveedor+'</div><div class="kbi-v" style="color:#92400E">$'+fm(q.cTotal)+'</div></div>'
+    +'<div class="kbi"><div class="kbi-l">Profit</div><div class="kbi-v" style="color:'+mClr+'">$'+fm(q.profit)+'</div></div>'
+    +'<div class="kbi"><div class="kbi-l">GPM</div><div class="kbi-v" style="color:'+mClr+'">'+q.gpm.toFixed(1)+'%</div></div>'
+    +'</div>'
+    +'<div class="stitle">Perfil de la operación</div>'
+    +'<table><tbody>'
+    +'<tr><td><strong>CIF</strong></td><td>$'+fm(q.cif)+'</td><td><strong>FOB</strong></td><td>$'+fm(q.fob)+'</td><td><strong>Flete</strong></td><td>$'+fm(q.flete)+'</td><td><strong>Seguro</strong></td><td>$'+fm(q.seguro)+'</td></tr>'
+    +'<tr><td><strong>Tipo producto</strong></td><td>'+q.tipoProducto+'</td><td><strong>Entidad</strong></td><td>'+(q.entidad||'N/A')+'</td><td><strong>Vía</strong></td><td>'+q.via+'</td><td><strong>TLC</strong></td><td>'+(q.tlc||'N/A')+'</td></tr>'
+    +'<tr><td><strong>POD / Recinto</strong></td><td>'+(q.pod||'—')+'</td><td><strong>Origen</strong></td><td>'+(q.origen||'—')+'</td><td><strong>Procedencia</strong></td><td>'+(q.procedencia||'—')+'</td><td><strong>Trámite</strong></td><td>'+q.tiempoPermiso+'</td></tr>'
+    +'<tr><td><strong>Líneas HS</strong></td><td>'+q.numLineas+'</td><td><strong>Formularios</strong></td><td>'+q.numForms+'</td><td><strong>Trámites conexos</strong></td><td colspan="3">'+(q.selTramites.map(function(k){return LIQ_TRAMITES_LABELS[k];}).join(', ')||'—')+'</td></tr>'
+    +'</tbody></table>'
+    +'<div class="stitle">Desglose Venta vs Costo</div>'
+    +'<table><thead><tr><th>Cargo</th><th class="r">Venta cliente</th><th class="r">Costo '+LIQ_CONFIG.proveedor+'</th><th class="r">Margen $</th></tr></thead><tbody>'
+    +'<tr><td>Honorarios / Refrendo</td><td class="r">$'+fm(q.vHon)+'</td><td class="r">$'+fm(q.cRef)+'</td><td class="r" style="color:'+mClr+'">$'+fm(q.vHon-q.cRef)+'</td></tr>'
+    +'<tr><td>Manejo</td><td class="r">$'+fm(q.vManejo)+'</td><td class="r">$'+fm(q.cManejo)+'</td><td class="r" style="color:'+mClr+'">$'+fm(q.vManejo-q.cManejo)+'</td></tr>'
+    +(q.lineasAd>0?'<tr><td>Líneas adicionales</td><td class="r">$'+fm(q.vLineas)+'</td><td class="r">$'+fm(q.cLineas)+'</td><td class="r" style="color:'+mClr+'">$'+fm(q.vLineas-q.cLineas)+'</td></tr>':'')
+    +(q.numForms>0?'<tr><td>Formularios</td><td class="r">$'+fm(q.vForms)+'</td><td class="r">$'+fm(q.cForms)+'</td><td class="r" style="color:'+mClr+'">$'+fm(q.vForms-q.cForms)+'</td></tr>':'')
+    +q.selTramites.map(function(k){return '<tr><td>'+(LIQ_TRAMITES_LABELS[k]||k)+'</td><td class="r">$'+fm(LIQ_CONFIG.venta_tramite)+'</td><td class="r">$'+fm(LIQ_CONFIG['costo_'+k]||0)+'</td><td class="r" style="color:'+mClr+'">$'+fm(LIQ_CONFIG.venta_tramite-(LIQ_CONFIG['costo_'+k]||0))+'</td></tr>';}).join('')
+    +'</tbody><tfoot><tr><td colspan="1">TOTAL (antes de ITBMS)</td><td class="r">$'+fm(q.vSub)+'</td><td class="r">$'+fm(q.cTotal)+'</td><td class="r">$'+fm(q.profit)+'</td></tr></tfoot>'
+    +'</table>'
+    +'<div style="margin-top:12px;padding-top:7px;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;font-size:9px;color:#94A3B8">'
+    +'<div><strong>DP World Panamá</strong> · DAL Colón Logistics Park · Uso interno exclusivo</div><div>'+q.today+'</div></div>'
+    +'<script>window.onload=function(){window.print();}<\/script>'
+    +'</body></html>';
+  showDocPreview(html,{title:'🔒 Ficha Interna Liquidación — '+(q.cliente||'Sin nombre'),context:S._previewContext||'liq'});
+}
+function loadLiqConfig(data){if(data&&data.liq_config)Object.assign(LIQ_CONFIG,data.liq_config);}
+async function saveLiqConfig(){
+  if(!currentUser||currentUserData?.rol!=='admin')return;
+  function rv(id){return parseFloat(document.getElementById(id)?.value)||0;}
+  function rs(id){return document.getElementById(id)?.value||'';}
+  LIQ_CONFIG={
+    pct_flete:rv('liq_pct_flete')/100,pct_seguro:rv('liq_pct_seguro')/100,
+    venta_t1_lim:rv('liq_v_t1_lim'),venta_t1:rv('liq_v_t1'),
+    venta_t2_lim:rv('liq_v_t2_lim'),venta_t2:rv('liq_v_t2'),
+    venta_t3_tasa:rv('liq_v_t3_tasa')/1000,venta_t3_base:rv('liq_v_t3_base'),
+    venta_linea:rv('liq_v_linea'),venta_form:rv('liq_v_form'),
+    venta_manejo:rv('liq_v_manejo'),venta_tramite:rv('liq_v_tramite'),
+    itbms:rv('liq_itbms')/100,fin_tasa:rv('liq_fin_tasa')/100,fin_min:rv('liq_fin_min'),
+    proveedor:rs('liq_proveedor'),
+    costo_t1_lim:rv('liq_c_t1_lim'),costo_t1:rv('liq_c_t1'),
+    costo_t2_lim:rv('liq_c_t2_lim'),costo_t2:rv('liq_c_t2'),
+    costo_t3_tasa:rv('liq_c_t3_tasa')/1000,costo_t3_base:rv('liq_c_t3_base'),
+    costo_linea:rv('liq_c_linea'),costo_form:rv('liq_c_form'),costo_manejo:rv('liq_c_manejo'),
+    costo_memorial:rv('liq_c_memorial'),costo_bombero:rv('liq_c_bombero'),
+    costo_cuarentena:rv('liq_c_cuarentena'),costo_anam:rv('liq_c_anam'),
+    costo_apa:rv('liq_c_apa'),costo_mensajeria:rv('liq_c_mensajeria')
+  };
+  const{error}=await supa.from('insights_config').update({liq_config:LIQ_CONFIG}).eq('id',1);
+  if(!error)showToast('Tarifas de liquidación guardadas','success');
+  else showToast('Error: '+error.message,'error');
+}
+function renderLiqInsightsBody(){
+  const c=LIQ_CONFIG;
+  const fi=function(id,val,step){return '<input type="number" id="'+id+'" value="'+val+'" min="0" step="'+(step||'0.01')+'" style="width:76px;padding:5px 7px;border:1.5px solid var(--border);border-radius:6px;font-size:.8rem;text-align:right;font-family:\'Barlow\',sans-serif">';};
+  const fs=function(id,val){return '<input type="text" id="'+id+'" value="'+val+'" style="width:180px;padding:5px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:.8rem;font-family:\'Barlow\',sans-serif">';};
+  const lbl=function(t){return '<span style="font-size:.68rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.07em">'+t+'</span>';};
+  const el=document.getElementById('asb-liq');if(!el)return;
+  el.innerHTML='<div style="padding:14px">'
+    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">'+lbl('Proveedor actual')+'&nbsp;'+fs('liq_proveedor',c.proveedor)+'</div>'
+    +'<div style="background:#FFF8F0;border:1px solid #FDE68A;border-radius:8px;padding:9px 12px;font-size:.78rem;color:#92400E;margin-bottom:14px">⚠️ <strong>Compliance:</strong> Res. 222 ANA (vigente ago 2025) fija mínimos B/.60 / B/.80 / (CIF×0.0027+B/.80). La tarifa de venta debe estar en o por encima de esos mínimos.</div>'
+    +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:11px;color:var(--mid);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;padding-bottom:4px;border-bottom:1.5px solid var(--border)">Inferencia CIF — Porcentajes base</div>'
+    +'<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px">'
+    +lbl('% Flete default')+'&nbsp;'+fi('liq_pct_flete',c.pct_flete*100,'0.1')+'<span style="font-size:.78rem;color:var(--mid)">% del FOB</span>&nbsp;&nbsp;&nbsp;'
+    +lbl('% Seguro default')+'&nbsp;'+fi('liq_pct_seguro',c.pct_seguro*100,'0.1')+'<span style="font-size:.78rem;color:var(--mid)">% del FOB</span></div>'
+    +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:11px;color:#00C389;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #A7F3D0">Tarifa Venta — Lo que cobra DP World al cliente</div>'
+    +'<table style="width:100%;border-collapse:collapse;font-size:.8rem;margin-bottom:12px"><thead><tr style="background:var(--blue)"><th style="padding:6px 8px;color:#fff;font-weight:700;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;text-align:left">Tramo CIF</th><th style="padding:6px 8px;color:#fff;font-weight:700;font-size:9.5px;text-transform:uppercase;text-align:left">Límite ($)</th><th style="padding:6px 8px;color:#00C389;font-weight:700;font-size:9.5px;text-transform:uppercase;text-align:right">Honorarios ($)</th></tr></thead><tbody>'
+    +'<tr style="background:#F8F9FC"><td style="padding:6px 8px;border-bottom:1px solid #E2E8F0">Tramo 1 (hasta)</td><td style="padding:6px 8px;border-bottom:1px solid #E2E8F0">'+fi('liq_v_t1_lim',c.venta_t1_lim,'1')+'</td><td style="padding:6px 8px;border-bottom:1px solid #E2E8F0;text-align:right">'+fi('liq_v_t1',c.venta_t1)+'</td></tr>'
+    +'<tr><td style="padding:6px 8px;border-bottom:1px solid #E2E8F0">Tramo 2 (hasta)</td><td style="padding:6px 8px;border-bottom:1px solid #E2E8F0">'+fi('liq_v_t2_lim',c.venta_t2_lim,'1')+'</td><td style="padding:6px 8px;border-bottom:1px solid #E2E8F0;text-align:right">'+fi('liq_v_t2',c.venta_t2)+'</td></tr>'
+    +'<tr style="background:#F8F9FC"><td style="padding:6px 8px">Tramo 3 (variable)</td><td style="padding:6px 8px">CIF × '+fi('liq_v_t3_tasa',c.venta_t3_tasa*1000,'0.001')+' ‰ + '+fi('liq_v_t3_base',c.venta_t3_base)+'</td><td style="padding:6px 8px;text-align:right;color:var(--mid);font-size:.72rem">calculado</td></tr>'
+    +'</tbody></table>'
+    +'<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px">'
+    +lbl('Línea adicional')+'&nbsp;$&nbsp;'+fi('liq_v_linea',c.venta_linea)+'&nbsp;&nbsp;'
+    +lbl('Formulario')+'&nbsp;$&nbsp;'+fi('liq_v_form',c.venta_form)+'&nbsp;&nbsp;'
+    +lbl('Manejo')+'&nbsp;$&nbsp;'+fi('liq_v_manejo',c.venta_manejo)+'&nbsp;&nbsp;'
+    +lbl('Trámite conexo')+'&nbsp;$&nbsp;'+fi('liq_v_tramite',c.venta_tramite)+'</div>'
+    +'<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">'
+    +lbl('ITBMS')+'&nbsp;'+fi('liq_itbms',c.itbms*100,'0.1')+'<span style="font-size:.78rem;color:var(--mid)">%</span>&nbsp;&nbsp;'
+    +lbl('Financiamiento')+'&nbsp;'+fi('liq_fin_tasa',c.fin_tasa*100,'0.1')+'<span style="font-size:.78rem;color:var(--mid)">%</span>&nbsp;&nbsp;'
+    +lbl('mínimo $')+'&nbsp;'+fi('liq_fin_min',c.fin_min,'1')+'</div>'
+    +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid var(--border)">Costo Proveedor — Lo que paga DP World</div>'
+    +'<table style="width:100%;border-collapse:collapse;font-size:.8rem;margin-bottom:12px"><thead><tr style="background:#334155"><th style="padding:6px 8px;color:#fff;font-weight:700;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;text-align:left">Tramo CIF</th><th style="padding:6px 8px;color:#fff;font-weight:700;font-size:9.5px;text-transform:uppercase;text-align:left">Límite ($)</th><th style="padding:6px 8px;color:#FCA5A5;font-weight:700;font-size:9.5px;text-transform:uppercase;text-align:right">Refrendo ($)</th></tr></thead><tbody>'
+    +'<tr style="background:#F8F9FC"><td style="padding:6px 8px;border-bottom:1px solid #E2E8F0">Tramo 1 (hasta)</td><td style="padding:6px 8px;border-bottom:1px solid #E2E8F0">'+fi('liq_c_t1_lim',c.costo_t1_lim,'1')+'</td><td style="padding:6px 8px;border-bottom:1px solid #E2E8F0;text-align:right">'+fi('liq_c_t1',c.costo_t1)+'</td></tr>'
+    +'<tr><td style="padding:6px 8px;border-bottom:1px solid #E2E8F0">Tramo 2 (hasta)</td><td style="padding:6px 8px;border-bottom:1px solid #E2E8F0">'+fi('liq_c_t2_lim',c.costo_t2_lim,'1')+'</td><td style="padding:6px 8px;border-bottom:1px solid #E2E8F0;text-align:right">'+fi('liq_c_t2',c.costo_t2)+'</td></tr>'
+    +'<tr style="background:#F8F9FC"><td style="padding:6px 8px">Tramo 3 (variable)</td><td style="padding:6px 8px">CIF × '+fi('liq_c_t3_tasa',c.costo_t3_tasa*1000,'0.001')+' ‰ + '+fi('liq_c_t3_base',c.costo_t3_base)+'</td><td style="padding:6px 8px;text-align:right;color:var(--mid);font-size:.72rem">calculado</td></tr>'
+    +'</tbody></table>'
+    +'<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">'
+    +lbl('Línea adicional')+'&nbsp;$&nbsp;'+fi('liq_c_linea',c.costo_linea)+'&nbsp;&nbsp;'
+    +lbl('Formulario')+'&nbsp;$&nbsp;'+fi('liq_c_form',c.costo_form)+'&nbsp;&nbsp;'
+    +lbl('Manejo')+'&nbsp;$&nbsp;'+fi('liq_c_manejo',c.costo_manejo)+'</div>'
+    +'<div style="font-size:.72rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Trámites conexos — costo al proveedor</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px">'
+    +['memorial','bombero','cuarentena','anam','apa','mensajeria'].map(function(k){
+      return '<div style="display:flex;flex-direction:column;gap:4px">'
+        +'<div style="font-size:.68rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.06em">'+(LIQ_TRAMITES_LABELS[k]||k)+'</div>'
+        +'<div style="display:flex;align-items:center;gap:4px"><span style="font-size:.75rem;color:var(--mid)">$</span>'+fi('liq_c_'+k,c['costo_'+k]||0)+'</div></div>';
+    }).join('')
+    +'</div></div>';
 }
 
 </script>

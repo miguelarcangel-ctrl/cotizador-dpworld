@@ -3761,42 +3761,41 @@ async function guardarEdicionUsuario(uid){
 }
 
 async function createUser(){
-  const nombre = document.getElementById('newUsrNombre').value.trim();
-  const email  = document.getElementById('newUsrEmail').value.trim();
-  const pass   = document.getElementById('newUsrPass').value;
-  const rol    = document.getElementById('newUsrRol').value;
-  const msg    = document.getElementById('newUserMsg');
+  const nombre = (document.getElementById('newUserNombre')?.value||'').trim();
+  const email  = (document.getElementById('newUserEmail')?.value||'').trim();
+  const pass   = document.getElementById('newUserPass')?.value||'';
+  const rol    = document.getElementById('newUserRol')?.value||'vendedor';
 
-  if(!nombre||!email||!pass){ showUserMsg('Completa todos los campos.','error'); return; }
-  if(pass.length<6){ showUserMsg('La contraseña debe tener mínimo 6 caracteres.','error'); return; }
+  if(!nombre||!email||!pass){ showToast('Completa todos los campos','warn'); return; }
+  if(pass.length<6){ showToast('La contraseña debe tener mínimo 6 caracteres','warn'); return; }
 
-  showUserMsg('Creando usuario...','info');
+  const btn = document.querySelector('#newUserForm .btn-sm');
+  if(btn){ btn.textContent='Creando...'; btn.disabled=true; }
 
   try {
-    // 1. Create auth user via Supabase Admin API (using service role through signUp)
     const { data: authData, error: authError } = await supa.auth.signUp({
       email, password: pass,
       options: { data: { nombre, rol } }
     });
     if(authError) throw authError;
+    if(!authData?.user) throw new Error('No se recibió usuario de Supabase. Verifica que el email no esté ya registrado.');
 
-    // 2. Insert into usuarios table
     const { error: dbError } = await supa.from('usuarios').insert([{
       id: authData.user.id,
       nombre, email, rol, activo: true
     }]);
     if(dbError) throw dbError;
 
-    showUserMsg('✅ Usuario creado correctamente.','success');
-    document.getElementById('newUsrNombre').value='';
-    document.getElementById('newUsrEmail').value='';
-    document.getElementById('newUsrPass').value='';
-    
-    // Refresh list
-    setTimeout(()=>{ loadUserList(); toggleNewUserForm(); }, 1500);
+    showToast('✅ Usuario "'+nombre+'" creado correctamente','success',4000);
+    document.getElementById('newUserNombre').value='';
+    document.getElementById('newUserEmail').value='';
+    document.getElementById('newUserPass').value='';
+    setTimeout(loadUserList, 800);
 
   } catch(e) {
-    showUserMsg('Error: ' + (e.message||'No se pudo crear el usuario.'),'error');
+    showToast('Error al crear usuario: '+(e.message||'Intenta de nuevo'),'error',6000);
+  } finally {
+    if(btn){ btn.textContent='✓ Crear usuario'; btn.disabled=false; }
   }
 }
 

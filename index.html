@@ -1829,7 +1829,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
     <button id="previewBackBtn" onclick="closePreview()" style="padding:8px 16px;border-radius:7px;background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.3);font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;white-space:nowrap;flex-shrink:0">← Volver</button>
     <div class="preview-toolbar-title" id="previewTitle" style="flex:1;text-align:center;font-size:.78rem;padding:0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📄 Vista previa</div>
     <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-      <button onclick="printFromPreview()" style="padding:8px 16px;border-radius:7px;background:var(--green);color:#fff;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;white-space:nowrap">🖨️ Guardar como PDF</button>
+      <button onclick="printFromPreview()" style="padding:8px 16px;border-radius:7px;background:var(--green);color:#fff;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;white-space:nowrap">🖨️ Abrir e Imprimir</button>
       <button onclick="closePreview()" style="padding:8px 12px;border-radius:7px;background:rgba(255,255,255,.08);color:#fff;border:1.5px solid rgba(255,255,255,.2);font-size:.9rem;cursor:pointer;line-height:1">✕</button>
     </div>
   </div>
@@ -3447,23 +3447,17 @@ function closePreview(){
 
 function printFromPreview(){
   if(!S._lastPrintHTML) return;
-  const blob=new Blob([S._lastPrintHTML],{type:'text/html;charset=utf-8'});
-  const url=URL.createObjectURL(blob);
-  const iframe=document.createElement('iframe');
-  iframe.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:-1;opacity:0;pointer-events:none';
-  document.body.appendChild(iframe);
-  iframe.onload=function(){
-    const doprint=function(){
-      try{ iframe.contentWindow.focus(); iframe.contentWindow.print(); }catch(e){ downloadQuoteHTML(); }
-      setTimeout(function(){ try{document.body.removeChild(iframe);}catch(e){} URL.revokeObjectURL(url); },10000);
-    };
-    try{
-      if(iframe.contentWindow.document.fonts&&iframe.contentWindow.document.fonts.ready){
-        iframe.contentWindow.document.fonts.ready.then(doprint).catch(function(){ setTimeout(doprint,1500); });
-      } else { setTimeout(doprint,1500); }
-    }catch(e){ doprint(); }
-  };
-  iframe.src=url;
+  try{
+    const blob=new Blob([S._lastPrintHTML],{type:'text/html;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.target='_blank'; a.rel='noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); },60000);
+    showToast('Abriendo en nueva pestaña — el diálogo de impresión aparece automáticamente','success',5000);
+  }catch(e){ downloadQuoteHTML(); }
 }
 
 

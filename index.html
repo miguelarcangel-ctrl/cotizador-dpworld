@@ -1839,12 +1839,20 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
 </div>
 
 
+<script>
+// Fallback: always show login screen even if main script fails to load
+document.addEventListener('DOMContentLoaded', function(){
+  var ls=document.getElementById('loginScreen');
+  if(ls&&!ls.classList.contains('show')) ls.classList.add('show');
+});
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 
 const SUPA_URL = 'https://cleqjxuxesgrzpgdjcjv.supabase.co';
 const SUPA_KEY = 'sb_publishable_OI7E95OxrYcZA38616WyIQ_jkgKLH20';
-const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+let supa;
+try { supa = supabase.createClient(SUPA_URL, SUPA_KEY); } catch(e) { console.error('Supabase init failed:',e); }
 // TARIFAS = costo base (MO only) × (1 + margen 30%)
 // FK/equipos NO incluidos — cubiertos por costos fijos admin o OPEX exclusivo
 let TARIFAS={
@@ -5473,18 +5481,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // Check existing session
   try {
-    const { data: { session } } = await supa.auth.getSession();
-    if (session?.user) {
-      currentUser = session.user;
-      currentUserData = await loadUserData(currentUser.id);
-      if (currentUserData?.activo) {
-        await onLoginSuccess();
-        return;
+    if(supa){
+      const { data: { session } } = await supa.auth.getSession();
+      if (session?.user) {
+        currentUser = session.user;
+        currentUserData = await loadUserData(currentUser.id);
+        if (currentUserData?.activo) {
+          await onLoginSuccess();
+          return;
+        }
       }
     }
   } catch(e) {}
-  
-  // Show login
+
+  // Show login (fallback script may have already shown it)
   document.getElementById('loginScreen').classList.add('show');
 });
 

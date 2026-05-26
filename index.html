@@ -1948,6 +1948,33 @@ let PDF_DISCLAIMERS_EN = [
   'Variations in declared volumes exceeding ±15% may result in rate renegotiation by mutual agreement between parties.',
 ];
 
+let PDF_PROPVALUE = {
+  pallet:['Gestión integral de recepción, almacenamiento y despacho de pallets en racks de 5 niveles con sistema Doble Reach','Operación dentro del recinto portuario DAL — elimina costos de inland transportation, trucking y drayage entre puerto y bodega','SLA: recepción ≤ 24h · despacho mismo día (OT antes 14:00) · exactitud inventario ≥ 99.9%'],
+  bulto:['Picking por caja y bulto con personal entrenado en bodega BASC certificada de 1,500 m²','Acceso directo al terminal portuario DAL — de la nave a su bodega en un solo paso, sin transporte intermedio','SLA: recepción ≤ 24h · fill rate ≥ 99.5% · order accuracy ≥ 99.8%'],
+  unit:['Pick & pack unitario con trazabilidad por SKU, etiquetado y preparación de órdenes a nivel de unidad','Operación end-to-end desde descarga del contenedor hasta despacho al destino final, sin movimientos intermedios','SLA: exactitud de picking ≥ 99.8% · procesamiento de órdenes en 24–48h'],
+  mixto:['Operación flexible pallet + bulto + unidad en un mismo cliente, sin necesidad de múltiples operadores','Costos fijos compartidos en multi-cuentas = tarifas más competitivas para su negocio','SLA: recepción ≤ 24h · despacho en 24–48h · exactitud inventario ≥ 99.9%'],
+  vehiculos:['Almacenaje seguro de vehículos en patio cubierto dentro del área portuaria DAL Colón Logistics Park','Inspección BASC de entrada/salida · PDI disponible (lavado, inspección básica) como servicio adicional','SLA: inspección ≤ 2h · disponibilidad 24/7 · reporte de condición en cada movimiento'],
+};
+let PDF_PROPVALUE_EN = {
+  pallet:['Full pallet reception, storage and dispatch management in 5-level Double Reach racks','Operation inside DAL port enclosure — eliminates inland transportation, trucking and drayage costs','SLA: reception ≤ 24h · same-day dispatch (PO before 14:00) · inventory accuracy ≥ 99.9%'],
+  bulto:['Box and cargo picking in 1,500 m² BASC-certified warehouse with trained staff','Direct access to DAL terminal — vessel to warehouse in one step, no intermediate transport','SLA: reception ≤ 24h · fill rate ≥ 99.5% · order accuracy ≥ 99.8%'],
+  unit:['Unit pick & pack with SKU-level traceability, labeling and order preparation','End-to-end from container discharge to final destination, no intermediate movements','SLA: picking accuracy ≥ 99.8% · order processing in 24–48h'],
+  mixto:['Flexible pallet + cargo + unit operation in one account, no multiple operators needed','Shared fixed costs in multi-accounts = more competitive rates for your business','SLA: reception ≤ 24h · dispatch in 24–48h · inventory accuracy ≥ 99.9%'],
+  vehiculos:['Secure vehicle storage in covered yard inside DAL Colón Logistics Park','BASC entry/exit inspection · PDI (wash, basic inspection) available as add-on service','SLA: inspection ≤ 2h · 24/7 availability · condition report on each movement'],
+};
+let PDF_ADVITEMS = [
+  'Bodega <strong>dentro del recinto portuario DAL</strong> — acceso directo al terminal sin desplazamiento terrestre ni trámites adicionales',
+  '<strong>Elimina costos</strong> de inland transportation, trucking y drayage entre puerto y bodega',
+  'Operación <strong>end-to-end</strong>: descarga → almacenamiento → despacho en un solo punto sin ruptura de custodia',
+  'Reducción del tiempo operativo portuario de <strong>~7 días a 1 día</strong> en promedio',
+];
+let PDF_ADVITEMS_EN = [
+  'Warehouse <strong>inside DAL port enclosure</strong> — direct terminal access, no inland transport or additional formalities',
+  '<strong>Eliminates costs</strong> of inland transportation, trucking and drayage between port and warehouse',
+  '<strong>End-to-end operation</strong>: discharge → storage → dispatch at a single point, unbroken custody',
+  'Reduction of port turnaround from <strong>~7 days to 1 day</strong> on average',
+];
+
 let PROD_TASKS = [
   {id:1,  name:'Descarga MC 4 horquillas',       cat:'entrada',    unit:'pallet', prod:72,  ops:1, eqs:0, moOwn:null, fkOwn:null, uses:['pallet','bulto','unit']},
   {id:2,  name:'Rampa → Racks (MC contrabal.)',  cat:'entrada',    unit:'pallet', prod:36,  ops:2, eqs:0, moOwn:null, fkOwn:null, uses:['pallet','bulto','unit']},
@@ -3165,24 +3192,11 @@ function downloadQuoteCliente(lang){
     totalLabel:'ESTIMATED MONTHLY TOTAL',
     pg3Header:'Terms & Conditions',
     advantageTitle:'DAL Advantage — Port-based Operation',
-    advItems:[
-      'Warehouse <strong>inside DAL port enclosure</strong> — direct terminal access, no inland transport or additional formalities',
-      '<strong>Eliminates costs</strong> of inland transportation, trucking and drayage between port and warehouse',
-      '<strong>End-to-end operation</strong>: discharge → storage → dispatch at a single point, unbroken custody',
-      'Reduction of port turnaround from <strong>~7 days to 1 day</strong> on average',
-    ],
     profileTitle:'Declared Operational Profile',conditionsTitle:'Proposal Terms & Conditions',
     plabels:{posAvg:'Average Positions',posPeak:'Peak Positions',skus:'Total SKUs',rot:'Rotation',sfmt:'Storage Format'},
     footerPage:'Confidential · For recipient use only',
     footerBrand:'DP World Panama · DAL Colón Logistics Park · dpworld.com/panama',
     tnames:{pallet:'Pallet In/Out',bulto:'Cargo In/Out',unit:'Unit In/Out',mixto:'Mixed',vehiculos:'Vehicles'},
-    propValue:{
-      pallet:['Full pallet reception, storage and dispatch management in 5-level Double Reach racks','Operation inside DAL port enclosure — eliminates inland transportation, trucking and drayage costs','SLA: reception ≤ 24h · same-day dispatch (PO before 14:00) · inventory accuracy ≥ 99.9%'],
-      bulto:['Box and cargo picking in 1,500 m² BASC-certified warehouse with trained staff','Direct access to DAL terminal — vessel to warehouse in one step, no intermediate transport','SLA: reception ≤ 24h · fill rate ≥ 99.5% · order accuracy ≥ 99.8%'],
-      unit:['Unit pick & pack with SKU-level traceability, labeling and order preparation','End-to-end from container discharge to final destination, no intermediate movements','SLA: picking accuracy ≥ 99.8% · order processing in 24–48h'],
-      mixto:['Flexible pallet + cargo + unit operation in one account, no multiple operators needed','Shared fixed costs in multi-accounts = more competitive rates for your business','SLA: reception ≤ 24h · dispatch in 24–48h · inventory accuracy ≥ 99.9%'],
-      vehiculos:['Secure vehicle storage in covered yard inside DAL Colón Logistics Park','BASC entry/exit inspection · PDI (wash, basic inspection) available as add-on service','SLA: inspection ≤ 2h · 24/7 availability · condition report on each movement'],
-    },
   }:{
     docTitle:'Propuesta de Servicios Logísticos 3PL',
     tag:'Propuesta de Servicios Logísticos 3PL',
@@ -3194,26 +3208,17 @@ function downloadQuoteCliente(lang){
     totalLabel:'TOTAL ESTIMADO MENSUAL',
     pg3Header:'Condiciones',
     advantageTitle:'Ventaja DAL — Operación dentro del área portuaria',
-    advItems:[
-      'Bodega <strong>dentro del recinto portuario DAL</strong> — acceso directo al terminal sin desplazamiento terrestre ni trámites adicionales',
-      '<strong>Elimina costos</strong> de inland transportation, trucking y drayage entre puerto y bodega',
-      'Operación <strong>end-to-end</strong>: descarga → almacenamiento → despacho en un solo punto sin ruptura de custodia',
-      'Reducción del tiempo operativo portuario de <strong>~7 días a 1 día</strong> en promedio',
-    ],
     profileTitle:'Perfil operativo declarado',conditionsTitle:'Condiciones de la propuesta',
     plabels:{posAvg:'Posiciones promedio',posPeak:'Posiciones pico',skus:'Total SKUs',rot:'Rotación',sfmt:'Formato almacenaje'},
     footerPage:'Confidencial · '+q.client,
     footerBrand:'DP World Panamá · DAL Colón Logistics Park · dpworld.com/panama',
     tnames:{pallet:'Pallet In/Out',bulto:'Bulto In/Out',unit:'Unit In/Out',mixto:'Mixto',vehiculos:'Vehículos'},
-    propValue:{
-      pallet:['Gestión integral de recepción, almacenamiento y despacho de pallets en racks de 5 niveles con sistema Doble Reach','Operación dentro del recinto portuario DAL — elimina costos de inland transportation, trucking y drayage entre puerto y bodega','SLA: recepción ≤ 24h · despacho mismo día (OT antes 14:00) · exactitud inventario ≥ 99.9%'],
-      bulto:['Picking por caja y bulto con personal entrenado en bodega BASC certificada de 1,500 m²','Acceso directo al terminal portuario DAL — de la nave a su bodega en un solo paso, sin transporte intermedio','SLA: recepción ≤ 24h · fill rate ≥ 99.5% · order accuracy ≥ 99.8%'],
-      unit:['Pick & pack unitario con trazabilidad por SKU, etiquetado y preparación de órdenes a nivel de unidad','Operación end-to-end desde descarga del contenedor hasta despacho al destino final, sin movimientos intermedios','SLA: exactitud de picking ≥ 99.8% · procesamiento de órdenes en 24–48h'],
-      mixto:['Operación flexible pallet + bulto + unidad en un mismo cliente, sin necesidad de múltiples operadores','Costos fijos compartidos en multi-cuentas = tarifas más competitivas para su negocio','SLA: recepción ≤ 24h · despacho en 24–48h · exactitud inventario ≥ 99.9%'],
-      vehiculos:['Almacenaje seguro de vehículos en patio cubierto dentro del área portuaria DAL Colón Logistics Park','Inspección BASC de entrada/salida · PDI disponible (lavado, inspección básica) como servicio adicional','SLA: inspección ≤ 2h · disponibilidad 24/7 · reporte de condición en cada movimiento'],
-    },
   };
-  const bullets=L.propValue[q.type]||L.propValue.pallet;
+  const propVal=lang==='en'?PDF_PROPVALUE_EN:PDF_PROPVALUE;
+  const advItems=lang==='en'?PDF_ADVITEMS_EN:PDF_ADVITEMS;
+  const bullets=(propVal[q.type]||propVal.pallet||[]).slice();
+  const SVCNAMES_EN={"Descarga 40' paletizado":"Unloading 40' palletized","Descarga 20' paletizado":"Unloading 20' palletized","Descarga 40' a granel":"Unloading 40' bulk","Descarga 20' a granel":"Unloading 20' bulk","Recepción y registro":"Reception & registration","Almacenaje":"Storage","Putaway a rack":"Rack putaway","Picking por bulto":"Carton picking","Picking por unidad":"Unit picking","Preparación orden salida":"Outbound order prep","Carga 40' paletizado":"Loading 40' palletized","Carga 20' paletizado":"Loading 20' palletized","Carga 40' a granel":"Loading 40' bulk","Carga 20' a granel":"Loading 20' bulk","Paletizado sin esquineras":"Palletizing (no corner boards)","Paletizado con esquineras":"Palletizing (with corner boards)","Etiquetado":"Labeling","Lectura de seriales":"Serial number scanning","DMCE Entrada":"Entry Customs Declaration","DMCE Salida":"Exit Customs Declaration","Memorial":"Customs Memorial","TI — Transporte Interno":"IT — Internal Transport","Manejo de entrada":"Inbound handling","Manejo de salida":"Outbound handling","Descargue de vehículo":"Vehicle unloading","Cargue de vehículo":"Vehicle loading","Almacenaje en patio":"Yard storage","Seguro (0.024% CIF)":"Insurance (0.024% CIF)","Conductor CLP → Chilibre":"Driver CLP → Chilibre","Manejo por contenedor":"Handling per container","Gasto fijo mensual":"Monthly fixed cost"};
+  const SVCUNITS_EN={"/contenedor":"/container","/pallet":"/pallet","/bulto":"/carton","/unidad":"/unit","/orden":"/order","/mes":"/month","/pallet pos/mes":"/pallet pos/month","/m²/mes":"/sqm/month","/CBM/día":"/CBM/day","/bulto pico":"/peak carton","/documento":"/document","/vehículo":"/vehicle","/vehículo/día":"/vehicle/day","% valor CIF":"% CIF value","/ruta":"/route"};
   const LOGO='data:image/png;base64,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';
   const clientLines=(q.lines||[]).filter(l=>!l.costoOnly&&!l.isGF);
 
@@ -3292,7 +3297,7 @@ function downloadQuoteCliente(lang){
     <div class="sec-title">${L.servicesTitle}</div>
     <table>
       <thead><tr><th>${L.colDesc}</th><th>${L.colUnit}</th><th class="r">${L.colVol}</th><th class="r">${L.colRate}</th><th class="r">${L.colSub}</th></tr></thead>
-      <tbody>${clientLines.map(l=>'<tr><td>'+l.name+'</td><td style="color:#64748B">'+l.unit+'</td><td class="r">'+l.qty+'</td><td class="r">$'+parseFloat(l.rate||0).toFixed(2)+'</td><td class="r">$'+fm(l.sub)+'</td></tr>').join('')}</tbody>
+      <tbody>${clientLines.map(l=>{var nm=lang==='en'?(SVCNAMES_EN[l.name]||l.name):l.name;var un=lang==='en'?(SVCUNITS_EN[l.unit]||l.unit):l.unit;return'<tr><td>'+nm+'</td><td style="color:#64748B">'+un+'</td><td class="r">'+l.qty+'</td><td class="r">$'+parseFloat(l.rate||0).toFixed(2)+'</td><td class="r">$'+fm(l.sub)+'</td></tr>';}).join('')}</tbody>
       <tfoot><tr><td colspan="4">${L.totalLabel}</td><td class="r">$${fm(q.totT)}</td></tr></tfoot>
     </table>
     <div class="foot"><div>${L.footerPage}</div><div>${q.numero||''} · ${q.today}</div></div>
@@ -3305,7 +3310,7 @@ function downloadQuoteCliente(lang){
     <div class="adv-box">
       <div class="adv-ttl">${L.advantageTitle}</div>
       <div class="adv-grid">
-        ${L.advItems.map(a=>'<div class="adv-item"><div class="adv-dot"></div><div>'+a+'</div></div>').join('')}
+        ${advItems.map(a=>'<div class="adv-item"><div class="adv-dot"></div><div>'+a+'</div></div>').join('')}
       </div>
     </div>
     ${(q.posPromedio&&q.posPromedio!=='—')||(q.totalSkus&&q.totalSkus!=='—')?'<div class="sec-title">'+L.profileTitle+'</div><div class="profile-grid">'+
@@ -5039,6 +5044,27 @@ function renderAdminSections(){
       </div>
     </div>
 
+    <!-- TEXTOS DEL PDF -->
+    <div class="admin-section">
+      <div class="admin-sec-hdr" id="ash-pdftexts" onclick="toggleAdminSec('pdftexts')" style="cursor:pointer">
+        <span class="ash-icon">✍️</span>
+        <span class="ash-title">Textos del PDF — Propuesta de Valor y Ventaja DAL</span>
+        <div class="ash-actions">
+          <button class="btn-sm green" onclick="event.stopPropagation();savePdfTexts()">💾 Guardar</button>
+          <span class="ash-arrow" onclick="toggleAdminSec('pdftexts')">▼</span>
+        </div>
+      </div>
+      <div class="admin-sec-body collapsed" id="asb-pdftexts">
+        <div style="font-size:.68rem;color:var(--mid);margin-bottom:10px;font-style:italic">Edita los bullets de propuesta de valor (por tipo de operación) y los ítems de Ventaja DAL. Los cambios aplican a todos los PDFs generados.</div>
+        <!-- Language toggle -->
+        <div style="display:flex;gap:6px;margin-bottom:14px">
+          <button id="pdfLangBtnEs" onclick="switchPdfTextLang('es')" style="padding:5px 14px;border-radius:6px;background:var(--blue);color:#fff;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.78rem;cursor:pointer">ES</button>
+          <button id="pdfLangBtnEn" onclick="switchPdfTextLang('en')" style="padding:5px 14px;border-radius:6px;background:var(--border);color:var(--mid);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.78rem;cursor:pointer">EN</button>
+        </div>
+        <div id="pdfTextsBody"></div>
+      </div>
+    </div>
+
     <!-- TARIFAS LIQUIDACIÓN -->
     <div class="admin-section">
       <div class="admin-sec-hdr" id="ash-liq" onclick="toggleAdminSec('liq')" style="cursor:pointer">
@@ -5084,6 +5110,7 @@ function renderAdminSections(){
   if(!TARIFAS_EDITABLES.length) initTarifasEditables();
   renderTarifasBase();
   renderPdfConditions();
+  renderPdfTexts();
   loadUserList();
   updatePositions();
 }
@@ -5119,6 +5146,67 @@ async function savePdfConditions(){
   else showToast('Error: '+error.message,'error');
 }
 
+let _pdfTextLang='es';
+function switchPdfTextLang(lang){
+  _pdfTextLang=lang;
+  document.getElementById('pdfLangBtnEs').style.cssText='padding:5px 14px;border-radius:6px;background:'+(lang==='es'?'var(--blue)':'var(--border)')+';color:'+(lang==='es'?'#fff':'var(--mid)')+';border:none;font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:.78rem;cursor:pointer';
+  document.getElementById('pdfLangBtnEn').style.cssText='padding:5px 14px;border-radius:6px;background:'+(lang==='en'?'var(--blue)':'var(--border)')+';color:'+(lang==='en'?'#fff':'var(--mid)')+';border:none;font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:.78rem;cursor:pointer';
+  renderPdfTexts();
+}
+
+function renderPdfTexts(){
+  const el=document.getElementById('pdfTextsBody');
+  if(!el) return;
+  const lang=_pdfTextLang;
+  const propVal=lang==='en'?PDF_PROPVALUE_EN:PDF_PROPVALUE;
+  const advItems=lang==='en'?PDF_ADVITEMS_EN:PDF_ADVITEMS;
+  const opTypes=[
+    {key:'pallet',label:'Pallet In/Out'},
+    {key:'bulto',label:'Bulto / Cargo'},
+    {key:'unit',label:'Unidad / Unit'},
+    {key:'mixto',label:'Mixto / Mixed'},
+    {key:'vehiculos',label:'Vehículos / Vehicles'},
+  ];
+  let html='<div style="font-size:.7rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;border-bottom:2px solid var(--blue);padding-bottom:4px">Propuesta de Valor — '+lang.toUpperCase()+'</div>';
+  opTypes.forEach(function(op){
+    const bullets=(propVal[op.key]||[]);
+    html+='<div style="margin-bottom:10px"><div style="font-size:.68rem;font-weight:700;color:var(--mid);text-transform:uppercase;margin-bottom:4px">'+op.label+'</div>';
+    bullets.forEach(function(b,i){
+      html+='<div style="display:flex;gap:6px;margin-bottom:5px;align-items:flex-start">'
+        +'<span style="font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:11px;color:var(--green);width:16px;flex-shrink:0;padding-top:8px">'+String.fromCharCode(9679)+'</span>'
+        +'<textarea class="finput" rows="2" style="flex:1;font-size:.75rem;line-height:1.5;resize:vertical" '
+        +'onchange="(lang===\'en\'?PDF_PROPVALUE_EN:PDF_PROPVALUE)[\''+op.key+'\']['+i+']=this.value" '
+        +'oninput="(\''+lang+'\'===\'en\'?PDF_PROPVALUE_EN:PDF_PROPVALUE)[\''+op.key+'\']['+i+']=this.value">'+b+'</textarea>'
+        +'</div>';
+    });
+    html+='</div>';
+  });
+  html+='<div style="font-size:.7rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.07em;margin:14px 0 8px;border-bottom:2px solid var(--blue);padding-bottom:4px">Ventaja DAL — '+lang.toUpperCase()+'</div>';
+  advItems.forEach(function(a,i){
+    html+='<div style="display:flex;gap:6px;margin-bottom:5px;align-items:flex-start">'
+      +'<span style="font-family:\'Barlow Condensed\',sans-serif;font-weight:800;font-size:12px;color:var(--blue);width:18px;flex-shrink:0;padding-top:8px">'+(i+1)+'.</span>'
+      +'<textarea class="finput" rows="2" style="flex:1;font-size:.75rem;line-height:1.5;resize:vertical" '
+      +'oninput="(\''+lang+'\'===\'en\'?PDF_ADVITEMS_EN:PDF_ADVITEMS)['+i+']=this.value">'+a+'</textarea>'
+      +'</div>';
+  });
+  el.innerHTML=html;
+}
+
+async function savePdfTexts(){
+  if(!currentUser||currentUserData?.rol!=='admin') return;
+  const lang=_pdfTextLang;
+  const propVal=lang==='en'?PDF_PROPVALUE_EN:PDF_PROPVALUE;
+  const advItems=lang==='en'?PDF_ADVITEMS_EN:PDF_ADVITEMS;
+  const colPV=lang==='en'?'pdf_propvalue_en':'pdf_propvalue';
+  const colAD=lang==='en'?'pdf_advitems_en':'pdf_advitems';
+  const payload={};
+  payload[colPV]=propVal;
+  payload[colAD]=advItems;
+  const{error}=await supa.from('insights_config').update(payload).eq('id',1);
+  if(!error) showToast('Textos del PDF ('+lang.toUpperCase()+') guardados');
+  else showToast('Error: '+error.message,'error');
+}
+
 function toggleAdminSec(id){
   const body=document.getElementById('asb-'+id);
   const arrow=document.querySelector('#ash-'+id+' .ash-arrow');
@@ -5135,6 +5223,7 @@ function toggleAdminSec(id){
       else if(id==='veh'){ renderCostosVeh(); loadCbVehInputs(); }
       else if(id==='users') loadUserList();
       else if(id==='liq') renderLiqInsightsBody();
+      else if(id==='pdftexts') renderPdfTexts();
     }catch(e){
       console.error('render section '+id+':',e);
       showToast('Error al cargar sección: '+e.message,'error');
@@ -5195,6 +5284,11 @@ async function loadInsights(){
     if(data.costos_fijos_veh?.length>0) ADMIN.costosVeh=data.costos_fijos_veh;
     if(data.cb_veh){ ADMIN.cbVeh=data.cb_veh; loadCbVehInputs(); }
     if(data.pdf_disclaimers?.length>0) PDF_DISCLAIMERS=data.pdf_disclaimers;
+    if(data.pdf_disclaimers_en?.length>0) PDF_DISCLAIMERS_EN=data.pdf_disclaimers_en;
+    if(data.pdf_propvalue) PDF_PROPVALUE=data.pdf_propvalue;
+    if(data.pdf_propvalue_en) PDF_PROPVALUE_EN=data.pdf_propvalue_en;
+    if(data.pdf_advitems?.length>0) PDF_ADVITEMS=data.pdf_advitems;
+    if(data.pdf_advitems_en?.length>0) PDF_ADVITEMS_EN=data.pdf_advitems_en;
     if(data.tarifas_base){
       if(Array.isArray(data.tarifas_base)&&data.tarifas_base.length>0){
         TARIFAS_EDITABLES=data.tarifas_base.map(t=>({id:nextTarifaId++,key:t.key,label:t.label,unit:t.unit,cost:t.cost,bmMin:t.bmMin||null,bmMax:t.bmMax||null,bmAvg:null}));

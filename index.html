@@ -732,7 +732,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
       <label class="login-label">Contraseña</label>
       <input type="password" class="login-input" id="loginPass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-    <button class="login-btn" id="loginBtn">Iniciar sesión</button>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Iniciar sesión</button>
     <div class="login-error" id="loginError"></div>
   </div>
 </div>
@@ -3481,8 +3481,9 @@ async function doLogin(){
   btn.textContent='Iniciando...';btn.disabled=true;
   errEl.classList.remove('show');
   try{
-    if(!supa) throw new Error('Error de conexión.');
-    const{data,error}=await supa.auth.signInWithPassword({email,password:pass});
+    if(!supa) throw new Error('Sin conexión. Verifica tu red e intenta de nuevo.');
+    const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('Tiempo de espera agotado. Verifica tu conexión a internet.')),10000));
+    const{data,error}=await Promise.race([supa.auth.signInWithPassword({email,password:pass}),timeout]);
     if(error) throw error;
     if(!data?.user) throw new Error('No se pudo autenticar.');
     currentUser=data.user;

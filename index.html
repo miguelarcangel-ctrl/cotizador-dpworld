@@ -5152,9 +5152,10 @@ async function savePdfConditions(){
   if(!currentUser||currentUserData?.rol!=='admin') return;
   const els=document.querySelectorAll('#pdfCondBody textarea');
   PDF_DISCLAIMERS=Array.from(els).map(function(t){return t.value;});
-  const{error}=await supa.from('insights_config').update({pdf_disclaimers:PDF_DISCLAIMERS}).eq('id',1);
-  if(!error) showToast('Condiciones del PDF guardadas');
-  else showToast('Error: '+error.message,'error');
+  try{
+    localStorage.setItem('dpw_pdf_disclaimers',JSON.stringify(PDF_DISCLAIMERS));
+    showToast('Condiciones del PDF guardadas');
+  }catch(e){ showToast('Error al guardar: '+e.message,'error'); }
 }
 
 let _pdfTextLang='es';
@@ -5291,8 +5292,9 @@ async function loadInsights(){
     if(data.cb_veh){ ADMIN.cbVeh=data.cb_veh; loadCbVehInputs(); }
     if(data.pdf_disclaimers?.length>0) PDF_DISCLAIMERS=data.pdf_disclaimers;
     if(data.pdf_disclaimers_en?.length>0) PDF_DISCLAIMERS_EN=data.pdf_disclaimers_en;
-    // PDF text overrides stored in localStorage (columns not in DB schema)
+    // PDF text overrides stored in localStorage
     try{
+      const dc=localStorage.getItem('dpw_pdf_disclaimers'); if(dc) PDF_DISCLAIMERS=JSON.parse(dc);
       const pv=localStorage.getItem('dpw_pdf_propvalue'); if(pv) PDF_PROPVALUE=JSON.parse(pv);
       const pven=localStorage.getItem('dpw_pdf_propvalue_en'); if(pven) PDF_PROPVALUE_EN=JSON.parse(pven);
       const ai=localStorage.getItem('dpw_pdf_advitems'); if(ai) PDF_ADVITEMS=JSON.parse(ai);

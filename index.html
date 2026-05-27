@@ -3236,7 +3236,8 @@ function downloadQuoteCliente(lang){
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Barlow',sans-serif;font-size:12px;color:#1B1B2F;background:#fff}
     .page{padding:26px 32px}
-    .pg-end{page-break-after:always;break-after:page;height:0;overflow:hidden;line-height:0;font-size:0}
+    .page{break-before:page;page-break-before:always}
+    .page:first-child{break-before:auto;page-break-before:auto}
     .hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:3px solid #1A1060;margin-bottom:20px}
     .hdr img{height:auto;max-height:36px;max-width:140px;object-fit:contain}
     .hdr-r{text-align:right;font-size:10px;color:#64748B;line-height:1.7}
@@ -3295,13 +3296,10 @@ function downloadQuoteCliente(lang){
     </div>
     <div class="foot"><div>${L.confidential}</div><div>DP World Panamá · ${q.today}</div></div>
   </div>
-  <div class="pg-end"></div>
 
-  <!-- PAGE 2: PROPUESTA DE VALOR + SERVICIOS -->
+  <!-- PAGE 2: COTIZACIÓN — tabla de servicios -->
   <div class="page">
     <div class="hdr"><img src="${LOGO}" alt="DP World"><div class="hdr-r"><strong>${L.pg2Header} — ${q.client}</strong>${q.numero||'Borrador'} · ${q.today}</div></div>
-    <div class="sec-title">${L.valueTitle}</div>
-    <ul class="vbullets">${bullets.map(b=>'<li>'+b+'</li>').join('')}</ul>
     <div class="sec-title">${L.servicesTitle}</div>
     <table>
       <thead><tr><th>${L.colDesc}</th><th>${L.colUnit}</th><th class="r">${L.colVol}</th><th class="r">${L.colRate}</th><th class="r">${L.colSub}</th></tr></thead>
@@ -3310,11 +3308,12 @@ function downloadQuoteCliente(lang){
     </table>
     <div class="foot"><div>${L.footerPage}</div><div>${q.numero||''} · ${q.today}</div></div>
   </div>
-  <div class="pg-end"></div>
 
-  <!-- PAGE 3: VENTAJA DAL + CONDICIONES -->
+  <!-- PAGE 3: PROPUESTA DE VALOR + VENTAJA DAL + CONDICIONES -->
   <div class="page">
     <div class="hdr"><img src="${LOGO}" alt="DP World"><div class="hdr-r"><strong>${L.pg3Header} — ${q.client}</strong>${q.numero||'Borrador'} · ${q.today}</div></div>
+    <div class="sec-title">${L.valueTitle}</div>
+    <ul class="vbullets">${bullets.map(b=>'<li>'+b+'</li>').join('')}</ul>
     <div class="adv-box">
       <div class="adv-ttl">${L.advantageTitle}</div>
       <div class="adv-grid">
@@ -5203,19 +5202,15 @@ function renderPdfTexts(){
   el.innerHTML=html;
 }
 
-async function savePdfTexts(){
+function savePdfTexts(){
   if(!currentUser||currentUserData?.rol!=='admin') return;
-  const lang=_pdfTextLang;
-  const propVal=lang==='en'?PDF_PROPVALUE_EN:PDF_PROPVALUE;
-  const advItems=lang==='en'?PDF_ADVITEMS_EN:PDF_ADVITEMS;
-  const colPV=lang==='en'?'pdf_propvalue_en':'pdf_propvalue';
-  const colAD=lang==='en'?'pdf_advitems_en':'pdf_advitems';
-  const payload={};
-  payload[colPV]=propVal;
-  payload[colAD]=advItems;
-  const{error}=await supa.from('insights_config').update(payload).eq('id',1);
-  if(!error) showToast('Textos del PDF ('+lang.toUpperCase()+') guardados');
-  else showToast('Error: '+error.message,'error');
+  try{
+    localStorage.setItem('dpw_pdf_propvalue',JSON.stringify(PDF_PROPVALUE));
+    localStorage.setItem('dpw_pdf_propvalue_en',JSON.stringify(PDF_PROPVALUE_EN));
+    localStorage.setItem('dpw_pdf_advitems',JSON.stringify(PDF_ADVITEMS));
+    localStorage.setItem('dpw_pdf_advitems_en',JSON.stringify(PDF_ADVITEMS_EN));
+    showToast('Textos del PDF guardados');
+  }catch(e){ showToast('Error al guardar: '+e.message,'error'); }
 }
 
 function toggleAdminSec(id){
@@ -5296,10 +5291,13 @@ async function loadInsights(){
     if(data.cb_veh){ ADMIN.cbVeh=data.cb_veh; loadCbVehInputs(); }
     if(data.pdf_disclaimers?.length>0) PDF_DISCLAIMERS=data.pdf_disclaimers;
     if(data.pdf_disclaimers_en?.length>0) PDF_DISCLAIMERS_EN=data.pdf_disclaimers_en;
-    if(data.pdf_propvalue) PDF_PROPVALUE=data.pdf_propvalue;
-    if(data.pdf_propvalue_en) PDF_PROPVALUE_EN=data.pdf_propvalue_en;
-    if(data.pdf_advitems?.length>0) PDF_ADVITEMS=data.pdf_advitems;
-    if(data.pdf_advitems_en?.length>0) PDF_ADVITEMS_EN=data.pdf_advitems_en;
+    // PDF text overrides stored in localStorage (columns not in DB schema)
+    try{
+      const pv=localStorage.getItem('dpw_pdf_propvalue'); if(pv) PDF_PROPVALUE=JSON.parse(pv);
+      const pven=localStorage.getItem('dpw_pdf_propvalue_en'); if(pven) PDF_PROPVALUE_EN=JSON.parse(pven);
+      const ai=localStorage.getItem('dpw_pdf_advitems'); if(ai) PDF_ADVITEMS=JSON.parse(ai);
+      const aien=localStorage.getItem('dpw_pdf_advitems_en'); if(aien) PDF_ADVITEMS_EN=JSON.parse(aien);
+    }catch(e){}
     if(data.tarifas_base){
       if(Array.isArray(data.tarifas_base)&&data.tarifas_base.length>0){
         TARIFAS_EDITABLES=data.tarifas_base.map(t=>({id:nextTarifaId++,key:t.key,label:t.label,unit:t.unit,cost:t.cost,bmMin:t.bmMin||null,bmMax:t.bmMax||null,bmAvg:null}));

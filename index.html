@@ -3647,7 +3647,7 @@ async function saveCotizacion(estado='borrador'){
     estado,
     vigencia,
   };
-  // Add optional columns only if they have values (may not exist in all schemas)
+  // Optional columns — may not exist in older schemas
   const extras={
     notas_internas: document.getElementById('notasInternas')?.value||null,
     cliente_trade_name: document.getElementById('tradeName')?.value||null,
@@ -3667,48 +3667,70 @@ async function saveCotizacion(estado='borrador'){
   };
   Object.entries(extras).forEach(([k,v])=>{ if(v!=null&&v!=='') payload[k]=v; });
 
-  try{
+  const _getNumero=async()=>{
+    try{
+      const{data:rpcData,error:rpcErr}=await supa.rpc('next_cotizacion_numero');
+      if(!rpcErr&&rpcData) return rpcData;
+    }catch(e){}
+    try{
+      const now=new Date();
+      const ym=now.getFullYear().toString()+(now.getMonth()+1).toString().padStart(2,'0');
+      const prefix='COT-'+ym+'-';
+      const{data:lastRows}=await supa.from('cotizaciones')
+        .select('numero').like('numero',prefix+'%')
+        .order('numero',{ascending:false}).limit(1);
+      const lastNum=lastRows?.length?parseInt((lastRows[0].numero||'').split('-').pop())||0:0;
+      return prefix+(lastNum+1).toString().padStart(3,'0');
+    }catch(e){
+      const now=new Date();
+      const ym=now.getFullYear().toString()+(now.getMonth()+1).toString().padStart(2,'0');
+      return 'COT-'+ym+'-001';
+    }
+  };
+
+  const _persist=async(p)=>{
     if(S._editingCotId){
-      // UPDATE modo edición
-      const{data,error}=await supa.from('cotizaciones').update(payload).eq('id',S._editingCotId).select().single();
+      const{data,error}=await supa.from('cotizaciones').update(p).eq('id',S._editingCotId).select().single();
       if(error) throw error;
+      return{data,updated:true};
+    }
+    p.numero=await _getNumero();
+    const{data,error}=await supa.from('cotizaciones').insert([p]).select().single();
+    if(error) throw error;
+    return{data,updated:false};
+  };
+
+  const _finish=(data,updated)=>{
+    if(updated){
       showToast('Cotización actualizada: '+(data?.numero||S._editingCotNumero),'success');
       S._editingCotId=null; S._editingCotNumero=null;
       document.getElementById('editBanner')?.classList.add('hidden');
-      return data;
     } else {
-      // INSERT nueva
-      let numero;
-      try{
-        const{data:rpcData,error:rpcErr}=await supa.rpc('next_cotizacion_numero');
-        if(!rpcErr&&rpcData) numero=rpcData;
-      }catch(e){}
-      if(!numero){
-        // Fallback: query last cotización this month and increment
-        try{
-          const now=new Date();
-          const ym=now.getFullYear().toString()+(now.getMonth()+1).toString().padStart(2,'0');
-          const prefix='COT-'+ym+'-';
-          const{data:lastRows}=await supa.from('cotizaciones')
-            .select('numero').like('numero',prefix+'%')
-            .order('numero',{ascending:false}).limit(1);
-          const lastNum=lastRows?.length?parseInt((lastRows[0].numero||'').split('-').pop())||0:0;
-          numero=prefix+(lastNum+1).toString().padStart(3,'0');
-        }catch(e){
-          const now=new Date();
-          const ym=now.getFullYear().toString()+(now.getMonth()+1).toString().padStart(2,'0');
-          numero='COT-'+ym+'-001';
-        }
-      }
-      payload.numero=numero;
-      const{data,error}=await supa.from('cotizaciones').insert([payload]).select().single();
-      if(error) throw error;
       showToast('Cotización guardada: '+data.numero,'success');
-      return data;
     }
+    return data;
+  };
+
+  try{
+    const{data,updated}=await _persist(payload);
+    return _finish(data,updated);
   }catch(e){
+    const msg=e.message||'';
+    // Column missing — retry without optional extras
+    if(msg.includes('does not exist')||msg.includes('no existe')||e.code==='42703'){
+      try{
+        const base={};
+        const extrasKeys=new Set(Object.keys(extras));
+        Object.entries(payload).forEach(([k,v])=>{ if(!extrasKeys.has(k)) base[k]=v; });
+        const{data,updated}=await _persist(base);
+        return _finish(data,updated);
+      }catch(e2){
+        showToast('Error al guardar: '+(e2.message||JSON.stringify(e2)),'error');
+        return null;
+      }
+    }
     console.error('saveCotizacion error:',e);
-    showToast('Error al guardar: '+(e.message||JSON.stringify(e)),'error');
+    showToast('Error al guardar: '+(msg||JSON.stringify(e)),'error');
     return null;
   }
 }

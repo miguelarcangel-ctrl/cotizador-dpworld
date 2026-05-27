@@ -3481,19 +3481,21 @@ async function doLogin(){
   btn.textContent='Iniciando...';btn.disabled=true;
   errEl.classList.remove('show');
   try{
-    if(!supa) throw new Error('Sin conexión. Verifica tu red e intenta de nuevo.');
-    const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('Tiempo de espera agotado. Verifica tu conexión a internet.')),10000));
-    const{data,error}=await Promise.race([supa.auth.signInWithPassword({email,password:pass}),timeout]);
-    if(error) throw error;
-    if(!data?.user) throw new Error('No se pudo autenticar.');
-    currentUser=data.user;
-    currentUserData=await loadUserData(currentUser.id);
-    if(!currentUserData?.activo){
-      await supa.auth.signOut();
-      showLoginError('Usuario inactivo. Contacta al administrador.');
-      return;
-    }
-    await onLoginSuccess();
+    if(!supa) throw new Error('Sin conexión con el servidor. Verifica tu red.');
+    const loginFlow=async()=>{
+      const{data,error}=await supa.auth.signInWithPassword({email,password:pass});
+      if(error) throw error;
+      if(!data?.user) throw new Error('No se pudo autenticar.');
+      currentUser=data.user;
+      currentUserData=await loadUserData(currentUser.id);
+      if(!currentUserData?.activo){
+        await supa.auth.signOut();
+        throw new Error('Usuario inactivo. Contacta al administrador.');
+      }
+      await onLoginSuccess();
+    };
+    const timeoutP=new Promise((_,rej)=>setTimeout(()=>rej(new Error('Sin respuesta del servidor (15s). Verifica tu conexión a internet e intenta de nuevo.')),15000));
+    await Promise.race([loginFlow(),timeoutP]);
   }catch(e){
     showLoginError(e.message||'Credenciales incorrectas.');
   }finally{

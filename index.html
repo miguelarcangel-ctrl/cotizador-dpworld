@@ -3496,7 +3496,11 @@ async function doLogin(){
     const timeoutP=new Promise((_,rej)=>setTimeout(()=>rej(new Error('Sin respuesta del servidor (15s). Verifica tu conexión a internet e intenta de nuevo.')),15000));
     await Promise.race([loginFlow(),timeoutP]);
   }catch(e){
-    showLoginError(e.message||'Credenciales incorrectas.');
+    const msg=e.message||'';
+    const friendlyMsg=msg.toLowerCase().includes('failed to fetch')||msg.toLowerCase().includes('networkerror')||msg.toLowerCase().includes('network request failed')
+      ?'No se puede conectar con el servidor. El proyecto puede estar pausado — entra a app.supabase.com y restaura el proyecto, luego intenta de nuevo.'
+      :msg||'Credenciales incorrectas.';
+    showLoginError(friendlyMsg);
   }finally{
     if(btn){btn.textContent='Iniciar sesión';btn.disabled=false;}
   }

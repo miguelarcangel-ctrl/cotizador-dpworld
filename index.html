@@ -761,26 +761,16 @@ html[data-theme="dark"] [style*=";border:1.5px solid #E2E8F0"]:not(.preview-page
   <div class="progress-steps">
     <div class="progress-step" id="ps-1" onclick="safeGoTo(1)">
       <div class="ps-icon" id="psi-1">1</div>
-      <div class="ps-label">Cliente</div>
+      <div class="ps-label">Cliente y operación</div>
     </div>
     <div class="ps-connector">›</div>
     <div class="progress-step" id="ps-2" onclick="safeGoTo(2)">
       <div class="ps-icon" id="psi-2">2</div>
-      <div class="ps-label">Operación</div>
+      <div class="ps-label">Volúmenes</div>
     </div>
     <div class="ps-connector">›</div>
     <div class="progress-step" id="ps-3" onclick="safeGoTo(3)">
       <div class="ps-icon" id="psi-3">3</div>
-      <div class="ps-label">Volúmenes</div>
-    </div>
-    <div class="ps-connector">›</div>
-    <div class="progress-step" id="ps-4" onclick="safeGoTo(4)">
-      <div class="ps-icon" id="psi-4">4</div>
-      <div class="ps-label">Costos</div>
-    </div>
-    <div class="ps-connector">›</div>
-    <div class="progress-step" id="ps-5" onclick="safeGoTo(5)">
-      <div class="ps-icon" id="psi-5">5</div>
       <div class="ps-label">Cotización</div>
     </div>
   </div>
@@ -816,9 +806,9 @@ html[data-theme="dark"] [style*=";border:1.5px solid #E2E8F0"]:not(.preview-page
       <!-- ══ STEP 1: CLIENTE ══════════════════════════════ -->
       <div class="step active" id="step1">
         <div class="step-header">
-          <div class="step-eyebrow">Paso 1 de 4</div>
-          <div class="step-title">Datos del cliente</div>
-          <div class="step-desc">Información básica de la cuenta a cotizar.</div>
+          <div class="step-eyebrow">Paso 1 de 3</div>
+          <div class="step-title">Cliente y operación</div>
+          <div class="step-desc">Quién es el cliente y qué servicio necesita.</div>
         </div>
 
         <div class="card">
@@ -886,27 +876,6 @@ html[data-theme="dark"] [style*=";border:1.5px solid #E2E8F0"]:not(.preview-page
           </div>
         </div>
 
-        <div class="step-nav">
-          <button class="btn-next" onclick="goTo(2)">
-            Continuar → Tipo de operación
-          </button>
-        </div>
-        <div style="text-align:center;padding:0 0 24px">
-          <div style="font-size:.62rem;color:var(--mid);margin-bottom:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:700">— o bien —</div>
-          <button onclick="cotizacionEstandar()" style="width:100%;padding:12px 16px;border:2px dashed var(--blue);border-radius:10px;background:transparent;color:var(--blue-t);font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.9rem;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#EEF2FF'" onmouseout="this.style.background='transparent'">
-            Cotización Estándar — todos los rubros × 1
-          </button>
-          <div style="font-size:.68rem;color:var(--mid);margin-top:6px;line-height:1.4">Tarifa referencial con todos los servicios. No requiere volúmenes ni detalles. Ideal para exploración inicial.</div>
-        </div>
-      </div>
-
-      <!-- ══ STEP 2: OPERACIÓN ════════════════════════════ -->
-      <div class="step" id="step2">
-        <div class="step-header">
-          <div class="step-eyebrow">Paso 2 de 4</div>
-          <div class="step-title">Tipo de operación</div>
-          <div class="step-desc">Selecciona el tipo de servicio logístico a cotizar.</div>
-        </div>
 
         <!-- TYPE SELECTION -->
         <div class="card">
@@ -1113,46 +1082,28 @@ html[data-theme="dark"] [style*=";border:1.5px solid #E2E8F0"]:not(.preview-page
           </div>
         </div>
 
+
         <div class="step-nav">
-          <button class="btn-back" onclick="goTo(1)">← Atrás</button>
-          <button class="btn-next" onclick="goTo(3)" id="btnGoStep3" disabled>
+          <button class="btn-next" onclick="goTo(2)" id="btnGoStep2" disabled>
             Continuar → Volúmenes
           </button>
         </div>
+        <div style="text-align:center;padding:0 0 24px">
+          <div style="font-size:.62rem;color:var(--mid);margin-bottom:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:700">— o bien —</div>
+          <button onclick="cotizacionEstandar()" style="width:100%;padding:12px 16px;border:2px dashed var(--blue);border-radius:10px;background:transparent;color:var(--blue-t);font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.9rem;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#EEF2FF'" onmouseout="this.style.background='transparent'">
+            Cotización Estándar — todos los rubros × 1
+          </button>
+          <div style="font-size:.68rem;color:var(--mid);margin-top:6px;line-height:1.4">Tarifa referencial con todos los servicios. No requiere volúmenes ni detalles. Ideal para exploración inicial.</div>
+        </div>
+      </div>
       </div>
 
-      <!-- ══ STEP 3: VOLÚMENES ════════════════════════════ -->
-      <div class="step" id="step3">
+      <!-- ══ STEP 2: VOLÚMENES ════════════════════════════ -->
+      <div class="step" id="step2">
         <div class="step-header">
-          <div class="step-eyebrow">Paso 3 de 4</div>
-          <div class="step-title">Volúmenes y documentación</div>
+          <div class="step-eyebrow">Paso 2 de 3</div>
+          <div class="step-title">Volúmenes</div>
           <div class="step-desc" id="step3Desc">Ingresa los volúmenes mensuales estimados del cliente.</div>
-        </div>
-
-        <!-- POSITIONS (carga only) -->
-        <div id="posicionesCard" class="card">
-          <div class="card-hdr">
-            
-            <div>
-              <div class="card-title">Posiciones requeridas</div>
-              <div class="card-subtitle">Define el espacio de almacenaje en la bodega</div>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="vol-grid">
-              <div class="vol-card">
-                <div class="vol-label">Posiciones promedio / mes</div>
-                <input type="number" class="vol-input" id="posPromedio" min="0" placeholder="0" oninput="checkPosDisponibles();syncPosToForecast();updateLiveKpis()">
-                <div class="vol-unit">pallet positions</div>
-              </div>
-              <div class="vol-card">
-                <div class="vol-label">Posiciones pico (máximo)</div>
-                <input type="number" class="vol-input" id="posPico" min="0" placeholder="0" oninput="checkPosDisponibles();syncPosToForecast();updateLiveKpis()">
-                <div class="vol-unit">pallet positions</div>
-              </div>
-            </div>
-            <div id="posDisponiblesInfo" style="display:none;margin-top:12px"></div>
-          </div>
         </div>
 
         <!-- STORAGE FORMAT (carga only) -->
@@ -1194,6 +1145,35 @@ html[data-theme="dark"] [style*=";border:1.5px solid #E2E8F0"]:not(.preview-page
           </div>
         </div>
 
+        <!-- POSITIONS (carga only) -->
+        <div id="posicionesCard" class="card">
+          <div class="card-hdr">
+            <div>
+              <div class="card-title">Espacio en bodega</div>
+              <div class="card-subtitle">Las posiciones definen el almacenaje y la parte de costos fijos de la cuenta</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="vol-grid">
+              <div class="vol-card">
+                <div class="vol-label">Posiciones promedio / mes</div>
+                <input type="number" class="vol-input" id="posPromedio" min="0" placeholder="0" oninput="checkPosDisponibles();onVolChange()">
+                <div class="vol-unit">pallet positions</div>
+              </div>
+              <div class="vol-card">
+                <div class="vol-label">Posiciones pico (máximo)</div>
+                <input type="number" class="vol-input" id="posPico" min="0" placeholder="0" oninput="checkPosDisponibles();onVolChange()">
+                <div class="vol-unit">pallet positions</div>
+              </div>
+              <div class="vol-card" id="almacQtyWrap" style="display:none">
+                <div class="vol-label" id="almacQtyLabel">Cantidad a facturar</div>
+                <input type="number" class="vol-input" id="almacQty" min="0" placeholder="0" oninput="onVolChange()">
+                <div class="vol-unit" id="almacQtyUnit"></div>
+              </div>
+            </div>
+            <div id="posDisponiblesInfo" style="display:none;margin-top:12px"></div>
+          </div>
+        </div>
         <!-- DYNAMIC FORECAST FORM -->
         <div class="card" id="forecastCard">
           <div class="card-hdr">
@@ -1228,21 +1208,21 @@ html[data-theme="dark"] [style*=";border:1.5px solid #E2E8F0"]:not(.preview-page
             <div class="card-body">
               <div class="toggle-row">
                 <div class="toggle-info">
-                  <div class="toggle-label">Manejo de entrada — $25.00/mes</div>
+                  <div class="toggle-label">Manejo de entrada — <span id="lblManejoIn"></span>/mes</div>
                   <div class="toggle-desc">Coordinación de recepciones, pre-alertas y control documental inbound</div>
                 </div>
                 <label class="toggle-switch">
-                  <input type="checkbox" id="manejoIn" checked>
+                  <input type="checkbox" id="manejoIn" checked onchange="onVolChange()">
                   <span class="toggle-slider"></span>
                 </label>
               </div>
               <div class="toggle-row">
                 <div class="toggle-info">
-                  <div class="toggle-label">Manejo de salida — $20.00/mes</div>
+                  <div class="toggle-label">Manejo de salida — <span id="lblManejoOut"></span>/mes</div>
                   <div class="toggle-desc">Coordinación de despachos, pick tickets y control documental outbound</div>
                 </div>
                 <label class="toggle-switch">
-                  <input type="checkbox" id="manejoOut" checked>
+                  <input type="checkbox" id="manejoOut" checked onchange="onVolChange()">
                   <span class="toggle-slider"></span>
                 </label>
               </div>
@@ -1261,11 +1241,11 @@ html[data-theme="dark"] [style*=";border:1.5px solid #E2E8F0"]:not(.preview-page
             <div class="card-body">
               <div class="toggle-row">
                 <div class="toggle-info">
-                  <div class="toggle-label">Manejo por contenedor — $150.00/contenedor</div>
+                  <div class="toggle-label">Manejo por contenedor — <span id="lblVehManejo"></span>/contenedor</div>
                   <div class="toggle-desc">Gestión logística de contenedores de vehículos</div>
                 </div>
                 <label class="toggle-switch">
-                  <input type="checkbox" id="vehManejoToggle" checked>
+                  <input type="checkbox" id="vehManejoToggle" checked onchange="onVolChange()">
                   <span class="toggle-slider"></span>
                 </label>
               </div>
@@ -1274,128 +1254,16 @@ html[data-theme="dark"] [style*=";border:1.5px solid #E2E8F0"]:not(.preview-page
         </div>
 
         <div class="step-nav">
-          <button class="btn-back" onclick="goTo(2)">← Atrás</button>
-          <button class="btn-next" onclick="goTo(4)">
-            Continuar → Costos
-          </button>
+          <button class="btn-back" onclick="goTo(1)">← Atrás</button>
+          <button class="btn-next green" onclick="calcAndShow()">Ver cotización</button>
         </div>
       </div>
 
-      <!-- ══ STEP 4: COSTOS ═══════════════════════════════ -->
-      <div class="step" id="step4">
+      <!-- ══ STEP 3: COTIZACIÓN ═══════════════════════════ -->
+      <div class="step" id="step3">
         <div class="step-header">
-          <div class="step-eyebrow">Paso 4 de 4</div>
-          <div class="step-title">Estructura de costos</div>
-          <div class="step-desc">Define inversiones y recursos exclusivos para esta cuenta.</div>
-        </div>
-
-        <div class="alert info">
-          
-          <div><strong>¿Cuándo usar este paso?</strong> Solo si la cuenta requiere inversión inicial (CAPEX) o recursos exclusivos no compartidos con otras cuentas (OPEX). Si los recursos son compartidos, se configuran en Insights.</div>
-        </div>
-
-        <!-- CAPEX -->
-        <div class="card">
-          <div class="card-body">
-            <div class="toggle-row">
-              <div class="toggle-info">
-                <div class="toggle-label">Requiere inversión inicial (CAPEX)</div>
-                <div class="toggle-desc">Infraestructura, equipos o adecuaciones exclusivas para la cuenta</div>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="capexToggle" onchange="toggleCapex()">
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-            <div id="capexDetail" style="display:none;margin-top:16px">
-              <div class="field-grid">
-                <div class="field">
-                  <label>Monto total de la inversión (USD)</label>
-                  <div class="finput-prefix">
-                    
-                    <input type="number" id="capexMonto" min="0" step="100" placeholder="0.00" oninput="calcCapex()">
-                  </div>
-                </div>
-                <div class="field">
-                  <label>Período de amortización</label>
-                  <select class="finput" id="capexMeses" onchange="calcCapex()">
-                    <option value="12">12 meses</option>
-                    <option value="24">24 meses</option>
-                    <option value="36">36 meses</option>
-                  </select>
-                </div>
-              </div>
-              <div class="alert success hidden" id="capexResult" style="margin-top:12px">
-                
-                <div id="capexResultText"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- OPEX PERSONAL -->
-        <div class="card">
-          <div class="card-body">
-            <div class="toggle-row">
-              <div class="toggle-info">
-                <div class="toggle-label">Recursos OPEX exclusivos</div>
-                <div class="toggle-desc">Personal y/o equipos dedicados únicamente a esta cuenta</div>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="opexToggle" onchange="toggleOpex()">
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-            <div id="opexDetail" style="display:none;margin-top:16px">
-              <div id="moRefBar" style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:#F8F9FC;border-radius:8px;border:1px solid #E2E8F0;margin-bottom:12px;font-size:.78rem;color:#64748B">
-                <span>Referencia Insights:</span>
-                <span>MO base: <strong id="moRefVal">$6.50</strong>/h</span>
-                <span>·</span>
-                <span>FK base: <strong id="fkRefVal">$0.00</strong>/h</span>
-                <span>·</span>
-                <span>Días/mes: <strong>22</strong></span>
-              </div>
-              <div class="sec-divider" style="margin-top:0">
-                <div class="sec-divider-line"></div>
-                <div class="sec-divider-label">Personal dedicado</div>
-                <div class="sec-divider-line"></div>
-              </div>
-              <div id="opexPersonalList"></div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <button onclick="addOpexPersonal()" class="btn-add-row">+ Agregar persona</button>
-                <button onclick="calcMOSugerida()" class="btn-add-row" style="background:#EEF2FF;color:#3730A3;border-color:#C7D2FE">Calcular MO sugerida</button>
-              </div>
-              <div id="moUtilizacion" style="display:none;margin-top:10px;padding:10px 14px;border-radius:8px;font-size:.82rem"></div>
-
-              <div class="sec-divider">
-                <div class="sec-divider-line"></div>
-                <div class="sec-divider-label">Equipos dedicados</div>
-                <div class="sec-divider-line"></div>
-              </div>
-              <div id="opexEquipoList"></div>
-              <button onclick="addOpexEquipo()" class="btn-add-row">+ Agregar equipo</button>
-
-              <div id="opexTotal" class="alert info hidden" style="margin-top:12px">
-                
-                <div id="opexTotalText"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="step-nav">
-          <button class="btn-back" onclick="goTo(3)">← Atrás</button>
-          <button class="btn-next green" onclick="calcAndShow()">
-            Generar cotización
-          </button>
-        </div>
-      </div>
-
-      <!-- ══ STEP 5: COTIZACIÓN ═══════════════════════════ -->
-      <div class="step" id="step5">
-        <div class="step-header">
-          <div class="step-eyebrow">Resultado</div>
-          <div class="step-title">Cotización generada</div>
+          <div class="step-eyebrow">Paso 3 de 3</div>
+          <div class="step-title">Cotización</div>
         </div>
 
         <!-- Quote header -->
@@ -1428,27 +1296,6 @@ html[data-theme="dark"] [style*=";border:1.5px solid #E2E8F0"]:not(.preview-page
         <!-- Alerts -->
         <div id="quoteAlerts"></div>
 
-        <!-- GF Selector -->
-        <div id="gfSelectorWrap" style="display:none">
-          <div class="card">
-            <div class="card-hdr">
-              
-              <div>
-                <div class="card-title">Imputar costos fijos</div>
-                <div class="card-subtitle">Aplica el reparto de costos fijos de la bodega a esta cuenta</div>
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="field">
-                <label>Seleccionar cuenta para aplicar el reparto</label>
-                <select class="finput" id="gfSelector" onchange="applyGastoFijo()">
-                  <option value="">— Sin imputar —</option>
-                </select>
-              </div>
-              <div id="gfInfo" style="display:none;margin-top:10px"></div>
-            </div>
-          </div>
-        </div>
 
         <!-- Line items -->
         <div class="lines-card">
@@ -1481,10 +1328,16 @@ html[data-theme="dark"] [style*=";border:1.5px solid #E2E8F0"]:not(.preview-page
                   <input type="text" class="finput" id="newLineUnit" placeholder="/mes">
                 </div>
                 <div class="field">
-                  <label>Tarifa (USD)</label>
+                  <label>Tarifa al cliente (USD)</label>
                   <div class="finput-prefix">
                     
                     <input type="number" id="newLineRate" min="0" step="0.01" placeholder="0.00">
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Costo para DP World (USD)</label>
+                  <div class="finput-prefix">
+                    <input type="number" id="newLineCost" min="0" step="0.01" placeholder="0.00">
                   </div>
                 </div>
               </div>
@@ -1493,6 +1346,110 @@ html[data-theme="dark"] [style*=";border:1.5px solid #E2E8F0"]:not(.preview-page
                 <button onclick="document.getElementById('addLineFormWrap').style.display='none'" class="btn-sm outline" style="padding:10px 16px">Cancelar</button>
               </div>
             </div>
+          </div>
+        </div>
+
+
+        <!-- BUSINESS CASE -->
+        <div class="collapse-panel" id="bcPanel">
+          <div class="collapse-trigger" onclick="toggleCollapse('bc')">
+            <span class="ct-label">Business case</span>
+            <span class="ct-badge optional" id="bcBadge">Costos, CAPEX y recursos dedicados</span>
+            <span class="ct-arrow">▼</span>
+          </div>
+          <div class="collapse-body" id="cb-bc">
+            <div id="bcBlocks"></div>
+            <div class="field-grid" style="margin:14px 0">
+              <div class="field">
+                <label>Plazo del contrato (meses)</label>
+                <input type="number" class="finput r" id="contratoMeses" min="1" step="1" value="12" oninput="recalcular()">
+              </div>
+            </div>
+          <!-- CAPEX -->
+          <div class="card">
+            <div class="card-body">
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">Requiere inversión inicial (CAPEX)</div>
+                  <div class="toggle-desc">Infraestructura, equipos o adecuaciones exclusivas. Se amortiza en el plazo del contrato.</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="capexToggle" onchange="toggleCapex()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div id="capexDetail" style="display:none;margin-top:16px">
+                <div class="field-grid">
+                  <div class="field">
+                    <label>Monto total de la inversión (USD)</label>
+                    <div class="finput-prefix">
+                      
+                      <input type="number" id="capexMonto" min="0" step="100" placeholder="0.00" oninput="calcCapex()">
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Tasa de financiamiento anual (%)</label>
+                    <input type="number" class="finput r" id="capexTasa" min="0" step="0.5" placeholder="0" oninput="calcCapex()">
+                  </div>
+                </div>
+                <div class="alert success hidden" id="capexResult" style="margin-top:12px">
+                  
+                  <div id="capexResultText"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- OPEX PERSONAL -->
+          <div class="card">
+            <div class="card-body">
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">Recursos dedicados (OPEX)</div>
+                  <div class="toggle-desc">Personal y equipos exclusivos de esta cuenta. El personal dedicado reemplaza la mano de obra por productividad; no se suma.</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="opexToggle" onchange="toggleOpex()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div id="opexDetail" style="display:none;margin-top:16px">
+                <div id="moRefBar" style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:#F8F9FC;border-radius:8px;border:1px solid #E2E8F0;margin-bottom:12px;font-size:.78rem;color:#64748B">
+                  <span>Referencia Insights:</span>
+                  <span>MO base: <strong id="moRefVal">$6.50</strong>/h</span>
+                  <span>·</span>
+                  <span>FK base: <strong id="fkRefVal">$0.00</strong>/h</span>
+                  <span>·</span>
+                  <span>Días/mes: <strong>22</strong></span>
+                </div>
+                <div class="sec-divider" style="margin-top:0">
+                  <div class="sec-divider-line"></div>
+                  <div class="sec-divider-label">Personal dedicado</div>
+                  <div class="sec-divider-line"></div>
+                </div>
+                <div id="opexPersonalList"></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <button onclick="addOpexPersonal()" class="btn-add-row">+ Agregar persona</button>
+                  <button onclick="calcMOSugerida()" class="btn-add-row" style="background:#EEF2FF;color:#3730A3;border-color:#C7D2FE">Sugerir personal según volumen</button>
+                </div>
+                <div id="moUtilizacion" style="display:none;margin-top:10px;padding:10px 14px;border-radius:8px;font-size:.82rem"></div>
+
+                <div class="sec-divider">
+                  <div class="sec-divider-line"></div>
+                  <div class="sec-divider-label">Equipos dedicados</div>
+                  <div class="sec-divider-line"></div>
+                </div>
+                <div id="opexEquipoList"></div>
+                <button onclick="addOpexEquipo()" class="btn-add-row">+ Agregar equipo</button>
+
+                <div id="opexTotal" class="alert info hidden" style="margin-top:12px">
+                  
+                  <div id="opexTotalText"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           </div>
         </div>
 
@@ -1528,7 +1485,7 @@ html[data-theme="dark"] [style*=";border:1.5px solid #E2E8F0"]:not(.preview-page
         </div>
 
         <div class="step-nav">
-          <button class="btn-back" onclick="goTo(4)">← Editar costos</button>
+          <button class="btn-back" onclick="goTo(2)">← Volúmenes</button>
           <button class="btn-next" onclick="resetAll()">+ Nueva cotización</button>
         </div>
       </div>
@@ -2074,6 +2031,7 @@ const TARIFA_GROUPS = [
 
 const ADMIN={
   totalPos:1716,
+  mo:6.50, fk:0, mgn:30,   // MO y FK base ($/h) y margen mínimo (%), desde Insights
   costosVeh:[
     {id:1, rubro:'Patio de almacenaje vehículos', cat:'Infraestructura', monto:0},
     {id:2, rubro:'Personal de patio / conductores fijos', cat:'Personal', monto:0},
@@ -2106,10 +2064,13 @@ const ADMIN={
 
 
 // ── APP STATE ─────────────────────────────────────────────────
-let S={step:1,type:null,storageFmt:null,transport:false,selectedRoutes:[],customRoutes:[],
-  capex:false,capexMonto:0,capexMeses:12,capexMensual:0,opex:false,opexMensual:0,
-  lastQuote:null,_editingCotId:null,_editingCotNumero:null,_autoGF:null,
-  _manualTarifas:{},_baseLines:[],_baseTotT:0,_baseTotC:0};
+function estadoInicial(){
+  return {step:1,type:null,storageFmt:null,transport:false,std:false,
+    capex:false,capexMonto:0,capexMeses:12,capexTasa:0,capexMensual:0,opex:false,
+    ovr:{},removed:[],extra:[],
+    lastQuote:null,_editingCotId:null,_editingCotNumero:null,_manualTarifas:{}};
+}
+let S=estadoInicial();
 let OPEX={personal:[],equipo:[]};
 let currentUser=null,currentUserData=null,_allCots=[];
 let TARIFAS_EDITABLES=[],nextTarifaId=1000;
@@ -2122,47 +2083,69 @@ const DOCS_CONFIG={
 };
 
 // ── AUTO-SAVE ─────────────────────────────────────────────────
-const AUTOSAVE_KEY='dpworld_cot_v4';
+const AUTOSAVE_KEY='dpworld_cot_v5';
+const ENTRADA_CAMPOS=['clientName','vendedor','vigencia','tradeName','startDate','contactName','contactPhone',
+  'contactEmail','tipoMercancia','temperatura','uom','palletType','rotacion','segregacion',
+  'trazabilidad','vencimiento','totalSkus','pctUnidad','obsCargas','posPromedio','posPico','almacQty',
+  'capexMonto','capexTasa','contratoMeses','notasInternas'];
+const ENTRADA_CHECKS=['transportToggle','manejoIn','manejoOut','vehManejoToggle','capexToggle','opexToggle'];
+
+// Todo lo que el vendedor ingresó: sirve para el borrador local y se guarda con la cotización
+// para poder reabrir el business case completo.
+function capturarEntrada(){
+  const d={v:5,type:S.type,storageFmt:S.storageFmt,std:!!S.std,fields:{},docs:{},
+    opexPersonal:OPEX.personal,opexEquipo:OPEX.equipo,rutas:_rutasData,
+    ovr:S.ovr||{},removed:S.removed||[],extra:S.extra||[]};
+  ENTRADA_CAMPOS.forEach(id=>{const el=document.getElementById(id); if(el) d.fields[id]=el.value;});
+  ENTRADA_CHECKS.forEach(id=>{const el=document.getElementById(id); if(el) d.fields[id]=el.checked;});
+  document.querySelectorAll('#forecastBody input').forEach(el=>{if(el.id)d.fields[el.id]=el.value;});
+  document.querySelectorAll('.doc-item.selected').forEach(el=>{
+    const k=el.dataset.doc;
+    d.docs[k]={freq:document.getElementById('dfreq-'+k)?.value||'',qty:document.getElementById('dqty-'+k)?.value||''};
+  });
+  return d;
+}
+
+function aplicarEntrada(d){
+  if(!d) return false;
+  const set=(id,val)=>{const el=document.getElementById(id); if(!el) return; if(typeof val==='boolean') el.checked=val; else el.value=val;};
+  Object.entries(d.fields||{}).forEach(([id,val])=>{ if(!id.startsWith('f_')) set(id,val); });
+  if(d.type) selType(d.type,true);
+  selStorage(d.storageFmt||'pallet_pos',true);
+  Object.entries(d.fields||{}).forEach(([id,val])=>{ if(id.startsWith('f_')) set(id,val); });
+  S.std=!!d.std;
+  S.ovr=d.ovr||{}; S.removed=d.removed||[]; S.extra=d.extra||[];
+  OPEX.personal=d.opexPersonal||[]; OPEX.equipo=d.opexEquipo||[];
+  if(Array.isArray(d.rutas)&&d.rutas.length) _rutasData=d.rutas;
+  document.querySelectorAll('.doc-item.selected').forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll('.doc-detail').forEach(el=>el.classList.remove('show'));
+  Object.entries(d.docs||{}).forEach(([k,v])=>{
+    if(!document.getElementById('doc-'+k)) return;
+    toggleDoc(k,true);
+    if(v&&typeof v==='object'){ set('dfreq-'+k,v.freq||'embarque'); set('dqty-'+k,v.qty||''); }
+  });
+  S.transport=!!document.getElementById('transportToggle')?.checked;
+  S.capex=!!document.getElementById('capexToggle')?.checked;
+  S.opex=!!document.getElementById('opexToggle')?.checked;
+  document.getElementById('transportDetail').style.display=S.transport?'block':'none';
+  document.getElementById('capexDetail').style.display=S.capex?'block':'none';
+  document.getElementById('opexDetail').style.display=S.opex?'block':'none';
+  if(S.transport) renderRutas();
+  renderOpexPersonal(); renderOpexEquipo();
+  checkHazmat(); checkTemp(); checkPosDisponibles();
+  return true;
+}
+
 function autoSave(){
-  try{
-    const d={type:S.type,storageFmt:S.storageFmt,fields:{},
-      opexPersonal:OPEX.personal,opexEquipo:OPEX.equipo};
-    ['clientName','vendedor','vigencia','tradeName','startDate','contactName','contactPhone',
-     'contactEmail','tipoMercancia','temperatura','uom','palletType','rotacion','segregacion',
-     'trazabilidad','vencimiento','totalSkus','pctUnidad','obsCargas','posPromedio','posPico',
-     'capexMonto','capexMeses'].forEach(id=>{
-      const el=document.getElementById(id);
-      if(el) d.fields[id]=el.value;
-    });
-    ['transportToggle','manejoIn','manejoOut','vehManejoToggle','capexToggle','opexToggle'].forEach(id=>{
-      const el=document.getElementById(id);
-      if(el) d.fields[id]=el.checked;
-    });
-    // Forecast inputs
-    document.querySelectorAll('#forecastBody input').forEach(el=>{if(el.id)d.fields[el.id]=el.value;});
-    // Doc selections
-    d.docs={};
-    document.querySelectorAll('.doc-item.selected').forEach(el=>{d.docs[el.dataset.doc]=true;});
-    localStorage.setItem(AUTOSAVE_KEY,JSON.stringify(d));
-  }catch(e){}
+  try{ localStorage.setItem(AUTOSAVE_KEY,JSON.stringify(capturarEntrada())); }catch(e){}
 }
 function restoreDraft(){
   try{
     const raw=localStorage.getItem(AUTOSAVE_KEY);
     if(!raw) return false;
     const d=JSON.parse(raw);
-    if(!d.type) return false;
-    Object.entries(d.fields||{}).forEach(([id,val])=>{
-      const el=document.getElementById(id);
-      if(!el) return;
-      if(typeof val==='boolean') el.checked=val;
-      else el.value=val;
-    });
-    if(d.type) selType(d.type,true);
-    if(d.storageFmt) selStorage(d.storageFmt,true);
-    OPEX.personal=d.opexPersonal||[];
-    OPEX.equipo=d.opexEquipo||[];
-    return true;
+    if(!d.type&&!d.std) return false;
+    return aplicarEntrada(d);
   }catch(e){return false;}
 }
 function clearDraft(){localStorage.removeItem(AUTOSAVE_KEY);}
@@ -2249,19 +2232,24 @@ function goTo(n){
   
   // Update sidebar
   updateSidebar(n);
-  if(n===4) updateMORefBar();
+  if(n===3){
+    updateMORefBar();
+    const q=calcularCotizacion();
+    S.lastQuote=q;
+    renderQuoteResult(q);
+  }
+  updateLiveKpis();
 }
 
 function safeGoTo(n){
   // Only allow going to steps that are unlocked
-  if(n>1&&!S.type)return;
-  if(n>2&&!S.storageFmt&&S.type!=='vehiculos')return;
+  if(n>1&&!S.type&&!S.std)return;
   goTo(n);
 }
 
 function updateSidebar(activeStep){
   // Now updates the horizontal progress bar instead of sidebar
-  for(let i=1;i<=5;i++){
+  for(let i=1;i<=3;i++){
     const step=document.getElementById('ps-'+i);
     const icon=document.getElementById('psi-'+i);
     if(!step) continue;
@@ -2284,6 +2272,8 @@ function toggleCollapse(id){
 // ── TYPE & STORAGE SELECTION ─────────────────────────────────
 function selType(type, silent=false){
   S.type=type;
+  S.std=false;
+  if(!S.storageFmt) selStorage('pallet_pos',true);
   // Update cards
   document.querySelectorAll('.type-card[id^="tc-"]').forEach(c=>{
     c.classList.toggle('selected',c.id==='tc-'+type);
@@ -2292,7 +2282,7 @@ function selType(type, silent=false){
   const isVeh=type==='vehiculos';
   document.getElementById('op-carga').style.display=isVeh?'none':'block';
   document.getElementById('op-vehiculos').style.display=isVeh?'block':'none';
-  document.getElementById('btnGoStep3').disabled=false;
+  document.getElementById('btnGoStep2').disabled=false;
   
   // Update step 3 for type
   renderForecast();
@@ -2306,7 +2296,14 @@ function selStorage(fmt, silent=false){
   document.querySelectorAll('.type-card[id^="sf-"]').forEach(c=>{
     c.classList.toggle('selected',c.id==='sf-'+fmt);
   });
-  if(!silent) autoSave();
+  // Pallet position se factura con las posiciones; los demás formatos piden su propia cantidad
+  const AQ={m2:['Área dedicada','m²'],cbm:['Volumen promedio en stock','CBM (se cobra × 30 días)'],bulto:['Bultos en stock (pico)','bultos']}[fmt];
+  const w=document.getElementById('almacQtyWrap');
+  if(w){
+    w.style.display=AQ?'':'none';
+    if(AQ){ document.getElementById('almacQtyLabel').textContent=AQ[0]; document.getElementById('almacQtyUnit').textContent=AQ[1]; }
+  }
+  if(!silent) recalcular();
 }
 
 function updateStep3ForType(){
@@ -2363,10 +2360,6 @@ function renderForecast(){
       {id:'f_cont40p',label:"Contenedores 40' paletizados",unit:'cont/mes'},
       {id:'f_cont20p',label:"Contenedores 20' paletizados",unit:'cont/mes'},
     ]);
-    html+=buildVolSection('Almacenaje',[
-      {id:'f_pallets',label:'Pallets en stock (promedio)',unit:'pallets'},
-      {id:'f_palletsPico',label:'Pallets en stock (pico)',unit:'pallets'},
-    ]);
     html+=buildVolSection('Salida',[
       {id:'f_contSal40p',label:"Contenedores salida 40' paletizados",unit:'cont/mes'},
       {id:'f_contSal20p',label:"Contenedores salida 20' paletizados",unit:'cont/mes'},
@@ -2377,11 +2370,6 @@ function renderForecast(){
       {id:'f_cont20p',label:"Contenedores 20' paletizados",unit:'cont/mes'},
       {id:'f_cont40g',label:"Contenedores 40' a granel",unit:'cont/mes'},
       {id:'f_cont20g',label:"Contenedores 20' a granel",unit:'cont/mes'},
-    ]);
-    html+=buildVolSection('Almacenaje',[
-      {id:'f_pallets',label:'Pallets en stock (promedio)',unit:'pallets'},
-      {id:'f_palletsPico',label:'Pallets en stock (pico)',unit:'pallets'},
-      {id:'f_bultosPico',label:'Bultos en stock (pico)',unit:'bultos'},
     ]);
     html+=buildVolSection('Salida',[
       {id:'f_bultosSal',label:'Bultos despachados',unit:'bultos/mes'},
@@ -2399,10 +2387,6 @@ function renderForecast(){
       {id:'f_cont40g',label:"Contenedores 40' a granel",unit:'cont/mes'},
       {id:'f_cont20g',label:"Contenedores 20' a granel",unit:'cont/mes'},
     ]);
-    html+=buildVolSection('Almacenaje',[
-      {id:'f_pallets',label:'Pallets en stock (promedio)',unit:'pallets'},
-      {id:'f_palletsPico',label:'Pallets en stock (pico)',unit:'pallets'},
-    ]);
     html+=buildVolSection('Salida / Picking',[
       {id:'f_unidades',label:'Unidades pickeadas',unit:'un/mes'},
       {id:'f_bultosSal',label:'Bultos despachados',unit:'bultos/mes'},
@@ -2415,11 +2399,6 @@ function renderForecast(){
       {id:'f_cont40g',label:"Contenedores 40' a granel",unit:'cont/mes'},
       {id:'f_cont20g',label:"Contenedores 20' a granel",unit:'cont/mes'},
     ]);
-    html+=buildVolSection('Almacenaje',[
-      {id:'f_pallets',label:'Pallets en stock (promedio)',unit:'pallets'},
-      {id:'f_palletsPico',label:'Pallets en stock (pico)',unit:'pallets'},
-      {id:'f_bultosPico',label:'Bultos en stock (pico)',unit:'bultos'},
-    ]);
     html+=buildVolSection('Salida',[
       {id:'f_bultosSal',label:'Bultos despachados',unit:'bultos/mes'},
       {id:'f_unidades',label:'Unidades pickeadas',unit:'un/mes'},
@@ -2430,8 +2409,6 @@ function renderForecast(){
   }
   
   body.innerHTML=html;
-  // Auto-sync posiciones → forecast after rendering
-  setTimeout(syncPosToForecast, 10);
 }
 
 function buildVolSection(title, fields){
@@ -2440,8 +2417,8 @@ function buildVolSection(title, fields){
   fields.forEach(f=>{
     html+=`<div class="vol-card">
       <div class="vol-label">${f.label}</div>
-      ${f.prefix?`<div style="display:flex;align-items:center;justify-content:center;gap:4px"><span style="font-size:.8rem;color:var(--mid)">${f.prefix}</span><input type="number" class="vol-input" id="${f.id}" min="0" placeholder="0" style="width:auto;flex:1" oninput="autoSave();updateLiveKpis()"></div>`
-      :`<input type="number" class="vol-input" id="${f.id}" min="0" placeholder="0" oninput="autoSave();updateLiveKpis()">`}
+      ${f.prefix?`<div style="display:flex;align-items:center;justify-content:center;gap:4px"><span style="font-size:.8rem;color:var(--mid)">${f.prefix}</span><input type="number" class="vol-input" id="${f.id}" min="0" placeholder="0" style="width:auto;flex:1" oninput="onVolChange()"></div>`
+      :`<input type="number" class="vol-input" id="${f.id}" min="0" placeholder="0" oninput="onVolChange()">`}
       <div class="vol-unit">${f.unit}</div>
     </div>`;
   });
@@ -2467,32 +2444,32 @@ function renderDocs(){
         <div class="doc-name">${doc.label}</div>
         <div class="doc-desc">${doc.desc}</div>
       </div>
-      <div class="doc-price">$${doc.price.toFixed(2)}</div>
+      <div class="doc-price">$${(TARIFAS[key]?.cost||0).toFixed(2)}</div>
     </div>
     <div class="doc-detail" id="ddt-${key}">
-      <select class="finput" id="dfreq-${key}" style="flex:1;min-width:120px">
+      <select class="finput" id="dfreq-${key}" style="flex:1;min-width:120px" onchange="onVolChange()">
         <option value="embarque">Por embarque / BL</option>
         <option value="contenedor">Por contenedor</option>
         <option value="despacho">Por despacho</option>
       </select>
       <div class="finput-prefix" style="width:90px">
         
-        <input type="number" id="dqty-${key}" min="1" placeholder="1" style="width:50px">
+        <input type="number" id="dqty-${key}" min="1" placeholder="1" title="Documentos por mes" style="width:50px" oninput="onVolChange()">
       </div>
     </div>`;
   });
   container.innerHTML=html;
+  const lbl=(id,k)=>{const el=document.getElementById(id); if(el) el.textContent='$'+(TARIFAS[k]?.cost||0).toFixed(2);};
+  lbl('lblManejoIn','manejoIn'); lbl('lblManejoOut','manejoOut'); lbl('lblVehManejo','vehManejo');
 }
 
-function toggleDoc(key){
+function toggleDoc(key,on){
   const item=document.getElementById('doc-'+key);
   const detail=document.getElementById('ddt-'+key);
-  const check=document.getElementById('dck-'+key);
   if(!item) return;
-  const selected=item.classList.toggle('selected');
+  const selected=item.classList.toggle('selected',on===undefined?undefined:on);
   if(detail) detail.classList.toggle('show',selected);
-  if(check) check.textContent='';
-  autoSave();
+  if(on===undefined) onVolChange();
 }
 
 
@@ -2508,6 +2485,7 @@ function toggleTransport(){
   const d=document.getElementById('transportDetail');
   if(d) d.style.display=S.transport?'block':'none';
   if(S.transport) renderRutas();
+  recalcular();
 }
 
 function renderRutas(){
@@ -2516,7 +2494,7 @@ function renderRutas(){
   c.innerHTML=_rutasData.map((r,i)=>`
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:10px 12px;background:var(--light);border-radius:8px;border:1.5px solid var(--border);flex-wrap:wrap">
       <label class="toggle-switch" style="flex-shrink:0">
-        <input type="checkbox" id="rt-${i}" ${r.selected?'checked':''} onchange="_rutasData[${i}].selected=this.checked;autoSave()">
+        <input type="checkbox" id="rt-${i}" ${r.selected?'checked':''} onchange="_rutasData[${i}].selected=this.checked;recalcular()">
         <span class="toggle-slider"></span>
       </label>
       <div style="flex:1;min-width:120px">
@@ -2528,204 +2506,127 @@ function renderRutas(){
         
         <input type="number" value="${r.tarifa}" min="0" step="5"
           style="width:55px;padding:6px 8px;font-size:.82rem;border:none"
-          oninput="_rutasData[${i}].tarifa=parseFloat(this.value)||0;autoSave()">
+          oninput="_rutasData[${i}].tarifa=parseFloat(this.value)||0;recalcular()" title="Tarifa al cliente por viaje">
+      </div>
+      <div class="finput-prefix" style="width:90px">
+        <input type="number" value="${r.costo||''}" min="0" step="5" placeholder="Costo"
+          style="width:55px;padding:6px 8px;font-size:.82rem;border:none"
+          oninput="_rutasData[${i}].costo=parseFloat(this.value)||0;recalcular()" title="Costo del transportista por viaje">
       </div>
       <div class="finput-prefix" style="width:70px">
         
         <input type="number" value="${r.qty}" min="1"
           style="width:35px;padding:6px 8px;font-size:.82rem;border:none"
-          oninput="_rutasData[${i}].qty=parseInt(this.value)||1;autoSave()">
+          oninput="_rutasData[${i}].qty=parseInt(this.value)||1;recalcular()" title="Viajes por mes">
       </div>
-      ${r.custom?`<button onclick="_rutasData.splice(${i},1);renderRutas()" style="background:none;border:none;color:#CBD5E1;font-size:.9rem;cursor:pointer;padding:4px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='#CBD5E1'">×</button>`:''}
+      ${r.custom?`<button onclick="_rutasData.splice(${i},1);renderRutas();recalcular()" style="background:none;border:none;color:#CBD5E1;font-size:.9rem;cursor:pointer;padding:4px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='#CBD5E1'">×</button>`:''}
     </div>`).join('');
 }
 
 function addRuta(){
-  _rutasData.push({id:'custom-'+Date.now(),label:'Ruta personalizada',tarifa:0,qty:1,selected:true,custom:true});
+  _rutasData.push({id:'custom-'+Date.now(),label:'Ruta personalizada',tarifa:0,costo:0,qty:1,selected:true,custom:true});
   renderRutas();
+  recalcular();
 }
 
 
-// ── CAPEX / OPEX ──────────────────────────────────────────────
+// ── BUSINESS CASE: CAPEX / OPEX ───────────────────────────────
+// Reglas únicas del business case (las mismas en barra en vivo, resultado, guardado y PDF):
+// · Costos fijos de bodega = posiciones × (costos fijos totales ÷ capacidad total de la bodega).
+// · El personal dedicado REEMPLAZA la mano de obra por productividad de los servicios; los equipos
+//   dedicados reemplazan el costo de equipo (FK) por productividad. No se suman.
+// · El CAPEX se amortiza en el plazo del contrato, con tasa de financiamiento opcional.
+const HP_DIA=7, DIAS_MES=22;
+const LABOR_KEYS=new Set(['desc40p','desc20p','desc40g','desc20g','recepPal','recepBul','putaway','almacPos',
+  'pickBul','pickUni','prepOrd','carga40p','carga20p','carga40g','carga20g']);
+const fmUSD=n=>'$'+(parseFloat(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const r2=n=>Math.round((n||0)*100)/100;
+
 function toggleCapex(){
   S.capex=document.getElementById('capexToggle').checked;
   document.getElementById('capexDetail').style.display=S.capex?'block':'none';
-  if(S.capex) calcCapex();
+  calcCapex();
+}
+
+function capexCuota(monto,meses,tasaAnual){
+  if(!monto||!meses) return 0;
+  const i=(tasaAnual||0)/100/12;
+  return r2(i>0?monto*i/(1-Math.pow(1+i,-meses)):monto/meses);
 }
 
 function calcCapex(){
   const monto=parseFloat(document.getElementById('capexMonto')?.value)||0;
-  const meses=parseInt(document.getElementById('capexMeses')?.value)||12;
-  S.capexMonto=monto;
-  S.capexMeses=meses;
-  S.capexMensual=meses>0?Math.round(monto/meses*100)/100:0;
+  const meses=parseInt(document.getElementById('contratoMeses')?.value)||12;
+  const tasa=parseFloat(document.getElementById('capexTasa')?.value)||0;
+  S.capexMonto=monto;S.capexMeses=meses;S.capexTasa=tasa;
+  S.capexMensual=S.capex?capexCuota(monto,meses,tasa):0;
   const res=document.getElementById('capexResult');
   const txt=document.getElementById('capexResultText');
-  if(res&&txt&&monto>0){
-    res.classList.remove('hidden');
-    const fm=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-    txt.innerHTML=`Amortización mensual: <strong>${fm(S.capexMensual)}/mes</strong> durante ${meses} meses (total: ${fm(monto)})`;
+  if(res&&txt){
+    res.classList.toggle('hidden',!(S.capex&&monto>0));
+    txt.innerHTML=`Cuota mensual: <strong>${fmUSD(S.capexMensual)}/mes</strong> durante ${meses} meses (inversión ${fmUSD(monto)}${tasa>0?', tasa '+tasa+'% anual':', sin financiamiento'})`;
   }
+  recalcular();
 }
 
 function toggleOpex(){
   S.opex=document.getElementById('opexToggle').checked;
   document.getElementById('opexDetail').style.display=S.opex?'block':'none';
   if(S.opex) updateMORefBar();
+  recalcular();
 }
 
 function updateMORefBar(){
-  const mo=getGlobalMO(), fk=getGlobalFK();
   const moEl=document.getElementById('moRefVal');
   const fkEl=document.getElementById('fkRefVal');
-  if(moEl) moEl.textContent='$'+mo.toFixed(2);
-  if(fkEl) fkEl.textContent='$'+fk.toFixed(2);
+  if(moEl) moEl.textContent='$'+getGlobalMO().toFixed(2);
+  if(fkEl) fkEl.textContent='$'+getGlobalFK().toFixed(2);
 }
 
+// Personal dedicado sugerido: horas-hombre que piden los volúmenes (desde Productividades)
 function calcMOSugerida(){
-  const type=S.type||'pallet';
-  const mo=getGlobalMO();
-  const dias=22;
-  const hp=7; // horas productivas/día
-
-  // Read volumes from Paso 3 inputs
-  const gv=id=>parseFloat(document.getElementById(id)?.value)||0;
-
-  let hEntrada=0, hSalida=0;
-
-  // Productividades efectivas desde PROD_TASKS
-  function prodEf(cat,unit){
-    const tasks=PROD_TASKS.filter(t=>t.cat===cat&&t.unit===unit);
-    if(!tasks.length) return null;
-    const totalH=tasks.reduce((s,t)=>s+(t.prod>0?(1/t.prod)*t.ops:0),0);
-    return totalH>0?1/totalH:null;
+  const q=calcularCotizacion();
+  const hrs=q.bloques?.hrsMO||0;
+  if(hrs<=0){ showToast('Ingresa volúmenes de entrada o salida primero','warn'); return; }
+  const hMes=HP_DIA*DIAS_MES;
+  const personas=Math.ceil(hrs/hMes);
+  const costo=r2(getGlobalMO()*hMes);
+  if(!document.getElementById('opexToggle').checked){
+    document.getElementById('opexToggle').checked=true;
+    S.opex=true;
+    document.getElementById('opexDetail').style.display='block';
+    updateMORefBar();
   }
-
-  const pPal  = prodEf('entrada','pallet')  || 9.6;
-  const pBul  = prodEf('entrada','bulto')   || 42.9;
-  const pSalP = prodEf('salida','pallet')   || 10.4;
-  const pSalB = prodEf('salida','bulto')    || 42.9;
-  const pSalU = prodEf('salida','unidad')   || 67.5;
-
-  if(type==='pallet'||type==='mixto'){
-    const palIn  = gv('cont40p')*40 + gv('cont20p')*20 + gv('bultosRec')*0;
-    const palOut = gv('contSal40p')*40 + gv('contSal20p')*20;
-    hEntrada += palIn  / pPal;
-    hSalida  += palOut / pSalP;
-  }
-  if(type==='bulto'||type==='mixto'){
-    hEntrada += gv('bultosRec')  / pBul;
-    hSalida  += gv('bultosDesp') / pSalB;
-  }
-  if(type==='unit'||type==='mixto'){
-    hEntrada += (gv('uniRec')||gv('bultosRec'))  / pBul;
-    hSalida  += (gv('uniDesp')||gv('bultosDesp')) / pSalU;
-  }
-
-  const hTotal = hEntrada + hSalida;
-  if(hTotal <= 0){
-    showToast('Ingresa volúmenes en el Paso 3 primero','warn');
-    return;
-  }
-
-  const personas = Math.ceil(hTotal / (hp * dias));
-  const costoMes = Math.round(personas * mo * hp * dias * 100) / 100;
-  const utilizacion = hTotal / (personas * hp * dias) * 100;
-
-  // Pre-fill OPEX
-  if(personas > 0){
-    if(!document.getElementById('opexToggle').checked){
-      document.getElementById('opexToggle').checked=true;
-      toggleOpex();
-    }
-    OPEX.personal=[{nombre:'Operador 3PL (sugerido)',costo:costoMes}];
-    renderOpexPersonal();
-  }
-
-  // Show utilization indicator
-  const uEl=document.getElementById('moUtilizacion');
-  if(uEl){
-    const color=utilizacion>=80&&utilizacion<=110?'#065F46':utilizacion>=60&&utilizacion<=130?'#92400E':'#9B1C1C';
-    const bg=utilizacion>=80&&utilizacion<=110?'#D1FAE5':utilizacion>=60&&utilizacion<=130?'#FEF3C7':'#FEE2E2';
-    const icon=utilizacion>=80&&utilizacion<=110?'':utilizacion>=60&&utilizacion<=130?'':'';
-    uEl.style.display='block';
-    uEl.style.background=bg;
-    uEl.style.color=color;
-    uEl.innerHTML=`${icon} <strong>Sugerencia:</strong> ${personas} persona(s) · ${hTotal.toFixed(0)}h/mes necesarias · `+
-      `Utilización estimada: <strong>${utilizacion.toFixed(0)}%</strong> · `+
-      `Costo MO: <strong>$${costoMes.toLocaleString('en-US',{minimumFractionDigits:2})}/mes</strong>`;
-  }
-}
-
-function renderOpexPersonal(){
-  const c=document.getElementById('opexPersonalList');
-  if(!c) return;
-  c.innerHTML=OPEX.personal.map((p,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-      <div class="finput-prefix" style="flex:1">
-        
-        <input type="text" value="${p.nombre}" placeholder="Cargo / nombre" style="flex:1;padding:9px 10px;border:none;font-size:.82rem"
-          onchange="OPEX.personal[${i}].nombre=this.value;autoSave()">
-      </div>
-      <div class="finput-prefix" style="width:110px">
-        
-        <input type="number" value="${p.costo}" min="0" step="50" style="width:70px;padding:9px 8px;border:none;font-size:.82rem;text-align:right"
-          oninput="OPEX.personal[${i}].costo=parseFloat(this.value)||0;updateOpexTotal();autoSave()">
-      </div>
-      <button class="btn-del-row" onclick="OPEX.personal.splice(${i},1);renderOpexPersonal();updateOpexTotal()">×</button>
-    </div>`).join('');
-  updateOpexTotal();
-}
-
-function renderOpexEquipo(){
-  const c=document.getElementById('opexEquipoList');
-  if(!c) return;
-  c.innerHTML=OPEX.equipo.map((e,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-      <div class="finput-prefix" style="flex:1">
-        
-        <input type="text" value="${e.nombre}" placeholder="Equipo / descripción" style="flex:1;padding:9px 10px;border:none;font-size:.82rem"
-          onchange="OPEX.equipo[${i}].nombre=this.value;autoSave()">
-      </div>
-      <div class="finput-prefix" style="width:110px">
-        
-        <input type="number" value="${e.costo}" min="0" step="50" style="width:70px;padding:9px 8px;border:none;font-size:.82rem;text-align:right"
-          oninput="OPEX.equipo[${i}].costo=parseFloat(this.value)||0;updateOpexTotal();autoSave()">
-      </div>
-      <button class="btn-del-row" onclick="OPEX.equipo.splice(${i},1);renderOpexEquipo();updateOpexTotal()">×</button>
-    </div>`).join('');
-  updateOpexTotal();
-}
-
-function addOpexPersonal(){
-  OPEX.personal.push({nombre:'',costo:0});
+  OPEX.personal=Array.from({length:personas},(_,i)=>({nombre:'Operador dedicado '+(i+1),costo}));
   renderOpexPersonal();
-}
-function addOpexEquipo(){
-  OPEX.equipo.push({nombre:'',costo:0});
-  renderOpexEquipo();
+  recalcular();
 }
 
-function updateOpexTotal(){
-  S.opexMensual=OPEX.personal.reduce((s,p)=>s+p.costo,0)+OPEX.equipo.reduce((s,e)=>s+e.costo,0);
-  const el=document.getElementById('opexTotal');
-  const txt=document.getElementById('opexTotalText');
-  if(el&&txt){
-    el.classList.toggle('hidden',S.opexMensual===0);
-    const fm=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-    const moRef=getGlobalMO()*7*22;
-    const personasEquiv=moRef>0?S.opexMensual/moRef:0;
-    txt.innerHTML=`Total OPEX exclusivo: <strong>${fm(S.opexMensual)}/mes</strong>`+
-      (personasEquiv>0?` <span style="color:#64748B;font-size:.85em">(≈ ${personasEquiv.toFixed(1)} personas)</span>`:'');
-  }
+function renderOpexPersonal(){ renderOpexList('personal','opexPersonalList','Cargo / nombre'); }
+function renderOpexEquipo(){ renderOpexList('equipo','opexEquipoList','Equipo / descripción'); }
+function renderOpexList(tipo,elId,ph){
+  const c=document.getElementById(elId);
+  if(!c) return;
+  c.innerHTML=OPEX[tipo].map((p,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <div class="finput-prefix" style="flex:1">
+        <input type="text" value="${p.nombre||''}" placeholder="${ph}" style="flex:1;padding:9px 10px;border:none;font-size:.82rem"
+          onchange="OPEX.${tipo}[${i}].nombre=this.value;recalcular()">
+      </div>
+      <div class="finput-prefix" style="width:110px">
+        <input type="number" value="${p.costo||0}" min="0" step="50" style="width:70px;padding:9px 8px;border:none;font-size:.82rem;text-align:right"
+          oninput="OPEX.${tipo}[${i}].costo=parseFloat(this.value)||0;recalcular()">
+      </div>
+      <button class="btn-del-row" onclick="OPEX.${tipo}.splice(${i},1);renderOpexList('${tipo}','${elId}','${ph}');recalcular()">×</button>
+    </div>`).join('');
 }
+function addOpexPersonal(){ OPEX.personal.push({nombre:'',costo:0}); renderOpexPersonal(); }
+function addOpexEquipo(){ OPEX.equipo.push({nombre:'',costo:0}); renderOpexEquipo(); }
 
-
-// ── VALIDATIONS ───────────────────────────────────────────────
 function checkHazmat(){
   const v=document.getElementById('tipoMercancia')?.value;
   document.getElementById('hazmatAlert')?.classList.toggle('hidden',v!=='hazmat');
-  autoSave();
+  onVolChange();
 }
 function checkTemp(){
   const v=document.getElementById('temperatura')?.value;
@@ -2733,451 +2634,330 @@ function checkTemp(){
   autoSave();
 }
 
+function costosFijosTotal(){ return ADMIN.costos?.reduce((s,c)=>s+(c.monto||0),0)||0; }
+function costoPorPosicion(){
+  const cap=ADMIN.totalPos||1716;
+  return cap>0?costosFijosTotal()/cap:0;
+}
+function posicionesOcupadas(){ return ADMIN.cuentas?.reduce((s,c)=>s+(c.pos||0),0)||0; }
+
 function checkPosDisponibles(){
-  const prom=parseFloat(document.getElementById('posPromedio')?.value)||0;
-  const pico=parseFloat(document.getElementById('posPico')?.value)||0;
+  const prom=gv('posPromedio'), pico=gv('posPico');
   const info=document.getElementById('posDisponiblesInfo');
   if(!info) return;
   if(!prom&&!pico){ info.style.display='none'; return; }
-
   const totalPos=ADMIN.totalPos||1716;
-  const pos=prom||pico;
-  const pct=Math.min(100,Math.round(pos/totalPos*1000)/10);
-  const totalCF=ADMIN.costos?.reduce((s,c)=>s+c.monto,0)||0;
-  const montoGF=totalCF>0?Math.round(totalCF*pct/100*100)/100:0;
-  const fm=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-
-  // Build cuentas breakdown string
-  let cuentasInfo='';
-  if(ADMIN.cuentas&&ADMIN.cuentas.length){
-    const usedPos=ADMIN.cuentas.reduce((s,c)=>s+(c.pos||0),0);
-    if(usedPos>0){
-      const rows=ADMIN.cuentas.filter(c=>c.nombre).map(c=>{
-        const cPct=Math.round(c.pos/usedPos*100*10)/10;
-        const cMonto=Math.round(totalCF*cPct/100*100)/100;
-        return '&bull; '+c.nombre+': '+cPct+'% &rarr; '+fm(cMonto)+'/mes';
-      }).join('<br>');
-      if(rows) cuentasInfo='<div style="margin-top:6px;font-size:.72rem;color:var(--mid)"><strong style="color:var(--ink)">Reparto cuentas:</strong><br>'+rows+'</div>';
-    }
-  }
-
-  const disponibles=Math.max(0,totalPos-pos);
-  const alertType=pico>totalPos?'danger':pico>totalPos*0.85?'warn':'success';
-  const alertIcon=alertType==='danger'?'':alertType==='warn'?'':'';
-
-  let msg='<strong>'+pos+' posiciones = '+pct+'% de la bodega</strong>';
-  if(disponibles>0) msg+='<br>'+disponibles+' posiciones disponibles';
-  else msg+=' — ¡Capacidad máxima!';
-  if(totalCF>0) msg+='<br>Costos fijos imputados: <strong>'+fm(montoGF)+'/mes</strong> ('+pct+'% de '+fm(totalCF)+')';
+  const libres=Math.max(0,totalPos-posicionesOcupadas());
+  const pos=prom||pico, max=Math.max(prom,pico);
+  const pct=Math.round(pos/totalPos*1000)/10;
+  const cpp=costoPorPosicion();
+  const tipo=max>libres?'danger':max>libres*0.85?'warn':'success';
+  let msg='<strong>'+pos+' posiciones = '+pct+'% de la capacidad de la bodega</strong>';
+  msg+='<br>Disponibles hoy: '+libres+' de '+totalPos+(max>libres?' — <strong>el pico no cabe</strong>':'');
+  if(cpp>0) msg+='<br>Costos fijos imputados: <strong>'+fmUSD(pos*cpp)+'/mes</strong> ('+fmUSD(cpp)+' por posición)';
   else msg+='<br><em style="color:var(--mid)">Configura costos fijos en Insights</em>';
-  msg+=cuentasInfo;
-
   info.style.display='block';
-  info.innerHTML='<div class="alert '+alertType+'" style="margin-top:8px"><div>'+msg+'</div></div>';
-}// Calculate gasto fijo % based on declared positions
+  info.innerHTML='<div class="alert '+tipo+'" style="margin-top:8px"><div>'+msg+'</div></div>';
+}
 
-
-// ── QUOTE ENGINE ──────────────────────────────────────────────
-function calcAndShow(){
-  const q={};
-  q.client=document.getElementById('clientName')?.value?.trim()||'Cliente';
-  q.seller=document.getElementById('vendedor')?.value?.trim()||'—';
-  q.vigencia=document.getElementById('vigencia')?.value||30;
-  q.type=S.type||'pallet';
-  q.storageFmt=S.storageFmt||'pallet_pos';
-  q.tipoMerc=document.getElementById('tipoMercancia')?.value||'';
-  q.today=new Date().toLocaleDateString('es-PA',{day:'2-digit',month:'long',year:'numeric'});
-  q.numero=S._editingCotNumero||null;
-  q.temperatura=document.getElementById('temperatura')?.value||'Ambiente';
-  q.uom=document.getElementById('uom')?.value||'—';
-  q.rotacion=document.getElementById('rotacion')?.value||'—';
-  q.trazabilidad=document.getElementById('trazabilidad')?.value||'—';
-  q.totalSkus=document.getElementById('totalSkus')?.value||'—';
-  q.posPromedio=document.getElementById('posPromedio')?.value||'—';
-  q.posPico=document.getElementById('posPico')?.value||'—';
-  q.contactName=document.getElementById('contactName')?.value||'';
-  q.contactEmail=document.getElementById('contactEmail')?.value||'';
-  q.contactPhone=document.getElementById('contactPhone')?.value||'';
-  q.startDate=document.getElementById('startDate')?.value||'';
-  
-  const fm=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  
-  let totT=0,totC=0;
+// ── MOTOR DE COTIZACIÓN ───────────────────────────────────────
+// Única fuente de verdad: lee el formulario + S.ovr (tarifas editadas), S.removed (rubros quitados),
+// S.extra (rubros agregados) y OPEX/CAPEX, y devuelve venta, costos por bloque y margen.
+function calcularCotizacion(){
+  const val=id=>document.getElementById(id)?.value;
+  const q={
+    client:val('clientName')?.trim()||(S.std?'Referencia de mercado':'Cliente'),
+    seller:val('vendedor')?.trim()||'—',
+    vigencia:val('vigencia')||30,
+    type:S.std?'mixto':(S.type||'pallet'),
+    storageFmt:S.storageFmt||'pallet_pos',
+    tipoMerc:S.std?'':(val('tipoMercancia')||''),
+    today:new Date().toLocaleDateString('es-PA',{day:'2-digit',month:'long',year:'numeric'}),
+    numero:S._editingCotNumero||null,
+    temperatura:val('temperatura')||'Ambiente',
+    uom:val('uom')||'—', rotacion:val('rotacion')||'—', trazabilidad:val('trazabilidad')||'—',
+    totalSkus:val('totalSkus')||'—', posPromedio:val('posPromedio')||'—', posPico:val('posPico')||'—',
+    contactName:val('contactName')||'', contactEmail:val('contactEmail')||'', contactPhone:val('contactPhone')||'',
+    startDate:val('startDate')||'', isStd:!!S.std,
+  };
+  const ovr=S.ovr||{}, removed=new Set(S.removed||[]);
+  const dedMO=!q.isStd&&S.opex&&OPEX.personal.some(p=>p.costo>0);
+  const dedEq=!q.isStd&&S.opex&&OPEX.equipo.some(e=>e.costo>0);
   const lines=[];
-  const alerts=[];
-  
-  function add(key,qty,customName){
-    const t=TARIFAS[key]; if(!t||!qty) return;
-    const cb=CB[key]||0;
-    const sub=Math.round(t.cost*qty*100)/100;
-    const costoB=Math.round(cb*qty*100)/100;
-    totT+=sub; totC+=costoB;
-    lines.push({name:customName||t.label,unit:t.unit,qty,rate:t.cost,sub,costoB,key});
+  let moProd=0,moReemp=0,fkReemp=0,hrsMO=0;
+
+  function push(id,key,name,unit,qty,rate,costoUnit){
+    if(!qty||removed.has(id)) return;
+    const r=ovr[id]!=null?ovr[id]:rate;
+    let costo=r2((costoUnit||0)*qty);
+    if(key&&LABOR_KEYS.has(key)){
+      const mo=Math.min(costo,r2((CB_MO[key]||0)*qty)), fk=costo-mo;
+      hrsMO+=(HRS[key]||0)*qty; moProd+=mo;
+      if(dedMO){costo-=mo;moReemp+=mo;}
+      if(dedEq){costo-=fk;fkReemp+=fk;}
+    }
+    lines.push({id,key,name,unit,qty,rate:r,rateBase:rate,sub:r2(r*qty),costoB:r2(Math.max(0,costo))});
   }
-  
+  const T=k=>TARIFAS[k]||{label:k,unit:'',cost:0};
+  const add=(key,qty,name)=>push(key,key,name||T(key).label,T(key).unit,qty,T(key).cost,CB[key]||0);
+
+  let fijo=0,posRef=0,cpp=0,nombreFijo='';
   const isVeh=q.type==='vehiculos';
-  
-  if(isVeh){
-    // Vehicle operations
-    const cbv=ADMIN.cbVeh||{};
-    Object.keys(cbv).forEach(k=>{if(TARIFAS[k])CB[k]=cbv[k];});
-    const vDesc=gv('f_vehDescQty'),vCarga=gv('f_vehCargaQty'),vCont=gv('f_contIn40')+gv('f_contIn20')+gv('f_contOut40')+gv('f_contOut20');
+
+  if(q.isStd){
+    TARIFA_GROUPS.filter(g=>g.label!=='Vehículos').forEach(g=>g.keys.forEach(k=>{
+      if(T(k).cost>0) push(k,k,T(k).label,T(k).unit,1,T(k).cost,0);
+    }));
+  }else if(isVeh){
+    Object.entries(ADMIN.cbVeh||{}).forEach(([k,v])=>{ if(TARIFAS[k]) CB[k]=v; });
+    const vCont=gv('f_contIn40')+gv('f_contIn20')+gv('f_contOut40')+gv('f_contOut20');
     const vPatio=gv('f_vehPatio'),vDias=gv('f_vehDias');
     const vCifVal=gv('f_vehCifVal'),vCifQty=gv('f_vehCifQty');
-    const vRutas=gv('f_rutasConductor');
-    if(vDesc) add('vehDesc',vDesc);
-    if(vCarga) add('vehCarga',vCarga);
-    if(vCont&&document.getElementById('vehManejoToggle')?.checked) add('vehManejo',vCont);
-    if(vPatio&&vDias){
-      const days=vPatio*vDias;
-      const tarifa=TARIFAS['vehAlmac']?.cost||7.50;
-      const cb=CB['vehAlmac']||2.00;
-      const sub=Math.round(tarifa*days*100)/100;
-      const costo=Math.round(cb*days*100)/100;
-      totT+=sub;totC+=costo;
-      lines.push({name:`Almacenaje en patio (${vPatio} veh × ${vDias} días)`,unit:'/mes',qty:1,rate:sub,sub,costoB:costo,key:'vehAlmac'});
-    }
+    add('vehDesc',gv('f_vehDescQty'));
+    add('vehCarga',gv('f_vehCargaQty'));
+    if(document.getElementById('vehManejoToggle')?.checked) add('vehManejo',vCont);
+    if(vPatio&&vDias) add('vehAlmac',vPatio*vDias,`Almacenaje en patio (${vPatio} veh × ${vDias} días)`);
     if(vCifVal&&vCifQty){
-      const segTarifa=Math.round(vCifVal*0.00024*100)/100;
-      const segCosto=Math.round(vCifVal*0.00012*100)/100;
-      const segTotal=Math.round(segTarifa*vCifQty*100)/100;
-      const segCostTotal=Math.round(segCosto*vCifQty*100)/100;
-      totT+=segTotal;totC+=segCostTotal;
-      lines.push({name:`Seguro (0.024% CIF × ${vCifQty} veh)`,unit:'/mes',qty:vCifQty,rate:segTarifa,sub:segTotal,costoB:segCostTotal,key:'vehSeguro'});
+      const tasaV=T('vehSeguro').cost||0.00024, tasaC=CB.vehSeguro||0.00012;
+      push('vehSeguro','vehSeguro',`Seguro (${(tasaV*100).toFixed(3)}% CIF)`,'/vehículo',vCifQty,r2(vCifVal*tasaV),r2(vCifVal*tasaC));
     }
-    if(vRutas) add('vehConductor',vRutas);
-    // Vehicle fixed costs
-    const gfVeh=calcGastoFijoVeh();
-    if(gfVeh&&gfVeh.monto>0){
-      totC+=gfVeh.monto;
-      lines.push({name:'Costos fijos operación vehículos',unit:'/mes',qty:1,rate:gfVeh.monto,sub:0,costoB:gfVeh.monto,costoOnly:true,isGF:true});
-    }
+    add('vehConductor',gv('f_rutasConductor'));
+    const totVeh=ADMIN.costosVeh?.reduce((s,c)=>s+(c.monto||0),0)||0;
+    if(lines.length&&totVeh>0){ fijo=r2(totVeh); nombreFijo='Costos fijos operación vehículos'; }
   }else{
-    // Cargo operations
-    const cont40p=gv('f_cont40p'),cont20p=gv('f_cont20p'),cont40g=gv('f_cont40g'),cont20g=gv('f_cont20g');
-    const pallets=gv('f_pallets'),palletsPico=gv('f_palletsPico');
-    const bultosSal=gv('f_bultosSal'),unidades=gv('f_unidades');
-    const ordenes=gv('f_ordenes'),recepBul=gv('f_recepBul');
-    const contSal40p=gv('f_contSal40p'),contSal20p=gv('f_contSal20p'),contSal40g=gv('f_contSal40g'),contSal20g=gv('f_contSal20g');
-    
-    // INBOUND
-    if(cont40p) add('desc40p',cont40p);
-    if(cont20p) add('desc20p',cont20p);
-    if(cont40g) add('desc40g',cont40g);
-    if(cont20g) add('desc20g',cont20g);
-    
-    // STORAGE
-    const palRef=pallets||palletsPico;
-    if(palRef){
-      const skey={'pallet_pos':'almacPos','m2':'almacM2','cbm':'almacCBM','bulto':'almacBul'}[q.storageFmt]||'almacPos';
-      add(skey,palRef);
-    }
-    
-    // OUTBOUND
-    if(bultosSal) add('pickBul',bultosSal);
-    if(unidades) add('pickUni',unidades);
-    if(ordenes) add('prepOrd',ordenes);
-    if(recepBul) add('recepBul',recepBul);
-    if(contSal40p) add('carga40p',contSal40p);
-    if(contSal20p) add('carga20p',contSal20p);
-    if(contSal40g) add('carga40g',contSal40g);
-    if(contSal20g) add('carga20g',contSal20g);
-    
-    // DOCS
+    add('desc40p',gv('f_cont40p')); add('desc20p',gv('f_cont20p'));
+    add('desc40g',gv('f_cont40g')); add('desc20g',gv('f_cont20g'));
+    add('recepBul',gv('f_recepBul'));
+    // ALMACENAJE — posiciones para pallet position; cantidad propia para m², CBM o bulto
+    const posProm=gv('posPromedio'), posPico=gv('posPico');
+    posRef=posProm||posPico;
+    const skey={pallet_pos:'almacPos',m2:'almacM2',cbm:'almacCBM',bulto:'almacBul'}[q.storageFmt]||'almacPos';
+    const aq=gv('almacQty');
+    if(q.storageFmt==='pallet_pos') add(skey,posRef);
+    else if(q.storageFmt==='cbm') add(skey,aq*30,`Almacenaje (${aq} CBM × 30 días)`);
+    else add(skey,aq);
+    add('pickBul',gv('f_bultosSal')); add('pickUni',gv('f_unidades')); add('prepOrd',gv('f_ordenes'));
+    add('carga40p',gv('f_contSal40p')); add('carga20p',gv('f_contSal20p'));
+    add('carga40g',gv('f_contSal40g')); add('carga20g',gv('f_contSal20g'));
     Object.entries(DOCS_CONFIG).forEach(([key,doc])=>{
-      const item=document.getElementById('doc-'+key);
-      if(!item?.classList.contains('selected')) return;
-      const freq=document.getElementById('dfreq-'+key)?.value||'embarque';
+      if(!document.getElementById('doc-'+key)?.classList.contains('selected')) return;
+      const sel=document.getElementById('dfreq-'+key);
+      const freq=sel?.options[sel.selectedIndex]?.text||'';
       const qty=parseFloat(document.getElementById('dqty-'+key)?.value)||1;
-      const t=TARIFAS[key];
-      if(!t) return;
-      const sub=Math.round(t.cost*qty*100)/100;
-      const costoB=Math.round((CB[key]||0)*qty*100)/100;
-      totT+=sub;totC+=costoB;
-      lines.push({name:`${doc.label} (${freq})`,unit:'/mes',qty,rate:t.cost,sub,costoB,key});
+      add(key,qty,`${T(key).label||doc.label}${freq?' — '+freq.toLowerCase():''}`);
     });
-    
-    // MANEJO
     if(document.getElementById('manejoIn')?.checked) add('manejoIn',1);
     if(document.getElementById('manejoOut')?.checked) add('manejoOut',1);
-    
-    // TRANSPORT
     if(S.transport){
-      _rutasData.filter(r=>r.selected&&r.qty>0).forEach(r=>{
-        const sub=Math.round(r.tarifa*r.qty*100)/100;
-        totT+=sub;
-        lines.push({name:'Transporte: '+r.label,unit:'/mes',qty:r.qty,rate:r.tarifa,sub,costoB:0,key:'transport'});
-      });
+      _rutasData.filter(r=>r.selected&&r.qty>0).forEach(r=>
+        push('tr-'+r.id,'transport','Transporte: '+r.label,'/viaje',r.qty,r.tarifa,r.costo||0));
     }
-    
-    // COSTOS FIJOS AUTO — desde posiciones declaradas en paso 3
-    const posP = gv('posPromedio') || gv('posPico') || 0;
-    if(posP > 0){
-      const gfAuto = autoRepartoFromQuote(posP);
-      if(gfAuto && gfAuto.monto > 0){
-        totC += gfAuto.monto;
-        lines.push({name:`Costos fijos bodega (${gfAuto.pct}% — ${posP} pos)`,unit:'/mes',qty:1,rate:gfAuto.monto,sub:0,costoB:gfAuto.monto,costoOnly:true,isGF:true,autoApplied:true});
-        S._autoGF = gfAuto;
-      } else { S._autoGF = null; }
-    } else { S._autoGF = null; }
-  }
-  
-  // HAZMAT recargo (25% sobre subtotal de handling si mercancía es HAZMAT)
-  if(!isVeh && q.tipoMerc==='hazmat'){
-    const handlingKeys=['manejoIn','manejoOut','recepPal','recepBul','desc40p','desc20p','desc40g','desc20g','carga40p','carga20p','carga40g','carga20g'];
-    const baseHandling=lines.filter(l=>handlingKeys.includes(l.key)).reduce((s,l)=>s+l.sub,0);
-    if(baseHandling>0){
-      const recargo=Math.round(baseHandling*0.25*100)/100;
-      totT+=recargo;
-      lines.push({name:'Recargo HAZMAT (25% handling)',unit:'/mes',qty:1,rate:recargo,sub:recargo,costoB:0,key:'hazmat'});
+    if(q.tipoMerc==='hazmat'){
+      const hk=['manejoIn','manejoOut','recepPal','recepBul','desc40p','desc20p','desc40g','desc20g','carga40p','carga20p','carga40g','carga20g'];
+      const hl=lines.filter(l=>hk.includes(l.key));
+      const base=hl.reduce((s,l)=>s+l.sub,0), baseC=hl.reduce((s,l)=>s+l.costoB,0);
+      if(base>0) push('hazmat','hazmat','Recargo HAZMAT (25% handling)','/mes',1,r2(base*0.25),r2(baseC*0.25));
     }
+    cpp=costoPorPosicion();
+    if(posRef>0&&cpp>0){ fijo=r2(posRef*cpp); nombreFijo=`Costos fijos bodega (${posRef} pos × ${fmUSD(cpp)})`; }
   }
+  (S.extra||[]).forEach(x=>push(x.id,null,x.name,x.unit||'/mes',x.qty||1,x.rate,x.costo||0));
 
-  // CAPEX
-  if(S.capex&&S.capexMensual>0){
-    totC+=S.capexMensual;
-    lines.push({name:`CAPEX amortizado (${S.capexMeses} meses)`,unit:'/mes',qty:1,rate:S.capexMensual,sub:0,costoB:S.capexMensual,costoOnly:true});
+  const totT=r2(lines.reduce((s,l)=>s+l.sub,0));
+  const variable=r2(lines.reduce((s,l)=>s+l.costoB,0));
+  const personal=q.isStd||!S.opex?0:r2(OPEX.personal.reduce((s,p)=>s+(p.costo||0),0));
+  const equipo=q.isStd||!S.opex?0:r2(OPEX.equipo.reduce((s,e)=>s+(e.costo||0),0));
+  const meses=parseInt(document.getElementById('contratoMeses')?.value)||12;
+  const capexMonto=!q.isStd&&S.capex?(parseFloat(document.getElementById('capexMonto')?.value)||0):0;
+  const capex=capexCuota(capexMonto,meses,parseFloat(document.getElementById('capexTasa')?.value)||0);
+  if(q.isStd) fijo=0;
+  const totC=r2(variable+fijo+personal+equipo+capex);
+  const utilidad=r2(totT-totC);
+  const margen=totT>0?utilidad/totT*100:0;
+
+  // Líneas de costo interno (compatibles con el detalle guardado y la ficha operativa)
+  const costLines=[];
+  const cl=(name,monto,extra)=>{ if(monto>0) costLines.push({name,unit:'/mes',qty:1,rate:monto,sub:0,costoB:monto,costoOnly:true,...extra}); };
+  cl(nombreFijo,fijo,{isGF:true});
+  if(S.opex&&!q.isStd){
+    OPEX.personal.forEach(p=>cl('Personal: '+(p.nombre||'dedicado'),p.costo));
+    OPEX.equipo.forEach(e=>cl('Equipo: '+(e.nombre||'dedicado'),e.costo));
   }
-  
-  // OPEX
-  OPEX.personal.forEach(p=>{if(p.costo>0){totC+=p.costo;lines.push({name:'Personal: '+p.nombre,unit:'/mes',qty:1,rate:p.costo,sub:0,costoB:p.costo,costoOnly:true});}});
-  OPEX.equipo.forEach(e=>{if(e.costo>0){totC+=e.costo;lines.push({name:'Equipo: '+e.nombre,unit:'/mes',qty:1,rate:e.costo,sub:0,costoB:e.costo,costoOnly:true});}});
-  
-  const margen=totT>0?(totT-totC)/totT*100:0;
-  const utilidad=totT-totC;
-  
-  q.totT=totT;q.totC=totC;q.margen=margen;q.utilidad=utilidad;q.lines=lines;
-  S.lastQuote=q;
-  S._baseTotT=totT;S._baseTotC=totC;S._baseLines=[...lines];
-  
-  // Alerts — skip margin warnings for std quotes
-  if(!q.isStd){
-    if(margen<30&&margen>=15) alerts.push({type:'warn',icon:'',title:'Margen bajo',msg:' El margen es '+margen.toFixed(1)+'%, por debajo del mínimo del 30%.'});
-    if(margen<15) alerts.push({type:'danger',icon:'',title:'Margen crítico',msg:' El margen es '+margen.toFixed(1)+'%. Revisar tarifas o costos.'});
+  cl(`CAPEX amortizado (${meses} meses)`,capex);
+
+  const nPers=S.opex?OPEX.personal.filter(p=>p.costo>0).length:0;
+  q.bloques={variable,moProd:r2(moProd),moReemp:r2(moReemp),fkReemp:r2(fkReemp),fijo,cpp,posRef,
+    pctCap:posRef?Math.round(posRef/(ADMIN.totalPos||1716)*1000)/10:0,personal,equipo,capex,capexMonto,meses,
+    hrsMO:Math.round(hrsMO*10)/10,capacidadH:nPers*HP_DIA*DIAS_MES};
+  q.lines=lines.concat(costLines);
+  q.totT=totT;q.totC=totC;q.utilidad=utilidad;q.margen=margen;
+
+  const mgnMin=getGlobalMGN()*100;
+  const alerts=[];
+  if(q.isStd){
+    alerts.push({type:'info',title:'Cotización Estándar',msg:' Todos los rubros × 1 como referencia. Quita los que no apliquen y ajusta tarifas.'});
+  }else{
+    if(totT>0&&margen<mgnMin) alerts.push({type:margen<mgnMin/2?'danger':'warn',title:margen<mgnMin/2?'Margen crítico':'Margen bajo',msg:` ${margen.toFixed(1)}%, por debajo del mínimo de ${mgnMin.toFixed(0)}%.`});
+    if(q.tipoMerc==='hazmat') alerts.push({type:'danger',title:'Mercancía HAZMAT',msg:' Requiere validación con operaciones antes de enviar al cliente.'});
+    if(!isVeh&&!posRef) alerts.push({type:'warn',title:'Sin posiciones',msg:' Sin posiciones declaradas no se imputan costos fijos de bodega: el margen sale inflado.'});
+    if(!isVeh&&posRef&&Math.max(gv('posPromedio'),gv('posPico'))>Math.max(0,(ADMIN.totalPos||1716)-posicionesOcupadas()))
+      alerts.push({type:'danger',title:'Sin espacio',msg:' El pico de posiciones supera las disponibles en bodega.'});
+    if(lines.some(l=>l.key==='transport'&&!l.costoB)) alerts.push({type:'warn',title:'Transporte sin costo',msg:' Carga el costo del transportista en la ruta para que el margen sea real.'});
+    if(nPers&&q.bloques.hrsMO>0){
+      const u=q.bloques.hrsMO/q.bloques.capacidadH*100;
+      if(u<60) alerts.push({type:'warn',title:'Personal dedicado subutilizado',msg:` Los volúmenes ocupan ${u.toFixed(0)}% de su capacidad.`});
+      else if(u>110) alerts.push({type:'warn',title:'Personal dedicado insuficiente',msg:` Los volúmenes piden ${u.toFixed(0)}% de su capacidad.`});
+    }
   }
-  if(q.tipoMerc==='hazmat') alerts.push({type:'danger',icon:'',title:'Mercancía HAZMAT',msg:' Requiere validación con operaciones antes de enviar al cliente.'});
-  if(!gv('posPromedio')&&!isVeh) alerts.push({type:'warn',icon:'',title:'Posiciones no declaradas',msg:' El reparto de costos fijos no está incluido. Declara las posiciones para mayor precisión.'});
-  if(S._autoGF) alerts.push({type:'success',icon:'',title:'Costos fijos aplicados',msg:` ${S._autoGF.pct}% imputado automáticamente (${gv('posPromedio')} posiciones).`});
-  
   q.alerts=alerts;
-  
-  // Render
-  renderQuoteResult(q);
-  goTo(5);
+  return q;
 }
 
-function renderQuoteResult(q){
-  const fm=n=>'$'+parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+// Recalcula todo y refresca lo visible (barra en vivo y, si está abierta, la cotización)
+function recalcular(){
+  autoSave();
+  const q=calcularCotizacion();
+  S.lastQuote=q;
+  updateLiveKpis(q);
+  if(S.step===3) renderQuoteResult(q);
+  return q;
+}
+function onVolChange(){ recalcular(); }
+
+function calcAndShow(){ goTo(3); }
+
+function mgnClass(m){ const min=getGlobalMGN()*100; return m>=min?'good':m>=min/2?'warn':'bad'; }
+
+function renderQuoteResult(q,keepLines){
   const TNAMES_={pallet:'Pallet In/Out',bulto:'Bulto In/Out',unit:'Unit In/Out',mixto:'Mixto',vehiculos:'Vehículos'};
   const FMT_={pallet_pos:'Pallet pos/mes',m2:'m²/mes',cbm:'CBM/día',bulto:'Bulto pico'};
-  
-  // Header
   document.getElementById('qhName').textContent=q.client;
   document.getElementById('qhMeta').textContent=`Cotización ${q.numero||'(borrador)'} · ${q.today} · Vigencia: ${q.vigencia} días · Por: ${q.seller}`;
-  const badges=`<span class="qh-badge">${TNAMES_[q.type]||q.type}</span>
-    ${q.storageFmt&&q.type!=='vehiculos'?`<span class="qh-badge">${FMT_[q.storageFmt]||''}</span>`:''}
+  document.getElementById('qhBadges').innerHTML=q.isStd?'<span class="qh-badge">Estándar</span>':
+    `<span class="qh-badge">${TNAMES_[q.type]||q.type}</span>
+    ${q.type!=='vehiculos'?`<span class="qh-badge">${FMT_[q.storageFmt]||''}</span>`:''}
     ${q.tipoMerc?`<span class="qh-badge">${q.tipoMerc}</span>`:''}`;
-  document.getElementById('qhBadges').innerHTML=badges;
-  
-  // KPIs
-  document.getElementById('kpiTotal').textContent=fm(q.totT);
+
+  const labels=document.querySelectorAll('#step3 .kpi-bar .kpi-label');
+  document.getElementById('kpiTotal').textContent=fmUSD(q.totT);
+  const mEl=document.getElementById('kpiMargen');
   if(q.isStd){
+    if(labels[0]) labels[0].textContent='Total referencial';
     document.getElementById('kpiCosto').textContent='—';
-    const mEl=document.getElementById('kpiMargen');
-    mEl.textContent='Referencial';
-    mEl.className='kpi-value';
-    mEl.style.color='var(--mid)';
-    mEl.style.fontSize='.9rem';
+    mEl.textContent='Referencial'; mEl.className='kpi-value';
     document.getElementById('kpiUtilidad').textContent='ajusta según cliente';
-    // Rename KPI labels for standard
-    const kpiBar=document.querySelector('.kpi-bar');
-    if(kpiBar){
-      const labels=kpiBar.querySelectorAll('.kpi-label');
-      if(labels[0]) labels[0].textContent='Total referencial';
-      if(labels[1]) labels[1].textContent='';
-      if(labels[2]) labels[2].textContent='Tipo';
-    }
-  } else {
-    document.getElementById('kpiCosto').textContent=fm(q.totC);
-    const mEl=document.getElementById('kpiMargen');
-    mEl.textContent=q.margen.toFixed(1)+'%';
-    mEl.className='kpi-value '+(q.margen>=30?'good':q.margen>=15?'warn':'bad');
-    mEl.style.color='';mEl.style.fontSize='';
-    document.getElementById('kpiUtilidad').textContent='$'+parseFloat(q.utilidad||0).toFixed(2)+' utilidad';
+  }else{
+    if(labels[0]) labels[0].textContent='Total mensual';
+    document.getElementById('kpiCosto').textContent=fmUSD(q.totC);
+    mEl.textContent=q.margen.toFixed(1)+'%'; mEl.className='kpi-value '+mgnClass(q.margen);
+    document.getElementById('kpiUtilidad').textContent=fmUSD(q.utilidad)+' utilidad';
   }
-  
-  // Alerts
   document.getElementById('quoteAlerts').innerHTML=q.alerts.map(a=>
-    `<div class="alert ${a.type}" style="margin-bottom:8px"><div><strong>${a.title}</strong>${a.msg}</div></div>`
-  ).join('');
-  
-  // GF Selector
-  renderGFSelector();
-  
-  // Lines
-  renderLines(q.lines,q.totT);
+    `<div class="alert ${a.type}" style="margin-bottom:8px"><div><strong>${a.title}</strong>${a.msg}</div></div>`).join('');
+
+  const venta=q.lines.filter(l=>!l.costoOnly);
+  if(keepLines) venta.forEach(l=>{
+    const el=document.querySelector(`#qrow-${CSS.escape(l.id)} .ln-sub`);
+    if(el) el.textContent=fmUSD(l.sub);
+  });
+  else renderLines(venta);
+  document.getElementById('ltValue').textContent=fmUSD(q.totT);
+  const ltEl=document.getElementById('linesTotal');
+  if(ltEl) ltEl.style.background=q.isStd?'var(--blue)':({good:'var(--blue)',warn:'var(--orange)',bad:'var(--red)'})[mgnClass(q.margen)];
+  renderBusinessCase(q);
 }
 
-function renderLines(lines,totT){
-  const fm=n=>'$'+parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const container=document.getElementById('lineItems');
-  if(!container) return;
-  container.innerHTML=lines.map((l,i)=>{
-    const isCosto=l.costoOnly||l.isGF;
-    const rowClass='line-row'+(l.isGF?' gf':'');
-    return `<div class="${rowClass}" id="qrow-${i}">
+function renderLines(lines){
+  const c=document.getElementById('lineItems');
+  if(!c) return;
+  c.innerHTML=lines.map(l=>{
+    const editada=l.rateBase!=null&&Math.abs(l.rate-l.rateBase)>1e-9;
+    return `<div class="line-row" id="qrow-${l.id}">
       <div>
         <div class="ln-name">${l.name}</div>
-        <div class="ln-unit">${l.unit}${isCosto?' · <em style="color:var(--mid)">costo interno</em>':''}</div>
+        <div class="ln-unit">${l.unit}${editada?` · <a href="#" onclick="resetLine('${l.id}');return false" style="color:var(--mid)">base ${fmUSD(l.rateBase)}</a>`:''}</div>
       </div>
-      <div class="ln-qty">${l.qty.toLocaleString()}</div>
-      <div class="ln-rate">
-        ${isCosto?`<span style="font-size:.78rem;color:var(--mid)">${fm(l.rate)}</span>`:
-        `<input type="number" value="${l.rate.toFixed(l.rate<1?3:2)}" min="0" step="${l.rate<1?'0.01':'1'}"
-          oninput="editLine(${i},'rate',this.value)">`}
-      </div>
-      <div class="ln-sub ${isCosto?'internal':''}">
-        ${isCosto?'<span style="font-size:.68rem">costo</span>':fm(l.sub)}
-      </div>
-      <div class="ln-del">
-        ${isCosto?'':`<button onclick="removeLine(${i})" title="Eliminar">×</button>`}
-      </div>
+      <div class="ln-qty">${(+l.qty).toLocaleString()}</div>
+      <div class="ln-rate"><input type="number" value="${(+l.rate).toFixed(l.rate<1?3:2)}" min="0" step="${l.rate<1?'0.01':'1'}"
+        oninput="editLine('${l.id}',this.value)"></div>
+      <div class="ln-sub">${fmUSD(l.sub)}</div>
+      <div class="ln-del"><button onclick="removeLine('${l.id}')" title="Quitar">×</button></div>
     </div>`;
-  }).join('');
-  
-  const ltVal=document.getElementById('ltValue');
-  if(ltVal) ltVal.textContent=fm(totT);
-  const margen=S.lastQuote?.margen||0;
-  const ltEl=document.getElementById('linesTotal');
-  const q_=S.lastQuote;
-  if(ltEl) ltEl.style.background=q_?.isStd?'var(--blue)':margen>=30?'var(--blue)':margen>=15?'var(--orange)':'var(--red)';
+  }).join('')+((S.removed||[]).length?`<div style="padding:8px 14px;font-size:.75rem"><a href="#" onclick="restaurarRubros();return false">Restaurar ${(S.removed||[]).length} rubro(s) quitado(s)</a></div>`:'');
 }
 
-function editLine(idx,field,val){
-  if(!S.lastQuote||!S.lastQuote.lines) return;
-  const l=S.lastQuote.lines[idx];
-  if(!l) return;
-  const fm=n=>'$'+parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  if(field==='rate'){l.rate=parseFloat(val)||0;l.sub=Math.round(l.rate*l.qty*100)/100;}
-  // Recalc
-  let newTotT=0,newTotC=0;
-  S.lastQuote.lines.forEach(ln=>{if(!ln.costoOnly)newTotT+=ln.sub;newTotC+=ln.costoB||0;});
-  if(S.lastQuote.costoFijoAplicado) newTotC+=S.lastQuote.costoFijoAplicado;
-  const newMargen=newTotT>0?(newTotT-newTotC)/newTotT*100:0;
-  S.lastQuote.totT=newTotT;S.lastQuote.totC=newTotC;S.lastQuote.margen=newMargen;S.lastQuote.utilidad=newTotT-newTotC;
-  // Update row sub
-  const row=document.getElementById('qrow-'+idx);
-  if(row){const sub=row.querySelector('.ln-sub');if(sub&&!l.costoOnly)sub.textContent=fm(l.sub);}
-  // Update totals
-  const ltVal=document.getElementById('ltValue');if(ltVal)ltVal.textContent=fm(newTotT);
-  document.getElementById('kpiTotal').textContent=fm(newTotT);
-  document.getElementById('kpiMargen').textContent=newMargen.toFixed(1)+'%';
-  document.getElementById('kpiMargen').className='kpi-value '+(newMargen>=30?'good':newMargen>=15?'warn':'bad');
-  const ltEl=document.getElementById('linesTotal');if(ltEl)ltEl.style.background=newMargen>=30?'var(--blue)':newMargen>=15?'var(--orange)':'var(--red)';
+function editLine(id,val){
+  if(!S.ovr) S.ovr={};
+  S.ovr[id]=parseFloat(val)||0;
+  const q=calcularCotizacion(); S.lastQuote=q; autoSave();
+  updateLiveKpis(q); renderQuoteResult(q,true);
 }
-
-function removeLine(idx){
-  if(!S.lastQuote||!S.lastQuote.lines) return;
-  S.lastQuote.lines.splice(idx,1);
-  let newTotT=0,newTotC=0;
-  S.lastQuote.lines.forEach(l=>{if(!l.costoOnly)newTotT+=l.sub;newTotC+=l.costoB||0;});
-  const newMargen=newTotT>0?(newTotT-newTotC)/newTotT*100:0;
-  S.lastQuote.totT=newTotT;S.lastQuote.totC=newTotC;S.lastQuote.margen=newMargen;S.lastQuote.utilidad=newTotT-newTotC;
-  renderLines(S.lastQuote.lines,newTotT);
-  document.getElementById('kpiTotal').textContent='$'+newTotT.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  document.getElementById('kpiMargen').textContent=newMargen.toFixed(1)+'%';
-  document.getElementById('kpiMargen').className='kpi-value '+(newMargen>=30?'good':newMargen>=15?'warn':'bad');
+function resetLine(id){ if(S.ovr) delete S.ovr[id]; recalcular(); }
+function removeLine(id){
+  if((S.extra||[]).some(x=>x.id===id)) S.extra=S.extra.filter(x=>x.id!==id);
+  else { S.removed=S.removed||[]; if(!S.removed.includes(id)) S.removed.push(id); }
+  recalcular();
 }
+function restaurarRubros(){ S.removed=[]; recalcular(); }
 
 function addQuoteLine(){
   const w=document.getElementById('addLineFormWrap');
   if(w) w.style.display=w.style.display==='none'?'block':'none';
 }
-
 function confirmAddLine(){
   const name=document.getElementById('newLineName')?.value?.trim();
   const unit=document.getElementById('newLineUnit')?.value?.trim()||'/mes';
   const rate=parseFloat(document.getElementById('newLineRate')?.value)||0;
+  const costo=parseFloat(document.getElementById('newLineCost')?.value)||0;
   if(!name){showToast('Ingresa el nombre del rubro','warn');return;}
-  if(!S.lastQuote) return;
-  const newLine={name,unit,qty:1,rate,sub:rate,costoB:0};
-  S.lastQuote.lines.push(newLine);
-  S.lastQuote.totT+=rate;
-  S.lastQuote.margen=S.lastQuote.totT>0?(S.lastQuote.totT-S.lastQuote.totC)/S.lastQuote.totT*100:0;
-  renderLines(S.lastQuote.lines,S.lastQuote.totT);
-  document.getElementById('kpiTotal').textContent='$'+S.lastQuote.totT.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  document.getElementById('kpiMargen').textContent=S.lastQuote.margen.toFixed(1)+'%';
+  S.extra=S.extra||[];
+  S.extra.push({id:'x'+Date.now(),name,unit,qty:1,rate,costo});
   document.getElementById('addLineFormWrap').style.display='none';
-  document.getElementById('newLineName').value='';
-  document.getElementById('newLineUnit').value='';
-  document.getElementById('newLineRate').value='';
+  ['newLineName','newLineUnit','newLineRate','newLineCost'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  recalcular();
   showToast('Rubro agregado');
 }
 
-function renderGFSelector(){
-  const wrap=document.getElementById('gfSelectorWrap');
-  const sel=document.getElementById('gfSelector');
-  if(!wrap||!sel) return;
-  const cuentas=ADMIN.cuentas?.filter(c=>c.nombre)||[];
-  const totalCF=ADMIN.costos?.reduce((s,c)=>s+c.monto,0)||0;
-  if(!cuentas.length&&!totalCF){wrap.style.display='none';return;}
-  wrap.style.display='block';
-  sel.innerHTML='<option value="">— Sin imputar —</option>'+
-    cuentas.map(c=>`<option value="${c.id}">${c.nombre} (${c.pct?.toFixed(1)||0}% — $${(totalCF*(c.pct||0)/100).toFixed(2)})</option>`).join('');
-}
-
-function applyGastoFijo(){
-  const selId=document.getElementById('gfSelector')?.value;
-  if(!S.lastQuote) return;
-  // Remove existing GF line
-  S.lastQuote.lines=S.lastQuote.lines.filter(l=>!l.isGFManual);
-  const fm=n=>'$'+parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  if(selId){
-    const cuenta=ADMIN.cuentas.find(c=>String(c.id)===String(selId));
-    if(!cuenta) return;
-    const total=ADMIN.costos.reduce((s,c)=>s+c.monto,0);
-    const monto=Math.round(total*(cuenta.pct||0)/100*100)/100;
-    S.lastQuote.costoFijoAplicado=monto;
-    S.lastQuote.lines.push({name:`Costos fijos — ${cuenta.nombre} (${cuenta.pct?.toFixed(1)}%)`,unit:'/mes',qty:1,rate:monto,sub:0,costoB:monto,costoOnly:true,isGF:true,isGFManual:true});
-    const info=document.getElementById('gfInfo');
-    if(info){info.style.display='block';info.innerHTML=`<div class="alert info"><div><strong>${cuenta.nombre}</strong> ${cuenta.pct?.toFixed(1)}% de ${fm(total)} = <strong>${fm(monto)}/mes</strong> imputado al costo.</div></div>`;}
-  }else{
-    S.lastQuote.costoFijoAplicado=0;
-    document.getElementById('gfInfo').style.display='none';
+function renderBusinessCase(q){
+  const el=document.getElementById('bcBlocks');
+  const badge=document.getElementById('bcBadge');
+  if(!el) return;
+  if(q.isStd){
+    el.innerHTML='<div class="alert info"><div>La cotización estándar es referencial: no tiene business case.</div></div>';
+    if(badge) badge.textContent='Referencial';
+    return;
   }
-  let newTotC=0;S.lastQuote.lines.forEach(l=>newTotC+=l.costoB||0);
-  S.lastQuote.totC=newTotC;
-  S.lastQuote.margen=S.lastQuote.totT>0?(S.lastQuote.totT-newTotC)/S.lastQuote.totT*100:0;
-  S.lastQuote.utilidad=S.lastQuote.totT-newTotC;
-  renderLines(S.lastQuote.lines,S.lastQuote.totT);
-  document.getElementById('kpiMargen').textContent=S.lastQuote.margen.toFixed(1)+'%';
-  document.getElementById('kpiMargen').className='kpi-value '+(S.lastQuote.margen>=30?'good':S.lastQuote.margen>=15?'warn':'bad');
+  const b=q.bloques;
+  if(badge) badge.textContent=`Margen ${q.margen.toFixed(1)}% · costo ${fmUSD(q.totC)}/mes`;
+  const row=(label,monto,nota,strong)=>`<tr${strong?' style="font-weight:700"':''}><td>${label}${nota?`<div style="font-size:.68rem;color:var(--mid);font-weight:400">${nota}</div>`:''}</td><td class="r">${monto}</td></tr>`;
+  let notaVar=b.moProd>0?`Incluye mano de obra por productividad ${fmUSD(b.moProd-b.moReemp)}`:'';
+  if(b.moReemp>0) notaVar=`Mano de obra por productividad ${fmUSD(b.moReemp)} reemplazada por personal dedicado`;
+  if(b.fkReemp>0) notaVar+=` · equipo por productividad ${fmUSD(b.fkReemp)} reemplazado por equipos dedicados`;
+  const notaFijo=q.type==='vehiculos'?'Costos fijos de la operación de vehículos':
+    (b.posRef?`${b.posRef} posiciones × ${fmUSD(b.cpp)} = ${b.pctCap}% de la capacidad`:'Sin posiciones declaradas');
+  const util=b.capacidadH>0&&b.hrsMO>0?` · utilización ${(b.hrsMO/b.capacidadH*100).toFixed(0)}% (${b.hrsMO} h de ${b.capacidadH} h)`:'';
+  let html=`<table class="atbl" style="font-size:.8rem"><tbody>
+    ${row('Venta mensual',fmUSD(q.totT),'',true)}
+    ${row('− Costo variable de los servicios',fmUSD(b.variable),notaVar)}
+    ${row('− Costos fijos de bodega',fmUSD(b.fijo),notaFijo)}
+    ${b.personal||b.equipo?row('− Recursos dedicados',fmUSD(b.personal+b.equipo),`Personal ${fmUSD(b.personal)} · equipos ${fmUSD(b.equipo)}${util}`):''}
+    ${b.capex?row('− CAPEX amortizado',fmUSD(b.capex),`${fmUSD(b.capexMonto)} en ${b.meses} meses`):''}
+    ${row('= Utilidad mensual',`${fmUSD(q.utilidad)} · ${q.margen.toFixed(1)}%`,'',true)}
+  </tbody></table>`;
+  const notas=[`Utilidad en el contrato (${b.meses} meses): <strong>${fmUSD(q.utilidad*b.meses)}</strong>`];
+  if(b.capexMonto>0){
+    const antes=q.utilidad+b.capex;
+    notas.push(antes>0?`Recuperación del CAPEX: <strong>${(b.capexMonto/antes).toFixed(1)} meses</strong>`:'<strong>La operación no recupera el CAPEX</strong>');
+  }
+  if(b.hrsMO>0) notas.push(`Horas-hombre que piden los volúmenes: ${b.hrsMO} h/mes (${(b.hrsMO/(HP_DIA*DIAS_MES)).toFixed(1)} personas)`);
+  html+=`<div style="font-size:.75rem;color:var(--mid);margin-top:8px;line-height:1.7">${notas.join('<br>')}</div>`;
+  el.innerHTML=html;
+  const ot=document.getElementById('opexTotal'), otx=document.getElementById('opexTotalText');
+  if(ot&&otx){
+    ot.classList.toggle('hidden',!(b.personal||b.equipo));
+    otx.innerHTML=`Total recursos dedicados: <strong>${fmUSD(b.personal+b.equipo)}/mes</strong>${b.moReemp?` · reemplaza ${fmUSD(b.moReemp)} de mano de obra por productividad`:''}${util}`;
+  }
 }
-
-function calcGastoFijoAutomatico() {
-  const promedio  = parseInt(document.getElementById('posPromedio')?.value) || 0;
-  const totalPos  = ADMIN.totalPos || 1716;
-  const totalCostos = ADMIN.costos.reduce((s, c) => s + c.monto, 0);
-  if (!promedio || !totalCostos || !totalPos) return null;
-
-  const pct   = promedio / totalPos * 100;
-  const monto = Math.round(totalCostos * pct / 100 * 100) / 100;
-  return { pct: Math.round(pct * 10) / 10, monto, totalCostos };
-}
-
-
-
-function calcGastoFijoVeh() {
-  const vPatio = gv('vehPatio') || 0;
-  if(!vPatio) return null;
-  const totalVehCostos = ADMIN.costosVeh.reduce((s,c)=>s+c.monto,0);
-  if(!totalVehCostos) return null;
-  // Simple: total fixed costs for vehicle operation / month
-  return { monto: totalVehCostos, tipo: 'vehiculos' };
-}
-
-
-
 
 // ── PRINT / DOWNLOAD ─────────────────────────────────────────
 function downloadQuoteCliente(lang){
@@ -3446,7 +3226,7 @@ function closePreview(){
     const liqRes=document.getElementById('liqResultado');
     if(liqRes) liqRes.scrollIntoView({behavior:'smooth',block:'nearest'});
   } else {
-    const actCard=document.querySelector('#step5 .card:last-of-type');
+    const actCard=document.querySelector('#step3 .card:last-of-type');
     if(actCard) actCard.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
 }
@@ -3598,17 +3378,20 @@ function initLoginButton(){
 }
 
 function resetAll(){
-  S={step:1,type:null,storageFmt:null,transport:false,selectedRoutes:[],customRoutes:[],
-    capex:false,capexMonto:0,capexMeses:12,capexMensual:0,opex:false,opexMensual:0,
-    lastQuote:null,_editingCotId:null,_editingCotNumero:null,_autoGF:null,
-    _manualTarifas:{},_baseLines:[],_baseTotT:0,_baseTotC:0};
+  S=estadoInicial();
   OPEX={personal:[],equipo:[]};
+  _rutasData.forEach(r=>{r.selected=false;});
+  _rutasData=_rutasData.filter(r=>!r.custom);
   clearDraft();
   // Reset form
   ['clientName','vendedor','tradeName','contactName','contactPhone','contactEmail',
-   'startDate','posPromedio','posPico','totalSkus','pctUnidad','obsCargas','capexMonto'].forEach(id=>{
+   'startDate','posPromedio','posPico','almacQty','totalSkus','pctUnidad','obsCargas','capexMonto','capexTasa','notasInternas'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
+  const cm=document.getElementById('contratoMeses'); if(cm) cm.value=12;
+  renderOpexPersonal(); renderOpexEquipo();
+  ['posDisponiblesInfo','almacQtyWrap'].forEach(id=>{const el=document.getElementById(id); if(el) el.style.display='none';});
+  ['hazmatAlert','tempAlert'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
   ['manejoIn','manejoOut','vehManejoToggle'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.checked=true;
   });
@@ -3624,7 +3407,7 @@ function resetAll(){
   document.getElementById('opexDetail').style.display='none';
   document.getElementById('transportDetail').style.display='none';
   document.getElementById('editBanner').classList.add('hidden');
-  document.getElementById('btnGoStep3').disabled=true;
+  document.getElementById('btnGoStep2').disabled=true;
   document.getElementById('addLineFormWrap').style.display='none';
   showCotizador();
   goTo(1);
@@ -3633,8 +3416,9 @@ function resetAll(){
 
 async function saveCotizacion(estado='borrador'){
   if(!currentUser){ showToast('Debes iniciar sesión','error'); return; }
-  if(!S.lastQuote){ showToast('Genera una cotización primero','warn'); return; }
-  const q=S.lastQuote;
+  if(!S.type&&!S.std){ showToast('Genera una cotización primero','warn'); return; }
+  const q=calcularCotizacion();
+  S.lastQuote=q;
   const vigencia=parseInt(document.getElementById('vigencia')?.value)||30;
 
   // Build base payload with guaranteed columns
@@ -3667,6 +3451,7 @@ async function saveCotizacion(estado='borrador'){
     storage_fmt: q.storageFmt||null,
     pos_promedio: parseFloat(document.getElementById('posPromedio')?.value)||null,
     pos_pico: parseFloat(document.getElementById('posPico')?.value)||null,
+    entrada: {...capturarEntrada(), business_case:q.bloques},
   };
   Object.entries(extras).forEach(([k,v])=>{ if(v!=null&&v!=='') payload[k]=v; });
 
@@ -4313,11 +4098,18 @@ async function editCotizacion(id){
   S._editingCotNumero = cot.numero;
 
   const banner = document.getElementById('editBanner');
-  if(banner){ banner.classList.remove('hidden'); banner.innerHTML='<strong>Editando '+cot.numero+'</strong> — modifica y genera de nuevo para actualizar.'; }
+  if(banner){ banner.classList.remove('hidden'); banner.innerHTML='<strong>Editando '+cot.numero+'</strong> — modifica y guarda para actualizar.'; }
 
   showPanel('appWrap');
-  goTo(1);
-  showToast('Editando: '+cot.numero,'info',4000);
+  const entrada = typeof cot.entrada==='string' ? JSON.parse(cot.entrada||'null') : cot.entrada;
+  if(entrada && aplicarEntrada(entrada)){
+    S._editingCotId = id; S._editingCotNumero = cot.numero;
+    goTo(3);
+    showToast('Editando: '+cot.numero,'info',4000);
+  } else {
+    goTo(1);
+    showToast('Editando '+cot.numero+': es anterior al business case, vuelve a ingresar volúmenes y costos','info',6000);
+  }
 }
 
 async function saveAdminChanges(id) {
@@ -4450,6 +4242,7 @@ function importCostos(input){
 function renderCuentas(){
   const el=document.getElementById('cuentasBody');
   if(!el) return;
+  recalcPctCuentas();
   const totalCostos=ADMIN.costos.reduce((s,c)=>s+c.monto,0);
   const usedPos=ADMIN.cuentas.reduce((s,c)=>s+c.pos,0);
   el.innerHTML=ADMIN.cuentas.map(c=>{
@@ -4466,10 +4259,7 @@ function renderCuentas(){
         <input class="ainput r" type="number" value="${c.pos}" min="0" style="width:70px"
           oninput="updateCuentaPos(${c.id},this.value)">
       </td>
-      <td class="r">
-        <input class="ainput r" type="number" value="${c.pct.toFixed(1)}" min="0" max="100" step="0.1" style="width:60px"
-          oninput="updateCuentaPct(${c.id},this.value)">
-      </td>
+      <td class="r">${(c.pct||0).toFixed(1)}%</td>
       <td class="r">$${costoAsig.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td><button class="btn-del-row" onclick="delCuenta(${c.id})">×</button></td>
     </tr>`;
@@ -4593,56 +4383,34 @@ function renderProdTable(){
   }).join('');
 }
 
+// Por cada servicio con productividad: CB = costo por unidad (MO + FK), CB_MO = solo mano de obra,
+// HRS = horas-hombre por unidad. El business case usa CB_MO/HRS para reemplazar la MO por personal dedicado.
+let CB_MO={}, HRS={};
 function syncProdToTarifas(){
-  const mgn = getGlobalMGN();
-
-  // Map task categories/units to CB keys
-  // We find tasks by category + unit + uses and update CB
-  // Entry: pallet in
-  const entPalTask = PROD_TASKS.filter(t=>t.cat==='entrada'&&t.unit==='pallet');
-  const entBulTask = PROD_TASKS.filter(t=>t.cat==='entrada'&&t.unit==='bulto');
-  const salPalTask = PROD_TASKS.filter(t=>t.cat==='salida'&&t.unit==='pallet');
-  const salBulTask = PROD_TASKS.filter(t=>t.cat==='salida'&&t.unit==='bulto');
-  const salUniTask = PROD_TASKS.filter(t=>t.cat==='salida'&&t.unit==='unidad');
-  const salOrdTask = PROD_TASKS.filter(t=>t.cat==='salida'&&t.unit==='orden');
-  const almPalTask = PROD_TASKS.filter(t=>t.cat==='almacenaje'&&t.unit==='pallet');
-
-  // Sum costs for multi-step processes
-  function sumCosts(tasks){ return tasks.reduce((s,t)=>s+calcTaskCost(t),0); }
-
-  // Update CB (cost base) — these affect the margin calculation
-  const entPalCost = sumCosts(entPalTask);
-  const entBulCost = sumCosts(entBulTask);
-  const salPalCost = sumCosts(salPalTask);
-  const salBulCost = sumCosts(salBulTask);
-  const salUniCost = sumCosts(salUniTask);
-  const salOrdCost = sumCosts(salOrdTask);
-  const almPalCost = sumCosts(almPalTask)||15.18;
-
-  if(entPalCost>0){
-    CB.desc40p = entPalCost*20; CB.desc20p = entPalCost*10;
-    CB.desc40g = entPalCost*20*1.35; CB.desc20g = entPalCost*10*1.35;
-    CB.recepPal = entPalCost;
-    CB.putaway = almPalTask.length>0?sumCosts(almPalTask):CB.putaway;
-  }
-  if(entBulCost>0){ CB.recepBul = entBulCost; }
-  if(salPalCost>0){
-    CB.carga40p=salPalCost*20; CB.carga20p=salPalCost*10;
-    CB.carga40g=salPalCost*20*1.35; CB.carga20g=salPalCost*10*1.35;
-  }
-  if(salBulCost>0){ CB.pickBul = salBulCost; }
-  if(salUniCost>0){ CB.pickUni = salUniCost; }
-  if(salOrdCost>0){ CB.prepOrd = salOrdCost; }
-  if(almPalCost>0){ CB.almacPos = almPalCost; }
-
-  // NOTE: TARIFAS.cost is NOT auto-updated from CB
-  // TARIFAS.cost = market avg (set as default, editable by admin in Insights)
-  // CB = cost base from productivities (used only for margin calculation)
-  // This separation ensures market-avg pricing is always the default tarifa
+  const pick=(cat,unit)=>PROD_TASKS.filter(t=>t.cat===cat&&t.unit===unit);
+  const sum=(tasks,f)=>tasks.reduce((s,t)=>s+f(t),0);
+  const moTask=t=>{ const mo=t.moOwn!=null?t.moOwn:getGlobalMO(); return t.prod>0?mo*(t.ops||1)/t.prod:0; };
+  const hrsTask=t=>t.prod>0?(t.ops||1)/t.prod:0;
+  // Contenedor de 40' ≈ 20 pallets, 20' ≈ 10 pallets; a granel ×1.35
+  const set=(key,tasks,factor)=>{
+    if(!tasks.length) return;
+    const c=sum(tasks,calcTaskCost)*factor;
+    if(c<=0) return;
+    CB[key]=c; CB_MO[key]=sum(tasks,moTask)*factor; HRS[key]=sum(tasks,hrsTask)*factor;
+  };
+  const entPal=pick('entrada','pallet'), salPal=pick('salida','pallet'), almPal=pick('almacenaje','pallet');
+  set('desc40p',entPal,20); set('desc20p',entPal,10); set('desc40g',entPal,27); set('desc20g',entPal,13.5);
+  set('recepPal',entPal,1); set('putaway',almPal,1); set('almacPos',almPal,1);
+  set('recepBul',pick('entrada','bulto'),1);
+  set('carga40p',salPal,20); set('carga20p',salPal,10); set('carga40g',salPal,27); set('carga20g',salPal,13.5);
+  set('pickBul',pick('salida','bulto'),1);
+  set('pickUni',pick('salida','unidad'),1);
+  set('prepOrd',pick('salida','orden'),1);
+  // TARIFAS.cost no se toca: la tarifa por defecto es la de Tarifas Base (mercado); CB solo mide el costo.
 }
 
 
-function getGlobalMGN(){return (parseFloat(document.getElementById('globalMGN')?.value)||30)/100;}
+function getGlobalMGN(){return (ADMIN.mgn||30)/100;}
 
 function renderCostosVeh(){
   const tbody = document.getElementById('costosVehBody');
@@ -4923,7 +4691,6 @@ function renderAdminSections(){
         
         <span class="ash-title">Cuentas Activas & Reparto</span>
         <div class="ash-actions">
-          <button class="btn-sm outline" onclick="redistribuir()" style="color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.3)">⟳ Redistribuir</button>
           <button class="btn-sm green" onclick="saveInsights()">Guardar</button>
           <span class="ash-arrow" onclick="toggleAdminSec('cuentas')">▼</span>
         </div>
@@ -4932,12 +4699,12 @@ function renderAdminSections(){
         <div class="field-grid" style="margin-bottom:14px">
           <div class="field">
             <label>Total posiciones en bodega</label>
-            <input type="number" class="finput r" id="totalPosInput" value="${ADMIN.totalPos||1716}" min="0" oninput="ADMIN.totalPos=parseInt(this.value)||1716;updatePositions()">
+            <input type="number" class="finput r" id="totalPosInput" value="${ADMIN.totalPos||1716}" min="0" oninput="ADMIN.totalPos=parseInt(this.value)||1716;recalcPctCuentas();renderCuentas();renderDistrib()">
           </div>
         </div>
         <div class="pos-bar"><div class="pos-bar-fill" id="posBarFill" style="width:0%"></div></div>
         <table class="atbl" style="margin-bottom:8px"><thead><tr><th>Cuenta</th><th class="r">Posiciones</th><th class="r">% reparto</th><th class="r">Costo asig.</th><th></th></tr></thead><tbody id="cuentasBody"></tbody></table>
-        <div style="font-size:.72rem;color:var(--mid);margin-bottom:8px">% total: <strong id="pctTotal" style="color:var(--green)">0%</strong></div>
+        <div style="font-size:.72rem;color:var(--mid);margin-bottom:8px">Cada cuenta paga sus posiciones × costo por posición (costos fijos ÷ capacidad), igual que en la cotización.<br><strong id="pctTotal" style="color:var(--green)">0%</strong></div>
         <button class="btn-add-row" onclick="addCuenta()">+ Agregar cuenta</button>
         <div id="distribBody" style="margin-top:14px"></div>
       </div>
@@ -4957,15 +4724,15 @@ function renderAdminSections(){
         <div class="field-grid" style="margin-bottom:14px">
           <div class="field">
             <label>MO base ($/hr)</label>
-            <div class="finput-prefix"><input type="number" id="globalMO" value="6.50" min="0" step="0.25" oninput="syncProdToTarifas();updateMORefBar()"></div>
+            <div class="finput-prefix"><input type="number" id="globalMO" value="${ADMIN.mo}" min="0" step="0.25" oninput="ADMIN.mo=parseFloat(this.value)||0;syncProdToTarifas();renderProdTable();updateMORefBar()"></div>
           </div>
           <div class="field">
             <label>FK base ($/hr)</label>
-            <div class="finput-prefix"><input type="number" id="globalFK" value="0" min="0" step="0.25" oninput="syncProdToTarifas();updateMORefBar()"></div>
+            <div class="finput-prefix"><input type="number" id="globalFK" value="${ADMIN.fk}" min="0" step="0.25" oninput="ADMIN.fk=parseFloat(this.value)||0;syncProdToTarifas();renderProdTable();updateMORefBar()"></div>
           </div>
           <div class="field">
             <label>Margen mínimo (%)</label>
-            <div class="finput-prefix"><input type="number" id="globalMGN" value="30" min="0" max="100" step="1"></div>
+            <div class="finput-prefix"><input type="number" id="globalMGN" value="${ADMIN.mgn}" min="0" max="100" step="1" oninput="ADMIN.mgn=parseFloat(this.value)||0;renderProdTable()"></div>
           </div>
         </div>
         <div style="overflow-x:auto"><table class="atbl"><thead><tr><th>Tarea</th><th>Categoría</th><th>Unidad</th><th class="r">Prod.</th><th class="r">MO</th><th class="r">FK</th><th>Tipos</th><th class="r">Tarifa</th><th></th></tr></thead><tbody id="prodTblBody"></tbody></table></div>
@@ -5283,9 +5050,7 @@ async function saveInsights(){
 async function saveProdTasks(){
   if(!currentUser||currentUserData?.rol!=='admin') return;
   syncProdToTarifas();
-  const mo=parseFloat(document.getElementById('globalMO')?.value)||6.50;
-  const fk=parseFloat(document.getElementById('globalFK')?.value)||0;
-  const mgn=parseFloat(document.getElementById('globalMGN')?.value)||30;
+  const mo=ADMIN.mo, fk=ADMIN.fk, mgn=ADMIN.mgn;
   const tarifasClean={};
   TARIFAS_EDITABLES.forEach(t=>{tarifasClean[t.key]={label:t.label,unit:t.unit,cost:t.cost};});
   const{error}=await supa.from('insights_config')
@@ -5310,9 +5075,10 @@ async function loadInsights(){
     if(data.cuentas?.length>0) ADMIN.cuentas=data.cuentas;
     if(data.total_pos) ADMIN.totalPos=data.total_pos;
     if(data.prod_tasks?.length>0) PROD_TASKS=data.prod_tasks;
-    if(data.global_mo) { const el=document.getElementById('globalMO'); if(el)el.value=data.global_mo; }
-    if(data.global_fk) { const el=document.getElementById('globalFK'); if(el)el.value=data.global_fk; }
-    if(data.global_mgn){ const el=document.getElementById('globalMGN');if(el)el.value=data.global_mgn; }
+    if(data.global_mo!=null) ADMIN.mo=parseFloat(data.global_mo)||6.50;
+    if(data.global_fk!=null) ADMIN.fk=parseFloat(data.global_fk)||0;
+    if(data.global_mgn!=null) ADMIN.mgn=parseFloat(data.global_mgn)||30;
+    recalcPctCuentas();
     if(data.costos_fijos_veh?.length>0) ADMIN.costosVeh=data.costos_fijos_veh;
     if(data.cb_veh){ ADMIN.cbVeh=data.cb_veh; loadCbVehInputs(); }
     if(data.pdf_disclaimers?.length>0) PDF_DISCLAIMERS=data.pdf_disclaimers;
@@ -5340,8 +5106,8 @@ async function loadInsights(){
 
 // ── FUNCIONES FALTANTES DE INSIGHTS ─────────────────────────
 
-function getGlobalMO(){ return parseFloat(document.getElementById('globalMO')?.value)||6.50; }
-function getGlobalFK(){ return parseFloat(document.getElementById('globalFK')?.value)||0; }
+function getGlobalMO(){ return ADMIN.mo||6.50; }
+function getGlobalFK(){ return ADMIN.fk||0; }
 
 function updateProd(id,field,val){
   const t=PROD_TASKS.find(x=>x.id===id); if(!t) return;
@@ -5427,71 +5193,21 @@ function downloadCSV(rows,filename){
 }
 
 // ── LIVE KPI ENGINE ───────────────────────────────────────────
-function updateLiveKpis(){
-  if(!S.type) return;
+function updateLiveKpis(q){
   const bar=document.getElementById('liveKpiBar');
-  if(bar) bar.classList.add('show');
-
-  let totT=0, totC=0;
+  const visible=!!(S.type||S.std)&&!document.getElementById('appWrap')?.classList.contains('hidden');
+  if(bar) bar.classList.toggle('show',visible);
+  if(!S.type&&!S.std) return;
+  q=q||calcularCotizacion();
   const fm=n=>'$'+parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
-
-  // Calcular venta estimada basado en volúmenes actuales
-  function addT(key,qty){
-    const t=TARIFAS[key]; if(!t||!qty) return;
-    totT+=t.cost*qty;
-    totC+=(CB[key]||0)*qty;
-  }
-
-  const isVeh=S.type==='vehiculos';
-  if(isVeh){
-    addT('vehDesc',    gv('f_vehDescQty'));
-    addT('vehCarga',   gv('f_vehCargaQty'));
-    const dias=gv('f_vehPatio')*gv('f_vehDias');
-    if(dias){ totT+=( TARIFAS['vehAlmac']?.cost||7.5)*dias; totC+=(CB['vehAlmac']||2)*dias; }
-    addT('vehConductor', gv('f_rutasConductor'));
-  } else {
-    addT('desc40p', gv('f_cont40p'));
-    addT('desc20p', gv('f_cont20p'));
-    addT('desc40g', gv('f_cont40g'));
-    addT('desc20g', gv('f_cont20g'));
-    const pal=gv('f_pallets')||gv('f_palletsPico');
-    if(pal){
-      const skey={'pallet_pos':'almacPos','m2':'almacM2','cbm':'almacCBM','bulto':'almacBul'}[S.storageFmt||'pallet_pos'];
-      addT(skey, pal);
-    }
-    addT('pickBul', gv('f_bultosSal'));
-    addT('pickUni', gv('f_unidades'));
-    addT('prepOrd', gv('f_ordenes'));
-    addT('carga40p', gv('f_contSal40p'));
-    addT('carga40g', gv('f_contSal40g'));
-  }
-
-  // CAPEX
-  if(S.capex&&S.capexMensual>0) totC+=S.capexMensual;
-
-  // OPEX
-  totC+=(OPEX.personal||[]).reduce((s,p)=>s+p.costo,0);
-  totC+=(OPEX.equipo||[]).reduce((s,e)=>s+e.costo,0);
-
-  // Costos fijos automáticos
-  const pos=gv('posPromedio')||gv('posPico');
-  if(pos>0){
-    const pct=Math.min(100,pos/(ADMIN.totalPos||1716)*100);
-    const totalCF=ADMIN.costos?.reduce((s,c)=>s+c.monto,0)||0;
-    totC+=totalCF*pct/100;
-  }
-
-  const margen=totT>0?(totT-totC)/totT*100:0;
-  const mCls=margen>=30?'good':margen>=15?'warn':'bad';
-
   const lkVenta=document.getElementById('lkVenta');
   const lkCosto=document.getElementById('lkCosto');
   const lkMargen=document.getElementById('lkMargen');
-  if(lkVenta) lkVenta.textContent=totT>0?fm(totT):'—';
-  if(lkCosto) lkCosto.textContent=totC>0?fm(totC):'—';
+  if(lkVenta) lkVenta.textContent=q.totT>0?fm(q.totT):'—';
+  if(lkCosto) lkCosto.textContent=q.isStd?'—':(q.totC>0?fm(q.totC):'—');
   if(lkMargen){
-    lkMargen.textContent=totT>0?margen.toFixed(1)+'%':'—';
-    lkMargen.className='lkpi-value'+(totT>0?' '+mCls:'');
+    lkMargen.textContent=q.isStd?'Ref.':(q.totT>0?q.margen.toFixed(1)+'%':'—');
+    lkMargen.className='lkpi-value'+(q.totT>0&&!q.isStd?' '+mgnClass(q.margen):'');
   }
 }
 
@@ -5531,37 +5247,31 @@ function addCuenta(){
   const colors=['#1A1060','#00C389','#F59E0B','#8B5CF6','#E8003D','#0EA5E9','#10B981','#F97316'];
   const id=Date.now();
   ADMIN.cuentas.push({id,nombre:'Nueva cuenta',pos:0,pct:0,color:colors[ADMIN.cuentas.length%colors.length]});
+  recalcPctCuentas();
   renderCuentas();renderDistrib();
 }
 
-function redistribuir(){
-  const n=ADMIN.cuentas.length; if(!n) return;
-  const eq=Math.round(1000/n)/10;
-  ADMIN.cuentas.forEach(c=>{c.pct=eq;});
-  renderCuentas();renderDistrib();
-  showToast('Reparto redistribuido equitativamente');
+// Reparto = posiciones ÷ capacidad total: la misma regla con la que se cotiza una cuenta nueva.
+// Lo que no ocupa ninguna cuenta es capacidad ociosa (costo no recuperado).
+function recalcPctCuentas(){
+  const cap=ADMIN.totalPos||1716;
+  (ADMIN.cuentas||[]).forEach(x=>{x.pct=cap>0?Math.round((x.pos||0)/cap*1000)/10:0;});
 }
 
 function updateCuentaPos(id,val){
   const c=ADMIN.cuentas.find(x=>x.id===id); if(!c) return;
   c.pos=Math.max(0,parseInt(val)||0);
-  const used=ADMIN.cuentas.reduce((s,x)=>s+x.pos,0);
-  ADMIN.cuentas.forEach(x=>{x.pct=used>0?Math.round(x.pos/used*1000)/10:0;});
-  updatePctBar(); updatePositions(); renderAdminKpis(); renderDistrib();
-}
-
-function updateCuentaPct(id,val){
-  const c=ADMIN.cuentas.find(x=>x.id===id); if(!c) return;
-  c.pct=Math.min(100,Math.max(0,parseFloat(val)||0));
-  updatePctBar(); renderDistrib(); renderAdminKpis();
+  recalcPctCuentas();
+  renderCuentas(); renderDistrib();
 }
 
 function updatePctBar(){
-  const tot=ADMIN.cuentas.reduce((s,c)=>s+c.pct,0);
+  const ocup=posicionesOcupadas(), cap=ADMIN.totalPos||1716;
   const el=document.getElementById('pctTotal');
   if(el){
-    el.textContent=tot.toFixed(1)+'%';
-    el.style.color=Math.abs(tot-100)<0.1?'var(--green)':tot>100?'var(--red)':'var(--orange)';
+    const pct=cap>0?ocup/cap*100:0;
+    el.textContent=pct.toFixed(1)+'% ocupado · '+Math.max(0,cap-ocup)+' posiciones libres · costo ocioso '+fmUSD(Math.max(0,cap-ocup)*costoPorPosicion())+'/mes';
+    el.style.color=pct>100?'var(--red)':pct>85?'var(--orange)':'var(--green)';
   }
 }
 
@@ -5569,74 +5279,8 @@ function renderSummaryCards(){ renderAdminKpis(); }
 
 // ── COTIZACIÓN ESTÁNDAR ───────────────────────────────────────
 function cotizacionEstandar(){
-  const client = (document.getElementById('clientName')?.value||'').trim() || 'Referencia de mercado';
-  const seller = (document.getElementById('vendedor')?.value||'').trim() || '—';
-  const vigencia = document.getElementById('vigencia')?.value || 30;
-  const today = new Date().toLocaleDateString('es-PA',{day:'2-digit',month:'long',year:'numeric'});
-  const fm = n => n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-
-  // All tariff groups × 1
-  const stdGroups = [
-    {label:'Entrada / Inbound',  keys:['desc40p','desc20p','desc40g','desc20g','recepPal','recepBul','putaway']},
-    {label:'Almacenaje',          keys:['almacPos','almacM2','almacCBM','almacBul']},
-    {label:'Salida / Outbound',   keys:['pickBul','pickUni','prepOrd','carga40p','carga20p','carga40g','carga20g']},
-    {label:'VAS & Paletizado',    keys:['paletSin','paletCon','etiquetado','lecSerial']},
-    {label:'Documentación',       keys:['dmceIn','dmceOut','memorial','tiDoc','manejoIn','manejoOut']},
-  ];
-
-  let totT = 0;
-  const lines = [];
-  stdGroups.forEach(g => {
-    g.keys.forEach(k => {
-      const t = TARIFAS[k];
-      if(t && t.cost > 0){
-        totT += t.cost;
-        lines.push({name:t.label, unit:t.unit, qty:1, rate:t.cost, sub:t.cost, costoB:0, key:k, isStd:true});
-      }
-    });
-  });
-
-  // Store in S.lastQuote — NO margen, NO costo shown
-  const stdNumero = 'STD-'+Date.now().toString().slice(-6);
-  S.lastQuote = {
-    client, seller, type:'mixto', storageFmt:'pallet_pos', tipoMerc:'',
-    vigencia, today, numero: stdNumero,
-    lines, totT, totC: 0, margen: null, utilidad: null,
-    alerts: [{type:'info', icon:'', title:'Cotización Estándar',
-      msg:' Incluye todos los rubros × 1 como referencia. Elimina los que no apliquen y ajusta tarifas según el volumen real del cliente.'}],
-    isStd: true
-  };
-
-  // Render result skipping margin KPIs
-  renderQuoteResult(S.lastQuote);
-  goTo(5);
-}
-
-// ── SYNC POSICIONES → FORECAST ALMACENAJE ───────────────────
-function syncPosToForecast(){
-  const prom = document.getElementById('posPromedio')?.value || '';
-  const pico = document.getElementById('posPico')?.value || '';
-  // Fill almacenaje forecast fields if they exist (rendered by renderForecast)
-  const pallets = document.getElementById('f_pallets');
-  const palletsPico = document.getElementById('f_palletsPico');
-  if(pallets && prom && !pallets.value) pallets.value = prom;
-  if(palletsPico && pico && !palletsPico.value) palletsPico.value = pico;
-  // Also fill bulto/cbm variants
-  ['f_bultosPico'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el && pico && !el.value) el.value = pico;
-  });
-}
-
-// ── AUTO REPARTO desde cotización ────────────────────────────
-// Called from calcAndShow — auto-assigns GF based on posPromedio
-function autoRepartoFromQuote(posPromedio){
-  if(!posPromedio || !ADMIN.cuentas?.length) return null;
-  const totalPos = ADMIN.totalPos || 1716;
-  const pct = Math.min(100, posPromedio / totalPos * 100);
-  const totalCostos = ADMIN.costos?.reduce((s,c) => s + c.monto, 0) || 0;
-  const monto = Math.round(totalCostos * pct / 100 * 100) / 100;
-  return { pct: Math.round(pct*10)/10, monto, totalCostos };
+  S.std=true; S.ovr={}; S.removed=[]; S.extra=[];
+  goTo(3);
 }
 
 async function downloadCotFromDB(id){
@@ -5813,9 +5457,8 @@ async function eliminarCot(id){
 }
 
 function irACotizacionGuardada(){
-  if(!S.lastQuote||!S.lastQuote._fromEdit){ showToast('No hay cotización en edición','warn'); return; }
-  renderQuoteResult(S.lastQuote);
-  goTo(5);
+  if(!S._editingCotId){ showToast('No hay cotización en edición','warn'); return; }
+  goTo(3);
 }
 
 function cancelarEdicion(){

@@ -1474,10 +1474,10 @@ html[data-theme="dark"] [style*=";border:1.5px solid #E2E8F0"]:not(.preview-page
                 Guardar y marcar como enviada
               </button>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                <button onclick="S._previewContext='paso5';downloadQuoteCliente('es')" class="btn-sm green" style="padding:11px;font-size:.82rem">Propuesta ES</button>
-                <button onclick="S._previewContext='paso5';downloadQuoteCliente('en')" class="btn-sm green" style="padding:11px;font-size:.82rem;background:#065F46">Quote EN</button>
+                <button onclick="conNumero(()=>downloadQuoteCliente('es'))" class="btn-sm green" style="padding:11px;font-size:.82rem">Propuesta ES</button>
+                <button onclick="conNumero(()=>downloadQuoteCliente('en'))" class="btn-sm green" style="padding:11px;font-size:.82rem;background:#065F46">Quote EN</button>
               </div>
-              <button onclick="S._previewContext='paso5';downloadQuote()" class="btn-sm outline" style="padding:11px;width:100%;font-size:.82rem;border-color:#94A3B8;color:#64748B">
+              <button onclick="conNumero(downloadQuote)" class="btn-sm outline" style="padding:11px;width:100%;font-size:.82rem;border-color:#94A3B8;color:#64748B">
                 Ficha operativa interna
               </button>
             </div>
@@ -1779,7 +1779,8 @@ html[data-theme="dark"] [style*=";border:1.5px solid #E2E8F0"]:not(.preview-page
     <button id="previewBackBtn" onclick="closePreview()" style="padding:8px 16px;border-radius:7px;background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.3);font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;white-space:nowrap;flex-shrink:0">← Volver</button>
     <div class="preview-toolbar-title" id="previewTitle" style="flex:1;text-align:center;font-size:.78rem;padding:0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Vista previa</div>
     <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-      <button onclick="printFromPreview()" style="padding:8px 16px;border-radius:7px;background:var(--green);color:#fff;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;white-space:nowrap">Abrir e Imprimir</button>
+      <button id="btnPDF" onclick="descargarPDF()" style="padding:8px 16px;border-radius:7px;background:var(--green);color:#fff;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;white-space:nowrap">Descargar PDF</button>
+      <button onclick="printFromPreview()" style="padding:8px 12px;border-radius:7px;background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.3);font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;white-space:nowrap">Imprimir</button>
       <button onclick="closePreview()" style="padding:8px 12px;border-radius:7px;background:rgba(255,255,255,.08);color:#fff;border:1.5px solid rgba(255,255,255,.2);font-size:.9rem;cursor:pointer;line-height:1">×</button>
     </div>
   </div>
@@ -2960,6 +2961,15 @@ function renderBusinessCase(q){
 }
 
 // ── PRINT / DOWNLOAD ─────────────────────────────────────────
+// "DMCE Entrada — por embarque / bl" o "Almacenaje (300 CBM × 30 días)": traduce la parte base
+function traducirServicio(nombre,dic){
+  if(dic[nombre]) return dic[nombre];
+  const m=nombre.match(/^(.*?)( — .*| \(.*)$/);
+  if(m&&dic[m[1]]) return dic[m[1]]+m[2].replace('por embarque / bl','per shipment / B/L').replace('por contenedor','per container').replace('por despacho','per dispatch').replace(' días',' days');
+  if(nombre.startsWith('Transporte: ')) return 'Transport: '+nombre.slice(12);
+  return nombre;
+}
+
 function downloadQuoteCliente(lang){
   lang=lang||'es';
   const q=S.lastQuote;
@@ -3082,7 +3092,7 @@ function downloadQuoteCliente(lang){
     <div class="sec-title">${L.servicesTitle}</div>
     <table>
       <thead><tr><th>${L.colDesc}</th><th>${L.colUnit}</th><th class="r">${L.colVol}</th><th class="r">${L.colRate}</th><th class="r">${L.colSub}</th></tr></thead>
-      <tbody>${clientLines.map(l=>{var nm=lang==='en'?(SVCNAMES_EN[l.name]||l.name):l.name;var un=lang==='en'?(SVCUNITS_EN[l.unit]||l.unit):l.unit;return'<tr><td>'+nm+'</td><td style="color:#64748B">'+un+'</td><td class="r">'+l.qty+'</td><td class="r">$'+parseFloat(l.rate||0).toFixed(2)+'</td><td class="r">$'+fm(l.sub)+'</td></tr>';}).join('')}</tbody>
+      <tbody>${clientLines.map(l=>{var nm=lang==='en'?traducirServicio(l.name,SVCNAMES_EN):l.name;var un=lang==='en'?(SVCUNITS_EN[l.unit]||l.unit):l.unit;return'<tr><td>'+nm+'</td><td style="color:#64748B">'+un+'</td><td class="r">'+l.qty+'</td><td class="r">$'+parseFloat(l.rate||0).toFixed(2)+'</td><td class="r">$'+fm(l.sub)+'</td></tr>';}).join('')}</tbody>
       <tfoot><tr><td colspan="4">${L.totalLabel}</td><td class="r">$${fm(q.totT)}</td></tr></tfoot>
     </table>
     <div class="foot"><div>${L.footerPage}</div><div>${q.numero||''} · ${q.today}</div></div>
@@ -3119,6 +3129,22 @@ function downloadQuoteCliente(lang){
     title:(lang==='en'?'Quote — ':'Cotización — ')+q.client,
     context:S._previewContext||'paso5'
   });
+}
+
+// Business case en la ficha interna (cotizaciones guardadas desde el rediseño)
+function fichaBusinessCase(q,fm){
+  const b=q.bloques;
+  if(!b||q.isStd) return '';
+  const fila=(l,v,n)=>'<tr><td><strong>'+l+'</strong>'+(n?'<div style="color:#94A3B8;font-size:10px">'+n+'</div>':'')+'</td><td class="r">'+v+'</td></tr>';
+  let h='<div class="stitle">Business case</div><table><tbody>';
+  h+=fila('Venta mensual','$'+fm(q.totT));
+  h+=fila('− Costo variable de los servicios','$'+fm(b.variable),b.moReemp?'MO por productividad $'+fm(b.moReemp)+' reemplazada por personal dedicado':'');
+  h+=fila('− Costos fijos de bodega','$'+fm(b.fijo),b.posRef?b.posRef+' posiciones × $'+fm(b.cpp)+' ('+b.pctCap+'% de la capacidad)':'');
+  if(b.personal||b.equipo) h+=fila('− Recursos dedicados','$'+fm(b.personal+b.equipo),'Personal $'+fm(b.personal)+' · equipos $'+fm(b.equipo));
+  if(b.capex) h+=fila('− CAPEX amortizado','$'+fm(b.capex),'$'+fm(b.capexMonto)+' en '+b.meses+' meses');
+  h+=fila('= Utilidad mensual','$'+fm(q.utilidad)+' · '+(q.margen||0).toFixed(1)+'%');
+  h+=fila('Utilidad en el contrato ('+b.meses+' meses)','$'+fm(q.utilidad*b.meses));
+  return h+'</tbody></table>';
 }
 
 function downloadQuote(){
@@ -3181,6 +3207,7 @@ function downloadQuote(){
     <tbody>${(q.lines||[]).map(l=>'<tr><td>'+l.name+'</td><td>'+l.unit+'</td><td class="r">'+l.qty+'</td><td class="r">$'+parseFloat(l.rate||0).toFixed(2)+'</td><td class="'+(l.costoOnly?'gray':'r')+'">'+(l.costoOnly?'costo interno':'$'+fm(l.sub))+'</td></tr>').join('')}</tbody>
     <tfoot><tr><td colspan="4">TOTAL MENSUAL AL CLIENTE</td><td class="r">$${fm(q.totT)}</td></tr></tfoot>
   </table>
+  ${fichaBusinessCase(q,fm)}
   <div class="foot"><div><strong>DP World Panamá</strong> · DAL Colón Logistics Park · Uso interno exclusivo</div><div>${q.numero||''} · ${q.today}</div></div>
   <script>window.onload=function(){window.print();}<\/script>
   </body></html>`;
@@ -3192,9 +3219,101 @@ function downloadQuote(){
 }
 
 
+// ── PDF ───────────────────────────────────────────────────────
+// Convierte el documento de la vista previa en un PDF real (tamaño carta). Cada bloque .page
+// empieza en una hoja nueva; si un bloque es más alto que la hoja, sigue en la siguiente.
+// html2canvas y jsPDF se cargan solo la primera vez que se pide un PDF.
+let _libsPDF=null;
+function cargarLibsPDF(){
+  if(_libsPDF) return _libsPDF;
+  const cargar=src=>new Promise((ok,err)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>err(new Error('No se pudo cargar '+src));document.head.appendChild(s);});
+  _libsPDF=Promise.all([
+    cargar('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
+    cargar('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
+  ]).catch(e=>{_libsPDF=null;throw e;});
+  return _libsPDF;
+}
+
+function enBlanco(ctx,w,h){
+  const d=ctx.getImageData(0,0,w,h).data;
+  for(let i=0;i<d.length;i+=4*97) if(d[i]<245||d[i+1]<245||d[i+2]<245) return false;
+  return true;
+}
+
+async function generarPDF(html){
+  await cargarLibsPDF();
+  const ANCHO=816; // carta a 96 ppp
+  const frame=document.createElement('iframe');
+  frame.style.cssText='position:fixed;left:-10000px;top:0;width:'+ANCHO+'px;height:1200px;border:0;visibility:hidden';
+  document.body.appendChild(frame);
+  try{
+    const doc=frame.contentDocument;
+    doc.open(); doc.write(html.replace(/<script>[\s\S]*?<\/script>/gi,'')); doc.close();
+    await new Promise(r=>{ if(doc.readyState==='complete') r(); else frame.onload=r; setTimeout(r,4000); });
+    try{ await Promise.race([doc.fonts.ready,new Promise(r=>setTimeout(r,3000))]); }catch(e){}
+    await Promise.all([...doc.images].map(img=>img.complete?0:new Promise(r=>{img.onload=img.onerror=r;})));
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({unit:'pt',format:'letter'});
+    const W=pdf.internal.pageSize.getWidth(), H=pdf.internal.pageSize.getHeight(), M=18;
+    const anchoUtil=W-2*M, altoUtil=H-2*M;
+    const bloques=[...doc.querySelectorAll('.page')];
+    if(!bloques.length) bloques.push(doc.body);
+    let primera=true;
+    for(const el of bloques){
+      const canvas=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true,windowWidth:ANCHO,logging:false});
+      const escala=anchoUtil/canvas.width;              // pt por px del canvas
+      const altoPagPx=Math.floor(altoUtil/escala);      // px del canvas que caben en una hoja
+      for(let y=0;y<canvas.height;y+=altoPagPx){
+        const h=Math.min(altoPagPx,canvas.height-y);
+        const trozo=document.createElement('canvas');
+        trozo.width=canvas.width; trozo.height=h;
+        const ctx=trozo.getContext('2d');
+        ctx.drawImage(canvas,0,y,canvas.width,h,0,0,canvas.width,h);
+        if(!primera&&enBlanco(ctx,trozo.width,h)) continue;   // no agregar hojas vacías al final
+        if(!primera) pdf.addPage();
+        pdf.addImage(trozo.toDataURL('image/jpeg',0.92),'JPEG',M,M,anchoUtil,h*escala);
+        primera=false;
+      }
+    }
+    return pdf.output('blob');
+  }finally{ frame.remove(); }
+}
+
+// Descarga el PDF de la vista previa; en el celular abre el menú de compartir (WhatsApp, correo…)
+async function descargarPDF(){
+  if(!S._lastPrintHTML){ showToast('Genera primero el documento','warn'); return; }
+  const btn=document.getElementById('btnPDF');
+  if(btn){ btn.disabled=true; btn.textContent='Generando…'; }
+  try{
+    const blob=await generarPDF(S._lastPrintHTML);
+    const numero=S._lastPrintNumero&&!(S._lastPrintName||'').includes(S._lastPrintNumero)?' - '+S._lastPrintNumero:'';
+    const nombre=((S._lastPrintName||'Cotizacion DP World')+numero).normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[—–]/g,'-').replace(/[^A-Za-z0-9 ._-]+/g,'').replace(/\s+/g,' ').trim()+'.pdf';
+    const file=new File([blob],nombre,{type:'application/pdf'});
+    const movil=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+    if(movil&&navigator.canShare&&navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file],title:nombre}); return; }
+      catch(e){ if(e.name==='AbortError') return; }
+    }
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=nombre;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+    showToast('PDF descargado: '+nombre,'success',4000);
+  }catch(e){
+    console.error('PDF:',e);
+    showToast('No se pudo generar el PDF ('+e.message+'). Usa Imprimir → Guardar como PDF.','error',7000);
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent='Descargar PDF'; }
+  }
+}
+
 function showDocPreview(printHTML, opts){
   opts=opts||{};
   S._lastPrintHTML=printHTML;
+  S._lastPrintName=opts.title||'Documento DP World';
+  S._lastPrintNumero=S.lastQuote?.numero||'';
   S._previewContext=opts.context||'paso5';
   // Update toolbar title
   const titleEl=document.getElementById('previewTitle');
@@ -3414,113 +3533,109 @@ function resetAll(){
 }
 
 
-async function saveCotizacion(estado='borrador'){
-  if(!currentUser){ showToast('Debes iniciar sesión','error'); return; }
-  if(!S.type&&!S.std){ showToast('Genera una cotización primero','warn'); return; }
+// Inserta o actualiza una fila de cotizaciones. Si la base no tiene alguna columna opcional,
+// la quita y reintenta (sin perder las demás). Las columnas base nunca se quitan.
+const COLS_BASE=new Set(['vendedor_id','vendedor_nombre','cliente_nombre','tipo_operacion','total_tarifa','total_costo','margen','lineas','estado','vigencia','numero']);
+async function guardarFila(payload,id){
+  const p={...payload};
+  for(let intento=0;intento<12;intento++){
+    const r=id
+      ?await supa.from('cotizaciones').update(p).eq('id',id).select().single()
+      :await supa.from('cotizaciones').insert([p]).select().single();
+    if(!r.error) return r.data;
+    const msg=r.error.message||'';
+    const col=(msg.match(/'([a-z_]+)' column/)||msg.match(/column "?(?:[a-z_]+\.)?([a-z_]+)"? (?:of relation .* )?does not exist/)||[])[1];
+    if(!col||COLS_BASE.has(col)||!(col in p)) throw r.error;
+    console.warn('Columna no disponible, se guarda sin ella:',col);
+    delete p[col];
+  }
+  throw new Error('No se pudo guardar');
+}
+
+async function siguienteNumero(){
+  try{
+    const{data,error}=await supa.rpc('next_cotizacion_numero');
+    if(!error&&data) return data;
+  }catch(e){}
+  const now=new Date();
+  const prefix='COT-'+now.getFullYear()+(now.getMonth()+1).toString().padStart(2,'0')+'-';
+  const{data:lastRows}=await supa.from('cotizaciones').select('numero').like('numero',prefix+'%').order('numero',{ascending:false}).limit(1);
+  const lastNum=lastRows?.length?parseInt((lastRows[0].numero||'').split('-').pop())||0:0;
+  return prefix+(lastNum+1).toString().padStart(3,'0');
+}
+
+// Guarda la cotización abierta. La primera vez crea el número; después actualiza la misma
+// fila (nunca duplica). Al editar no cambia el vendedor dueño de la cotización.
+async function saveCotizacion(estado='borrador',silencioso=false){
+  if(!currentUser){ showToast('Debes iniciar sesión','error'); return null; }
+  if(!S.type&&!S.std){ showToast('Genera una cotización primero','warn'); return null; }
+  if(S._guardando) return S._guardando;
   const q=calcularCotizacion();
   S.lastQuote=q;
-  const vigencia=parseInt(document.getElementById('vigencia')?.value)||30;
-
-  // Build base payload with guaranteed columns
+  const num=v=>{const n=parseFloat(v);return isNaN(n)?null:n;};
+  const txt=id=>document.getElementById(id)?.value||null;
   const payload={
-    vendedor_id: currentUser.id,
-    vendedor_nombre: currentUserData?.nombre||currentUser.email,
-    cliente_nombre: q.client||'',
-    tipo_operacion: q.type,
-    total_tarifa: q.totT||0,
-    total_costo: q.totC||0,
-    margen: q.margen!=null ? parseFloat(q.margen)||0 : 0,
-    lineas: q.lines||[],
+    cliente_nombre:q.client||'',
+    tipo_operacion:q.type,
+    total_tarifa:q.totT||0,
+    total_costo:q.totC||0,
+    margen:q.margen!=null?parseFloat(q.margen)||0:0,
+    utilidad:q.utilidad||0,
+    lineas:q.lines||[],
     estado,
-    vigencia,
+    vigencia:parseInt(txt('vigencia'))||30,
+    notas_internas:txt('notasInternas'),
+    cliente_trade_name:txt('tradeName'),
+    cliente_contacto:txt('contactName'),
+    cliente_email:txt('contactEmail'),
+    cliente_telefono:txt('contactPhone'),
+    fecha_inicio_estimada:txt('startDate'),
+    tipo_mercancia:txt('tipoMercancia'),
+    temperatura:txt('temperatura'),
+    uom:txt('uom'),
+    rotacion:txt('rotacion'),
+    trazabilidad:txt('trazabilidad'),
+    total_skus:txt('totalSkus'),
+    storage_fmt:q.storageFmt||null,
+    pos_promedio:num(txt('posPromedio')),
+    pos_pico:num(txt('posPico')),
+    entrada:{...capturarEntrada(),business_case:q.bloques},
+    actualizado_en:new Date().toISOString(),
   };
-  // Optional columns — may not exist in older schemas
-  const extras={
-    notas_internas: document.getElementById('notasInternas')?.value||null,
-    cliente_trade_name: document.getElementById('tradeName')?.value||null,
-    cliente_contacto: document.getElementById('contactName')?.value||null,
-    cliente_email: document.getElementById('contactEmail')?.value||null,
-    cliente_telefono: document.getElementById('contactPhone')?.value||null,
-    fecha_inicio_estimada: document.getElementById('startDate')?.value||null,
-    tipo_mercancia: document.getElementById('tipoMercancia')?.value||null,
-    temperatura: document.getElementById('temperatura')?.value||null,
-    uom: document.getElementById('uom')?.value||null,
-    rotacion: document.getElementById('rotacion')?.value||null,
-    trazabilidad: document.getElementById('trazabilidad')?.value||null,
-    total_skus: document.getElementById('totalSkus')?.value||null,
-    storage_fmt: q.storageFmt||null,
-    pos_promedio: parseFloat(document.getElementById('posPromedio')?.value)||null,
-    pos_pico: parseFloat(document.getElementById('posPico')?.value)||null,
-    entrada: {...capturarEntrada(), business_case:q.bloques},
-  };
-  Object.entries(extras).forEach(([k,v])=>{ if(v!=null&&v!=='') payload[k]=v; });
-
-  const _getNumero=async()=>{
+  const id=S._editingCotId;
+  S._guardando=(async()=>{
     try{
-      const{data:rpcData,error:rpcErr}=await supa.rpc('next_cotizacion_numero');
-      if(!rpcErr&&rpcData) return rpcData;
-    }catch(e){}
-    try{
-      const now=new Date();
-      const ym=now.getFullYear().toString()+(now.getMonth()+1).toString().padStart(2,'0');
-      const prefix='COT-'+ym+'-';
-      const{data:lastRows}=await supa.from('cotizaciones')
-        .select('numero').like('numero',prefix+'%')
-        .order('numero',{ascending:false}).limit(1);
-      const lastNum=lastRows?.length?parseInt((lastRows[0].numero||'').split('-').pop())||0:0;
-      return prefix+(lastNum+1).toString().padStart(3,'0');
-    }catch(e){
-      const now=new Date();
-      const ym=now.getFullYear().toString()+(now.getMonth()+1).toString().padStart(2,'0');
-      return 'COT-'+ym+'-001';
-    }
-  };
-
-  const _persist=async(p)=>{
-    if(S._editingCotId){
-      const{data,error}=await supa.from('cotizaciones').update(p).eq('id',S._editingCotId).select().single();
-      if(error) throw error;
-      return{data,updated:true};
-    }
-    p.numero=await _getNumero();
-    const{data,error}=await supa.from('cotizaciones').insert([p]).select().single();
-    if(error) throw error;
-    return{data,updated:false};
-  };
-
-  const _finish=(data,updated)=>{
-    if(updated){
-      showToast('Cotización actualizada: '+(data?.numero||S._editingCotNumero),'success');
-      S._editingCotId=null; S._editingCotNumero=null;
-      document.getElementById('editBanner')?.classList.add('hidden');
-    } else {
-      showToast('Cotización guardada: '+data.numero,'success');
-    }
-    return data;
-  };
-
-  try{
-    const{data,updated}=await _persist(payload);
-    return _finish(data,updated);
-  }catch(e){
-    const msg=e.message||'';
-    // Column missing — retry without optional extras
-    if(msg.includes('does not exist')||msg.includes('no existe')||e.code==='42703'){
-      try{
-        const base={};
-        const extrasKeys=new Set(Object.keys(extras));
-        Object.entries(payload).forEach(([k,v])=>{ if(!extrasKeys.has(k)) base[k]=v; });
-        const{data,updated}=await _persist(base);
-        return _finish(data,updated);
-      }catch(e2){
-        showToast('Error al guardar: '+(e2.message||JSON.stringify(e2)),'error');
-        return null;
+      if(!id){
+        payload.vendedor_id=currentUser.id;
+        payload.vendedor_nombre=currentUserData?.nombre||currentUser.email;
+        payload.numero=await siguienteNumero();
       }
-    }
-    console.error('saveCotizacion error:',e);
-    showToast('Error al guardar: '+(msg||JSON.stringify(e)),'error');
-    return null;
+      const data=await guardarFila(payload,id);
+      S._editingCotId=data.id;
+      S._editingCotNumero=data.numero;
+      const banner=document.getElementById('editBanner');
+      if(banner){ banner.classList.remove('hidden'); banner.innerHTML='<strong>'+data.numero+'</strong> — guardada. Los cambios se guardan sobre este mismo número.'; }
+      if(S.step===3) recalcular();
+      if(!silencioso) showToast((id?'Cotización actualizada: ':'Cotización guardada: ')+data.numero+(estado==='enviada'?' · enviada':''),'success');
+      return data;
+    }catch(e){
+      console.error('saveCotizacion error:',e);
+      showToast('Error al guardar: '+(e.message||JSON.stringify(e)),'error',6000);
+      return null;
+    }finally{ S._guardando=null; }
+  })();
+  return S._guardando;
+}
+
+// Las propuestas y la ficha llevan número: si la cotización aún no está guardada, se guarda antes.
+async function conNumero(fn){
+  if(!S._editingCotId&&!S.std){
+    const d=await saveCotizacion('borrador',true);
+    if(!d) return;
+    showToast('Guardada como '+d.numero,'success');
   }
+  S._previewContext='paso5';
+  fn();
 }
 
 
@@ -3971,28 +4086,14 @@ async function duplicarCotizacion(id){
   showToast('Duplicando cotización…','success');
   const cot=await loadCotizacion(id);
   if(!cot){ showToast('Error al cargar','error'); return; }
-  let numero;
-  try{
-    const{data:rpcData,error:rpcErr}=await supa.rpc('next_cotizacion_numero');
-    if(!rpcErr&&rpcData) numero=rpcData;
-  }catch(e){}
-  if(!numero){
-    try{
-      const now=new Date();
-      const ym=now.getFullYear().toString()+(now.getMonth()+1).toString().padStart(2,'0');
-      const prefix='COT-'+ym+'-';
-      const{data:lastRows}=await supa.from('cotizaciones').select('numero').like('numero',prefix+'%').order('numero',{ascending:false}).limit(1);
-      const lastNum=lastRows?.length?parseInt((lastRows[0].numero||'').split('-').pop())||0:0;
-      numero=prefix+(lastNum+1).toString().padStart(3,'0');
-    }catch(e){const now=new Date();numero='COT-'+now.getFullYear()+(now.getMonth()+1).toString().padStart(2,'0')+'-001';}
-  }
+  const numero=await siguienteNumero();
   const{id:_,numero:_n,creado_en:_c,actualizado_en:_u,...rest}=cot;
-  const payload={...rest,numero,estado:'borrador',vendedor_id:currentUser.id,vendedor_nombre:currentUserData?.nombre||currentUser.email,creado_en:new Date().toISOString()};
-  const{data,error}=await supa.from('cotizaciones').insert([payload]).select().single();
-  if(!error){
+  const payload={...rest,numero,estado:'borrador',historial_estados:null,vendedor_id:currentUser.id,vendedor_nombre:currentUserData?.nombre||currentUser.email,creado_en:new Date().toISOString()};
+  try{
+    const data=await guardarFila(payload);
     showToast('Cotización duplicada: '+data.numero,'success');
     filterCotizaciones();
-  } else showToast('Error al duplicar: '+error.message,'error');
+  }catch(e){ showToast('Error al duplicar: '+e.message,'error'); }
 }
 
 async function renderPipeline(){
@@ -5309,6 +5410,7 @@ async function downloadCotFromDB(id){
     contactEmail: cot.cliente_email||'',
     contactPhone: cot.cliente_telefono||'',
     startDate: cot.fecha_inicio_estimada||'',
+    bloques: (typeof cot.entrada==='string'?JSON.parse(cot.entrada||'null'):cot.entrada)?.business_case||null,
   };
   S._previewContext='listado';
   downloadQuote();
@@ -5341,8 +5443,7 @@ function updateProdField(id,field,val){
 function downloadQuoteHTML(){
   if(!S._lastPrintHTML){ showToast('Genera primero la cotización','warn'); return; }
   const q=S.lastQuote;
-  const name=(q?.client||'cliente').replace(/[^a-zA-Z0-9]/g,'_').substring(0,20);
-  const filename='Cotizacion_DPWorld_'+name+'.html';
+  const filename=(S._lastPrintName||'Cotizacion DP World').replace(/[\\/:*?"<>|]+/g,'')+'.html';
   try{
     // Use data URI as fallback if blob fails
     const blob=new Blob([S._lastPrintHTML],{type:'text/html;charset=utf-8'});
@@ -5401,48 +5502,8 @@ async function compartirCot(id,lang){
     startDate:cot.fecha_inicio_estimada||'',
   };
   S._previewContext='listado';
-  downloadQuoteCliente(lang); // builds S._lastPrintHTML and shows preview
-  await new Promise(r=>setTimeout(r,200));
+  downloadQuoteCliente(lang); // arma la vista previa; el PDF se baja o comparte desde su barra
   S.lastQuote=savedQuote;
-
-  if(!S._lastPrintHTML){ showToast('Error al generar documento','error'); return; }
-
-  const safeName=(cot.cliente_nombre||'cliente').replace(/[^a-zA-Z0-9]/g,'_').substring(0,20);
-  const filename='Cotizacion_DPWorld_'+safeName+'.html';
-  const blob=new Blob([S._lastPrintHTML],{type:'text/html;charset=utf-8'});
-  const file=new File([blob],filename,{type:'text/html'});
-
-  const isMobile=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-  try{
-    if(isMobile && navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({
-        title:'Cotizacion DP World - '+cot.cliente_nombre,
-        files:[file],
-      });
-      return;
-    }
-    if(isMobile && navigator.share){
-      const u2=URL.createObjectURL(blob);
-      const a2=document.createElement('a');
-      a2.href=u2; a2.download=filename;
-      document.body.appendChild(a2); a2.click(); document.body.removeChild(a2);
-      setTimeout(()=>URL.revokeObjectURL(u2),2000);
-      await navigator.share({
-        title:'Cotizacion DP World - '+cot.cliente_nombre,
-        text:cot.numero+' - '+cot.cliente_nombre+' - Total: $'+parseFloat(cot.total_tarifa||0).toFixed(2)+'/mes',
-      }).catch(()=>{});
-      return;
-    }
-    // Desktop: la vista previa ya está abierta — solo descarga + instrucciones
-    const u3=URL.createObjectURL(blob);
-    const a3=document.createElement('a');
-    a3.href=u3; a3.download=filename;
-    document.body.appendChild(a3); a3.click(); document.body.removeChild(a3);
-    setTimeout(()=>URL.revokeObjectURL(u3),2000);
-    showToast('Archivo descargado. Usa "Guardar como PDF" en la barra superior para generar el PDF','info',7000);
-  }catch(e){
-    if(e.name!=='AbortError') showToast('Error: '+e.message,'error');
-  }
 }
 
 async function eliminarCot(id){
@@ -5700,35 +5761,22 @@ async function saveLiquidacion(estado){
   lineas.push({name:'ITBMS 7%',unit:'',qty:1,rate:q.vITBMS,sub:q.vITBMS});
   if(q.vFin>0) lineas.push({name:'Financiamiento',unit:'',qty:1,rate:q.vFin,sub:q.vFin});
   const payload={
-    vendedor_id:currentUser.id,vendedor_nombre:currentUserData?.nombre||currentUser.email,
     cliente_nombre:q.cliente||'Sin nombre',tipo_operacion:'liquidacion',
     total_tarifa:q.vFinal,total_costo:q.cTotal,margen:q.gpm,
     lineas:lineas,estado:estado,vigencia:30,
     cliente_contacto:q.contacto||null,cliente_email:q.email||null,
     cliente_telefono:q.telefono||null,notas_internas:q.notas||null,
-    tipo_mercancia:q.tipoProducto||null
+    tipo_mercancia:q.tipoProducto||null,actualizado_en:new Date().toISOString()
   };
   try{
-    if(_liqEditingId){
-      const{data,error}=await supa.from('cotizaciones').update(payload).eq('id',_liqEditingId).select().single();
-      if(error)throw error;
-      showToast('Liquidación actualizada: '+(data?.numero||''),'success');
-    }else{
-      let numero;
-      try{const{data:rd,error:re}=await supa.rpc('next_cotizacion_numero');if(!re&&rd)numero=rd;}catch(e){}
-      if(!numero){
-        const now=new Date();const ym=now.getFullYear().toString()+(now.getMonth()+1).toString().padStart(2,'0');
-        const prefix='COT-'+ym+'-';
-        const{data:lastRows}=await supa.from('cotizaciones').select('numero').like('numero',prefix+'%').order('numero',{ascending:false}).limit(1);
-        const lastNum=lastRows?.length?parseInt((lastRows[0].numero||'').split('-').pop())||0:0;
-        numero=prefix+(lastNum+1).toString().padStart(3,'0');
-      }
-      payload.numero=numero;
-      const{data,error}=await supa.from('cotizaciones').insert([payload]).select().single();
-      if(error)throw error;
-      _liqEditingId=data.id;LIQ._numero=data.numero;
-      showToast('Liquidación guardada: '+data.numero,'success');
+    if(!_liqEditingId){
+      payload.vendedor_id=currentUser.id;
+      payload.vendedor_nombre=currentUserData?.nombre||currentUser.email;
+      payload.numero=await siguienteNumero();
     }
+    const data=await guardarFila(payload,_liqEditingId);
+    showToast((_liqEditingId?'Liquidación actualizada: ':'Liquidación guardada: ')+data.numero,'success');
+    _liqEditingId=data.id;LIQ._numero=data.numero;
   }catch(e){showToast('Error al guardar: '+(e.message||''),'error');}
 }
 function downloadLiquidacionCliente(){

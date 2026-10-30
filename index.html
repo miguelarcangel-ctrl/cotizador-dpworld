@@ -486,6 +486,8 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
 .preview-toolbar-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.9rem;color:#fff;text-transform:uppercase;letter-spacing:.05em}
 .preview-frame{flex:1;overflow-y:auto;background:#E8E8E8;padding:16px}
 .preview-page{background:#fff;max-width:750px;margin:0 auto;padding:32px;box-shadow:0 4px 20px rgba(0,0,0,.2);border-radius:4px;font-family:'Barlow',sans-serif;font-size:12px;color:#1B1B1B;line-height:1.5}
+.preview-page.doc{max-width:816px;padding:0;background:transparent;box-shadow:none;border-radius:0;overflow:hidden}
+.preview-frame:has(.preview-page.doc){padding:0;background:#D9DDE3}
 
 /* ── EDIT BANNER ───────────────────────────────────────────── */
 .edit-banner{background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:.78rem;color:#92400E;display:flex;align-items:center;gap:8px}
@@ -2745,7 +2747,7 @@ function calcularCotizacion(){
       const sel=document.getElementById('dfreq-'+key);
       const freq=sel?.options[sel.selectedIndex]?.text||'';
       const qty=parseFloat(document.getElementById('dqty-'+key)?.value)||1;
-      add(key,qty,`${T(key).label||doc.label}${freq?' — '+freq.toLowerCase():''}`);
+      add(key,qty,`${T(key).label||doc.label}${freq?' — '+freq.charAt(0).toLowerCase()+freq.slice(1):''}`);
     });
     if(document.getElementById('manejoIn')?.checked) add('manejoIn',1);
     if(document.getElementById('manejoOut')?.checked) add('manejoOut',1);
@@ -2965,168 +2967,232 @@ function renderBusinessCase(q){
 function traducirServicio(nombre,dic){
   if(dic[nombre]) return dic[nombre];
   const m=nombre.match(/^(.*?)( — .*| \(.*)$/);
-  if(m&&dic[m[1]]) return dic[m[1]]+m[2].replace('por embarque / bl','per shipment / B/L').replace('por contenedor','per container').replace('por despacho','per dispatch').replace(' días',' days');
+  if(m&&dic[m[1]]) return dic[m[1]]+m[2].replace('por embarque / BL','per shipment / B/L').replace('por contenedor','per container').replace('por despacho','per dispatch').replace(' días',' days');
   if(nombre.startsWith('Transporte: ')) return 'Transport: '+nombre.slice(12);
   return nombre;
 }
 
+// ── PROPUESTA AL CLIENTE ──────────────────────────────────────
+// Documento para el cliente final, en hojas carta (8.5 × 11 in): datos de la propuesta, tarifas,
+// datos operativos considerados, condiciones y aceptación. Sin costos internos.
+const VOL_LABELS={
+  f_cont40p:["Contenedores 40' paletizados — entrada","40' palletized containers — inbound",'cont/mes'],
+  f_cont20p:["Contenedores 20' paletizados — entrada","20' palletized containers — inbound",'cont/mes'],
+  f_cont40g:["Contenedores 40' a granel — entrada","40' floor-loaded containers — inbound",'cont/mes'],
+  f_cont20g:["Contenedores 20' a granel — entrada","20' floor-loaded containers — inbound",'cont/mes'],
+  f_recepBul:['Bultos recibidos','Cartons received','bultos/mes'],
+  f_bultosSal:['Bultos despachados','Cartons dispatched','bultos/mes'],
+  f_unidades:['Unidades pickeadas','Units picked','un/mes'],
+  f_ordenes:['Órdenes de salida','Outbound orders','órd/mes'],
+  f_contSal40p:["Contenedores 40' paletizados — salida","40' palletized containers — outbound",'cont/mes'],
+  f_contSal20p:["Contenedores 20' paletizados — salida","20' palletized containers — outbound",'cont/mes'],
+  f_contSal40g:["Contenedores 40' a granel — salida","40' floor-loaded containers — outbound",'cont/mes'],
+  f_contSal20g:["Contenedores 20' a granel — salida","20' floor-loaded containers — outbound",'cont/mes'],
+  f_contIn40:["Contenedores 40' — entrada","40' containers — inbound",'cont/mes'],
+  f_contIn20:["Contenedores 20' — entrada","20' containers — inbound",'cont/mes'],
+  f_contOut40:["Contenedores 40' — salida","40' containers — outbound",'cont/mes'],
+  f_contOut20:["Contenedores 20' — salida","20' containers — outbound",'cont/mes'],
+  f_vehDescQty:['Vehículos a descargar','Vehicles to unload','veh/mes'],
+  f_vehCargaQty:['Vehículos a cargar','Vehicles to load','veh/mes'],
+  f_vehPatio:['Vehículos en patio (promedio)','Vehicles in yard (average)','veh'],
+  f_vehDias:['Estadía promedio por vehículo','Average stay per vehicle','días'],
+  f_vehCifVal:['Valor CIF promedio por vehículo','Average CIF value per vehicle','USD'],
+  f_vehCifQty:['Vehículos asegurados','Insured vehicles','veh/mes'],
+  f_rutasConductor:['Rutas de conductor CLP → Chilibre','Driver routes CLP → Chilibre','rutas/mes'],
+};
+const TXT_EN={
+  consumo:'Consumer goods / retail',alimentos:'Food & beverages',pharma:'Pharmaceutical / health',textil:'Textiles & apparel',
+  electronica:'Electronics & technology',cosmeticos:'Cosmetics & personal care',industrial:'Industrial / hardware',hazmat:'HAZMAT — dangerous goods',otro:'Other',
+  ambiente:'Ambient (no control)',climatizado:'Climate-controlled 15–25°C',refrigerado:'Refrigerated 2–8°C',congelado:'Frozen -18°C',
+  fifo:'FIFO',fefo:'FEFO',lifo:'LIFO',no:'Not required',lote:'Lot number',serie:'Serial number',ambos:'Lot + serial',
+  pallet_pos:'Per pallet position / month',m2:'Per m² / month',cbm:'Per CBM / day',bulto:'Per peak carton',
+};
+const FMT_ES={pallet_pos:'Por posición de pallet / mes',m2:'Por m² / mes',cbm:'Por CBM / día',bulto:'Por bulto al pico'};
+const GRUPOS_SERVICIO=[
+  ['Entrada','Inbound',k=>/^(desc|recep|putaway)/.test(k)],
+  ['Almacenaje','Storage',k=>/^almac/.test(k)],
+  ['Salida','Outbound',k=>/^(pick|prepOrd|carga)/.test(k)],
+  ['Documentación y manejo','Documentation & handling',k=>/^(dmce|memorial|tiDoc|manejo)/.test(k)],
+  ['Vehículos','Vehicles',k=>/^veh/.test(k)],
+  ['Transporte','Transport',k=>k==='transport'],
+  ['Otros servicios','Other services',()=>true],
+];
+
+function textoOpcion(selId,val,en){
+  if(!val) return '';
+  if(en&&TXT_EN[val]) return TXT_EN[val];
+  return document.querySelector('#'+selId+' option[value="'+val+'"]')?.text||val;
+}
+
+// Datos operativos declarados por el cliente (desde la entrada guardada o el formulario abierto)
+function datosOperativos(q,entrada,en){
+  const f=(entrada&&entrada.fields)||{};
+  const v=(id,alt)=>f[id]!=null&&f[id]!==''?f[id]:(alt&&alt!=='—'?alt:'');
+  const nf=n=>(+n).toLocaleString('en-US');
+  const out=[];
+  const add=(es,eng,val)=>{ if(val!==''&&val!=null&&val!=='0') out.push([en?eng:es,val]); };
+  const tn=(en?{pallet:'Pallet In/Out',bulto:'Carton In/Out',unit:'Unit In/Out',mixto:'Mixed',vehiculos:'Vehicle operation'}:{pallet:'Pallet In/Out',bulto:'Bulto In/Out',unit:'Unit In/Out',mixto:'Mixto',vehiculos:'Operación de vehículos'})[q.type]||q.type;
+  add('Tipo de operación','Operation type',tn);
+  add('Tipo de mercancía','Cargo type',textoOpcion('tipoMercancia',v('tipoMercancia',q.tipoMerc),en));
+  if(q.type!=='vehiculos'){
+    add('Temperatura','Temperature',textoOpcion('temperatura',v('temperatura',q.temperatura),en));
+    const pp=v('posPromedio',q.posPromedio), pk=v('posPico',q.posPico);
+    if(+pp) add('Posiciones promedio','Average positions',nf(pp));
+    if(+pk) add('Posiciones pico','Peak positions',nf(pk));
+    add('Formato de almacenaje','Storage billing',en?TXT_EN[q.storageFmt]||'':FMT_ES[q.storageFmt]||'');
+    const aq=+v('almacQty');
+    if(aq&&q.storageFmt!=='pallet_pos') add('Cantidad en almacenaje','Storage quantity',nf(aq)+' '+({m2:'m²',cbm:'CBM',bulto:en?'cartons':'bultos'}[q.storageFmt]||''));
+  }
+  Object.entries(VOL_LABELS).forEach(([id,[es,eng,u]])=>{
+    const n=+v(id); if(n) add(es,eng,(id==='f_vehCifVal'?'$':'')+nf(n)+' '+(en?u.replace('/mes','/month').replace('días','days'):u).replace('USD',''));
+  });
+  add('Total SKUs','Total SKUs',+v('totalSkus',q.totalSkus)?nf(v('totalSkus',q.totalSkus)):'');
+  const rot=v('rotacion',q.rotacion); if(rot) add('Rotación de inventario','Inventory rotation',textoOpcion('rotacion',rot,en));
+  const tr=v('trazabilidad',q.trazabilidad); if(tr&&tr!=='no') add('Trazabilidad','Traceability',textoOpcion('trazabilidad',tr,en));
+  const ini=v('startDate',q.startDate);
+  if(ini) add('Inicio estimado','Estimated start',new Date(ini+'T12:00:00').toLocaleDateString(en?'en-US':'es-PA',{day:'2-digit',month:'long',year:'numeric'}));
+  return out;
+}
+
 function downloadQuoteCliente(lang){
   lang=lang||'es';
+  const en=lang==='en';
   const q=S.lastQuote;
   if(!q){showToast('Genera la cotización primero','warn');return;}
+  const esc=t=>String(t??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const fm=n=>parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const dateLocale=lang==='en'?'en-US':'es-PA';
-  const vigenciaFin=new Date(Date.now()+(parseInt(q.vigencia)||30)*86400000).toLocaleDateString(dateLocale,{day:'2-digit',month:'long',year:'numeric'});
-  const disclaimers=lang==='en'?PDF_DISCLAIMERS_EN:PDF_DISCLAIMERS;
-  const L=lang==='en'?{
-    docTitle:'3PL Logistics Services Proposal',
-    tag:'3PL Logistics Services Proposal',
-    confidential:'Confidential · For recipient use only',
-    dateLabel:'Date:',validLabel:'Valid until:',repLabel:'Sales Representative:',
-    pg2Header:'Commercial Proposal',valueTitle:'Value Proposition',
-    servicesTitle:'Quoted Services',
-    colDesc:'Service Description',colUnit:'Unit',colVol:'Est. Vol.',colRate:'Rate',colSub:'Subtotal / month',
-    totalLabel:'ESTIMATED MONTHLY TOTAL',
-    pg3Header:'Terms & Conditions',
-    advantageTitle:'DAL Advantage — Port-based Operation',
-    profileTitle:'Declared Operational Profile',conditionsTitle:'Proposal Terms & Conditions',
-    plabels:{posAvg:'Average Positions',posPeak:'Peak Positions',skus:'Total SKUs',rot:'Rotation',sfmt:'Storage Format'},
-    footerPage:'Confidential · For recipient use only',
-    footerBrand:'DP World Panama · DAL Colón Logistics Park · dpworld.com/panama',
-    tnames:{pallet:'Pallet In/Out',bulto:'Cargo In/Out',unit:'Unit In/Out',mixto:'Mixed',vehiculos:'Vehicles'},
+  const fr=n=>{n=parseFloat(n||0);return n.toLocaleString('en-US',{minimumFractionDigits:n<1?3:2,maximumFractionDigits:n<1?4:2});};
+  const loc=en?'en-US':'es-PA';
+  const base=q.fechaISO?new Date(q.fechaISO):new Date();
+  const fecha=base.toLocaleDateString(loc,{day:'2-digit',month:'long',year:'numeric'});
+  const vigenciaFin=new Date(base.getTime()+(parseInt(q.vigencia)||30)*86400000).toLocaleDateString(loc,{day:'2-digit',month:'long',year:'numeric'});
+  const L=en?{
+    titulo:'Logistics Services Proposal',datos:'Proposal details',cliente:'Client',atencion:'Attention',numero:'Proposal no.',fecha:'Date',
+    vigencia:'Valid until',comercial:'Sales representative',servicio:'Service',tarifas:'Rates',tarifasStd:'Standard rate sheet',
+    cServ:'Service',cUnid:'Unit',cTarifa:'Rate (USD)',cVol:'Est. volume / month',cMes:'Est. monthly (USD)',
+    total:'Estimated monthly total',notaTotal:'Amounts in US dollars. The monthly estimate uses the volumes declared by the client and is for reference.',
+    notaStd:'Rates in US dollars. Volumes and monthly estimate are defined once the operation profile is confirmed.',
+    ops:'Operating data considered',cond:'Terms and conditions',acept:'Acceptance',aceptTxt:'Signed in agreement with the rates and conditions of this proposal.',
+    nombre:'Name',cargo:'Title',firma:'Signature',fechaF:'Date',pagina:'Page',de:'of',borrador:'DRAFT',cont:'(continued)',
   }:{
-    docTitle:'Propuesta de Servicios Logísticos 3PL',
-    tag:'Propuesta de Servicios Logísticos 3PL',
-    confidential:'Confidencial · Solo para uso del destinatario',
-    dateLabel:'Fecha:',validLabel:'Vigente hasta:',repLabel:'Responsable comercial:',
-    pg2Header:'Propuesta Comercial',valueTitle:'Propuesta de valor',
-    servicesTitle:'Detalle de servicios cotizados',
-    colDesc:'Descripción del servicio',colUnit:'Unidad',colVol:'Vol. est.',colRate:'Tarifa',colSub:'Subtotal / mes',
-    totalLabel:'TOTAL ESTIMADO MENSUAL',
-    pg3Header:'Condiciones',
-    advantageTitle:'Ventaja DAL — Operación dentro del área portuaria',
-    profileTitle:'Perfil operativo declarado',conditionsTitle:'Condiciones de la propuesta',
-    plabels:{posAvg:'Posiciones promedio',posPeak:'Posiciones pico',skus:'Total SKUs',rot:'Rotación',sfmt:'Formato almacenaje'},
-    footerPage:'Confidencial · '+q.client,
-    footerBrand:'DP World Panamá · DAL Colón Logistics Park · dpworld.com/panama',
-    tnames:{pallet:'Pallet In/Out',bulto:'Bulto In/Out',unit:'Unit In/Out',mixto:'Mixto',vehiculos:'Vehículos'},
+    titulo:'Propuesta de Servicios Logísticos',datos:'Datos de la propuesta',cliente:'Cliente',atencion:'Atención',numero:'Propuesta n.º',fecha:'Fecha',
+    vigencia:'Vigente hasta',comercial:'Responsable comercial',servicio:'Servicio',tarifas:'Tarifas',tarifasStd:'Tarifario estándar',
+    cServ:'Servicio',cUnid:'Unidad',cTarifa:'Tarifa (USD)',cVol:'Vol. estimado / mes',cMes:'Estimado mensual (USD)',
+    total:'Total estimado mensual',notaTotal:'Montos en dólares estadounidenses. El estimado mensual se calcula con los volúmenes declarados por el cliente y es referencial.',
+    notaStd:'Tarifas en dólares estadounidenses. Los volúmenes y el estimado mensual se definen al confirmar el perfil de la operación.',
+    ops:'Datos operativos considerados',cond:'Condiciones de la propuesta',acept:'Aceptación',aceptTxt:'Firmo en conformidad con las tarifas y condiciones de esta propuesta.',
+    nombre:'Nombre',cargo:'Cargo',firma:'Firma',fechaF:'Fecha',pagina:'Página',de:'de',borrador:'BORRADOR',cont:'(continuación)',
   };
-  const propVal=lang==='en'?PDF_PROPVALUE_EN:PDF_PROPVALUE;
-  const advItems=lang==='en'?PDF_ADVITEMS_EN:PDF_ADVITEMS;
-  const bullets=(propVal[q.type]||propVal.pallet||[]).slice();
-  const SVCNAMES_EN={"Descarga 40' paletizado":"Unloading 40' palletized","Descarga 20' paletizado":"Unloading 20' palletized","Descarga 40' a granel":"Unloading 40' bulk","Descarga 20' a granel":"Unloading 20' bulk","Recepción y registro":"Reception & registration","Almacenaje":"Storage","Putaway a rack":"Rack putaway","Picking por bulto":"Carton picking","Picking por unidad":"Unit picking","Preparación orden salida":"Outbound order prep","Carga 40' paletizado":"Loading 40' palletized","Carga 20' paletizado":"Loading 20' palletized","Carga 40' a granel":"Loading 40' bulk","Carga 20' a granel":"Loading 20' bulk","Paletizado sin esquineras":"Palletizing (no corner boards)","Paletizado con esquineras":"Palletizing (with corner boards)","Etiquetado":"Labeling","Lectura de seriales":"Serial number scanning","DMCE Entrada":"Entry Customs Declaration","DMCE Salida":"Exit Customs Declaration","Memorial":"Customs Memorial","TI — Transporte Interno":"IT — Internal Transport","Manejo de entrada":"Inbound handling","Manejo de salida":"Outbound handling","Descargue de vehículo":"Vehicle unloading","Cargue de vehículo":"Vehicle loading","Almacenaje en patio":"Yard storage","Seguro (0.024% CIF)":"Insurance (0.024% CIF)","Conductor CLP → Chilibre":"Driver CLP → Chilibre","Manejo por contenedor":"Handling per container","Gasto fijo mensual":"Monthly fixed cost"};
-  const SVCUNITS_EN={"/contenedor":"/container","/pallet":"/pallet","/bulto":"/carton","/unidad":"/unit","/orden":"/order","/mes":"/month","/pallet pos/mes":"/pallet pos/month","/m²/mes":"/sqm/month","/CBM/día":"/CBM/day","/bulto pico":"/peak carton","/documento":"/document","/vehículo":"/vehicle","/vehículo/día":"/vehicle/day","% valor CIF":"% CIF value","/ruta":"/route"};
-  const LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAAA8CAIAAAAWtijjAAAUgklEQVR42u1beZQVxbn/vqrqvrf7rrMvwMAwwgCyybAoq6KCgBg3XJBoBE3QJM8clUST+GISNImaczQvekxeXJKnzx3ZxBcVcYkKCo7sMMBsPGaEmbl3lrv1UvW9P3q4DMQY9GRA3rHOPXPndld3V/3q+77fr76qRiKCE1wUAUMAUADyYDvtP4Qt7ZC2AZDrAg1dmX4MGhAOYMSEgA8FB0Q4SUWc0KcRABEwdJWS1Xuxupa3dDIENH0Q9INPByISnAEC54AAjoS0Q0KCT0PO/r8DRASICtH+ZA9b+aHW1M6CfogGIOgHzsiVlGdAeRH0ycNwADSOAASA2WtPUsET5GKKgKFj284Tr+lvbROmATlhMDTwa4RApbkwthIHl4Iu8AvckoiAMzz1LUgRMLRbO9S9zxo1zViUAz4NiEAqshyaNAynDkdDP2IpxxdxbJI2yTD4TnGAPHQOxWnJY/5PO6AwCkoBIEmHmAaXT4aRA/CwAx4nNJ7rpclJghsG3xFP7IXCej/ugJNMqx8+7qtrobAJrgREkC5pOiycgSMHMEVA8AV5igAgLq0E2dmfpypAEtH51bP+LY0QCYArAQGIFADdOBMHFqFUwPDLGUCd7LBA9bYD9CZASgFjmVfW68s/hNwQuNKLL5R2aP50NrgUpYIvSd5oK7dGxnzAe9d+ehEgIkB0u1L8oZXC0EApAADOIJmms4bitNO/NDoKCAGqrUMtlPajgN4MQL0JkCJCtF94x1fbBIbu0RO6UoVMmD+NEcCXomcCQMAu13rDbhTI/chPTRcjAMak7bAX3kW/j5QkdIEjpCw67wwsCAOpLzd7UEBI8Fxq16eYNkAE0eN4PNUAUgoQ7I924+790tCUVERMOdIN+HDGGPzCnNVdJCgOuDxZ85ZsEsBM1AKnsIsByHXVlLElkCQlAWUqQ6cPwJIcAPqiACkgBcSBre7a+7i13UQto9x+PIwACiiRSJxqADGUAM6mGlug7Tqukg45jmPTmIpu6fhFnFWCYoBM4RMdm++zNmpMuOAig+FaHgAwwLa2mOu6Xy0lTQDUg16z/yEAEiCi7Exk6puEAOY6yAgdRE3Th/TF455JKCAC4sA4sCar6zddG9apA8UiSERd4Azh+f14SBExxHg8np+fJ4T4SgDkQcMAP0feEYDdGu/qaNcY59LmksBSPNeIlOT+05BKQAoIARkgALY7maeTOx63trajW8yCkkghEcAMfQACEAIAxGIx27YDgQAR4b86cyS+IDqEgAiYUk6t017ndrRQylIuIIugXsDMUhEsBSNHDxixDPxvq5sbsk0fcZKK/MF8FfR51oZHW1/WHjkwBOSAALDXij2d3PGitWc/JnK5LwK6Q64feZwys/TTRmv5CogBuq7b1hZzPRV6ci3IQ6fLtdZZje+5TftVIkmODdIFkopskDYpABUkUaJHyoJ2/sKhZfs6iw6kop1Jnra1olKhaX9vQdjzm+CA0/l2Zv+yzJ517v4YWjnMn4M6I3RQaYhJcvrx0CJzOB3WorG2WCwWx16jMnH8PMIAd1ttz2R2NaqEybT+IsIAupTTolJtmJFEJmNAkED5sX3o/QIpH5okknbk02RJY6K4Jj7QCYxP1JaIYJj7QqAJZESUAdmprGaZrHU7tjktG91Pt7itcUgBYybz5YEhAB1SiIiAGXJD6LsreFYB8ynP5hD27avNpCwu+MkEyEOnOvPps9bufBG4XpSfJqI5zK8js0nFVXqf7NjgNH9gNderDgdkkGmmYnbMSnNqKTYa+xnWtALpStm5XAemA/MTR0QPoC5wXHABXCAAzoDpfvRzQgRwQAIxjpwD6yQrF4P3R6aN1PK89hCC67pbtm4XmtC0kweQF5L3WrE1dsP5Rvk0ra+GR8SBH1kJD5TwwGS9tNNw1ttNq6y9H9jNMZXRBWqkoWNzW5qKHFQu0x1QGVBd5LpAwAgAQCGixkBnBAQKACURAHFCQC9Uw0GVHK2V/Edk+iiRL4E4oFKKMbZ16/aG+sZBgyr8fgMAsBdy++J45j4dMvOWs/9Sc/BQkXN4uojZ8JENsWGmzfD3n+Hvv9uNr0jvfcWq3Ss7HHT8yJEzQAQlEUAAAjAG5BE5ISkACSQREAgRGAEhQ2KAGFeWieJ6c9TdwYk5TPfQISJAtG3rf179q1IqHA4LIXqDwo7Pgoiq7ZZz/OUVIuzZNjs6IiKAhxd1OyNUipwfhsYtDox+I9P4kr17vXXgkEoqBAGME2NIAISgJKECUqBYtzTyLJMUgkWORZKTPtM38EfB8VP1Um9gPIJTSnHOX3pxRWPj/kgkUtqn2GvniQbIS2W2yMxALadMBD10Pi9JA9DdASACCDPtUrPiUrNin9vxulX/utVY7Xx6gBK2co7OPSsgACQAkoqAIUPfEJ5/rm/AlUbllMPQHFZG4LpSCP63v72/cuXqwsJCRDbotNN6yb+Oa1XDIulD/iXyvnQ4d5OFtVWlt7uxT+xDO922/bKrhdJpchxQOnA/04rRHMgjI/WCMaJomMjVkXkRkHrcwXVdIUR19Sc//8W94XBIE/q4sWMW33RjL5nPcbmYD/mXmzEfbVCEgPnMmKb3mab3OWqqRSQ+q28SlGc13WamFAAIId5992+/+OWvfT4fEdiOPXXa5N7zr97PSQMopRggB4YEBCSBXFASlOqW1OChkz3lgvI8lAPzDIeIpJSMMcbY44//+ZZbfmjbjhC8vb19+PDThw0bqhQx1lsd6fVlH8dxMplMJBLxhA8DwB4qgXqEeX60yqbDhXPOOd+zd++9S+978623iwqLGWrplBUIGvPnX9EjWp6aAPl8vkQiUVdXV1RUZJpmtvNHPBGx50EPFARknHmnDhxoeuyxJ5988qlkMl1UVCSlUlLG44nvff87/fr29QRR77X/RKys5uXlpVKp7dt3hsOhgoL8nJycz4wX3sHsKdu2P/lk84oVq1asWNPYeCAUCoVCIdu2dV0/eOjgDYuum3vhbCkl572blsYTtv2lrq6+oaHRcRwheCgUzsmJhsMh0zR1XfdMwLGdZCrZ0tJaV9ewefO2jZs27dy5s6szpWkaANi2JYTm9/u7urquvfbqe+652wvM2Ms7Y04cQERUX99YW1ubSqWSiVQikbRtWykppXJdJ53OdHZ2xuLxtliso70jlbZIIQDZtpNOp2zbJiLbsi3bvuWWm+666w6v2dj7+4ZO3PYXRCwv7+/36zt27LIsywwYiJhIJBKJRCqVSqXSmUzGldIwDMbQSDuplJVOpxBB0zTHcdra2oqKCh9cet+8Ky45YejACd5ARUQlJSXRaM6uXbv31Ox1HAcRfT4fQLezKCCllOtyLlyhMeGIZDLV0dHh8+kLF37ztttu6du3T29H5ZPmYlmMvJHv7Ozas2fvnpp9B5oOtMc7kslkJp1JZdKpdCqVSiVTqUwqA8AKC/MnTjzzkkvmDh48CABOQFQ+yQAdAxMRtba2NTc1Nzd/2trW1tnRlbEyiBgImMXFRRUVFacNqtA1DQCkVIwhnvDNiicHoKzqOZ4OSykR8US61VcCoGMU8z+C7wQQ+VcdoK94YV9D8DVAXwP0NUBfA/Q1QP8i+j/xRXxmI7wEcE9R/5nViMhbgTlGqmQrH5MMOyb1c/Sp7mPePXsqQynl8TQmq7azF/5TLfo5fWesO133T3TQcSbDv2jOvMdU48huIc9iGMsuYDiO4xp+v1dDKYXIjuch/6rZrFLEGOL0c2YdM2Jc8LKyvnMunHXxN+Z6RxKJxDXXLIy1xXVdQ8YAvO3gZJrGlKmTFy++IRQKZq3pqaee+d1Djwih3Xf/0smTJrrSFUK0tbUtuGZRxrJSydS55559769+nh2opUt/s2LF6kg4/Nhjj/Qf0N+27aeeenb1qjVeds0MmMOGDrl6/pXnnz/dg7Wuru76by1Gr8VZIIiEJk4/fejNN3+7omIgALz//ge33/YTV9pLltw6b96lnznLveGGm7Zv22WaZhZ3xlhxceF550+/6qordF1TSoGu52haFDEAwAA4AAcQACZicO7cea1tbUQUa4sVFZUDBBkLdqfYuz9+AH3suCnNzc1KKcdxiOiD9RsYCwHA4ptuIaJMJkNEf/nLUwBgmvmIwby8fgcPHvRCTFdXV3n5MAAcOXKCbdv1DQ0TJ54NYHAeAjAA/AAmYyGGwcWL/82ybKXU1i3bGAtpWhTAOLoxOoCRn9/v3XffI6LlK1YB+ADgwQcfJiKvbceUMWMmAuiaFgXgAOwwAgaAOX78lH37aolIhMMh27YLCvqOHj1SKYUME12J6urN6XRm1aoV110nV654gXEWCgU7OzvLyvqdddYEpRQgAtHmzVvq6xs3frThx3fe/fgTj3rrFuPHjR0/rmrjpo/fevOdZCJpBkwAeP75l3U9qmmaYRixWGz16lcXLrwOAN59972mpmbGgvPmXSKEmHf5go8+2hQKhTljw0cMj0TCBw407dq12zCMRx/9fSAQeOCBewEgEg650h0x4vRhw4Z45g8ADQ2NW7duj8fbb7v1zg0fvu3Tdb8/6Lqarmv/yIkCAVPXzcKignFjL/Amfel0ZuvWbW1t8Q8/3DRv3oK1a9dAfn4ZQuDyy+b3hHbz5q2jRk0IhYoAjJUrVyulysuHAfguu/TqntVaWlqHDx/n8+X27TvYszUvN3rHHXchBnQ9+sorryqldu+uyc3tq2nR88+fM2xYFYB/1gXf8O7w7RtvRgz4fDm7d9c8++wLAHooVDxq1IQNH270KliW9fTTz+bl9YtESkwzv6GhsXZfbTRSAuC/665f9GyMZVnnz5iradFwuOTgoUPr1r0tRATRfPjhP/wjC5oy+TwAo2rspJ4H6+sbZsyca5r5jAV/9rOlzIvzrusqpbJ/R44c/sgjDympEPmyZauyROM4ruO4lmW7rmtZVn5+3llnjrOsdCaTibXFsyMza9ZMv9/nOO6yZSsR8eVlK+PxuJTypz+9Y8aMcwDog/Ub9+6rtW37jbVvM8YqKwcNHjzoueeWMeZDhCee+OP4cVVSSqWUEGL+/Ct/fOeSZDKZSqVef22tYRhSqb+nJ13X+/Xr4zgOADm2c/ykQYoc21ZKSSmlK/v3L3vi8UdDwaCu+15etpJleZcdLpxzpdSYMaMGlPcnko2N+9PptBfhOOeaJnw+XQjh8/kaGhrefuc9v980TaOgIC9LxuPGjRlYXs4Ye+ed97q6uta8+lciNbBiwOTJEy+4YKamGe3tba+/tnbjxk119fVK0bnnnQMA+/c3KuVWVg4ePXqEx0SMMW9ZdeYF5wYCAQBVX9/gjbMQ+r59dWvXrnvtr2+8/vqba99Y97uHHl61co2u6wUF+cUlRRnLwuN+2+FI3wWXUpaWlo4aPcJxnObmg+IYYZYtipTrOgDgLeBJKf1+4+PqzXPmXJZVBjU1Na2tsUymc87sBdFo1GMKKaVhGNOmTdm+Y2dra9u9v7p/795aADVn9gWMsYkTJwwaNHDnzh0vvbRi/foNnHHG2OxZMwCAMe4ZqSLKvqTqMZfrSqUUIjDOAVFJGQwGly9f9fzzy7KvtjquGw6HXNe5/fYfcMYd28Yjb7zS38vOY7RYtoJXy3EcRGAMRc8LPHXkXfn6a2vr6xsR2eBBFaZpuq7kXGtpaVmzpqanXQPIaVPP+eXSfz9mgXz2nJmP/uFPiPjIw//JOff5jCuvuAwAQqHQ7NkX7Nixs7p686ZN1bqu9yktHT9+LAAMKO+/adMnNTU1a99YN2PGud1CVggAeOaZ59PpDBGrHDwIul+eJsaYpglPSSlFeZFwPB67/bYfLF68CAD44W3TXqeEEJ/jdD07LgTfunXbxx9/IoQ2YECZAOjelauUUlIBQiZjvfnmuu9//3a/32/bzvyrr5JSMoZSuoVFhcOGTvaWhgEoEAxMP2fqohu+5fP5strPg2nSpLPKyvq1tLT6fL5kMjli5Ihx46s8x5k375Lf//5Rb9E9nU5NnTYpHA4DwBXzLn3+uRd0PXjjDd+9/4F7zjtvumkara1tTzz5Xw8//EfTNDgPzph5Xkd7u65piUTi2mvnf+c7ixzX1YTo6kosuuGmWAw2b95iO46uad37jZFlMplkMuntm+kJSnYdvFusI3pKZeOmj7/33VuVJMvKXPetBZCfXxaJlPTpc9rYsVOqqiaPrZo8bOgYw8gNBAoA2M03/4CIYrH44MGjGDMvPZrFjvijUj1/uq5LRAuuuZ7zUElJBYBxzz33eVTikcCZE872+3OLisoZC7704nLvlOu6l1x8BQAPhYt1PVox8PRRIyeUlgwUIhQOFwPw3/72d0S0Zcu2/Lx+jAXu/tnSng9dsuROhkEhwi++8DIRrVq9RtOieXn9ysoqh1SeMaRy9JDK0UMqzxg65IxBp42sGjMxFo9Nnz5L16PFxQPHVk0aWzVlbNXkESPGh0JFplkAIC688HLLskDXo0JEGAsC+A5/DCEi0WjpkiU/8boUj8VLSysAYOaMi7Jkp5RypXQc9xh0spz6zH8/B4C6nuP35+7aVeOFW+/U/fc/CACchwsL+7e2tHqYKqU6O7uu/eYiw8jVtCjjIcSgEGFNi+bl9n3ggYe8kdi6dZuu5wDArbf+yHVlJpOxbcd13bq6+mi0D4CorBxtWdYrr7wKgH5/LmLQ034ABoABEADQA8HCltaWCROmAQhNi/bou5/zcCBQsGDBwo6ODiISF1980eGpRvfkSNe1QYMqLrpozujRIz3H0XRt9qyZTc1NZ06Y0DORzhE/Mx3gcdk508++6qrrksnkkCGDKysHZb0PAC677OL1Gz6yLauq6oy8/DzP3YgoFAr++S9/uva6BS+9tHzXrppMJh2NRquqzrhm/pVDhlZ6JBAJhy++eG4i0TVy5AjOGYDgnCtFAwb0/9Edt77/3nqlZF1dw4AB/WfPvsSbA/XcHIMI0pVmIKDr+tlnTy0sLDQMIxudOOdlZf1mz5oxZeokL3j/HyFuclZuOdnPAAAAAElFTkSuQmCC';
-  const clientLines=(q.lines||[]).filter(l=>!l.costoOnly&&!l.isGF);
+  const SVCNAMES_EN={"Descarga 40' paletizado":"Unloading 40' palletized","Descarga 20' paletizado":"Unloading 20' palletized","Descarga 40' a granel":"Unloading 40' floor-loaded","Descarga 20' a granel":"Unloading 20' floor-loaded","Recepción y registro":"Reception & registration","Almacenaje":"Storage","Putaway a rack":"Rack putaway","Picking por bulto":"Carton picking","Picking por unidad":"Unit picking","Preparación orden salida":"Outbound order preparation","Carga 40' paletizado":"Loading 40' palletized","Carga 20' paletizado":"Loading 20' palletized","Carga 40' a granel":"Loading 40' floor-loaded","Carga 20' a granel":"Loading 20' floor-loaded","Paletizado sin esquineras":"Palletizing (no corner boards)","Paletizado con esquineras":"Palletizing (with corner boards)","Etiquetado":"Labeling","Lectura de seriales":"Serial number scanning","DMCE Entrada":"Entry customs declaration (DMCE)","DMCE Salida":"Exit customs declaration (DMCE)","Memorial":"Customs memorial","TI — Transporte Interno":"Internal transit document (TI)","Manejo de entrada":"Inbound handling","Manejo de salida":"Outbound handling","Descargue de vehículo":"Vehicle unloading","Cargue de vehículo":"Vehicle loading","Almacenaje en patio":"Yard storage","Conductor CLP → Chilibre":"Driver CLP → Chilibre","Manejo por contenedor":"Handling per container","Recargo HAZMAT (25% handling)":"HAZMAT surcharge (25% of handling)"};
+  const SVCUNITS_EN={"/contenedor":"/container","/pallet":"/pallet","/bulto":"/carton","/unidad":"/unit","/orden":"/order","/mes":"/month","/pallet pos/mes":"/pallet position/month","/m²/mes":"/m²/month","/CBM/día":"/CBM/day","/bulto pico":"/peak carton","/documento":"/document","/vehículo":"/vehicle","/vehículo/día":"/vehicle/day","/veh/día":"/vehicle/day","/ruta":"/route","/viaje":"/trip"};
+  const nombre=l=>en?traducirServicio(l.name,SVCNAMES_EN):l.name;
+  const unidad=l=>en?(SVCUNITS_EN[l.unit]||l.unit):l.unit;
 
-  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${L.docTitle} — ${q.client}</title>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+  const clientLines=(q.lines||[]).filter(l=>!l.costoOnly&&!l.isGF);
+  const std=!!q.isStd;
+  // Filas agrupadas por tipo de servicio
+  const filas=[];
+  const usadas=new Set();
+  GRUPOS_SERVICIO.forEach(([es,eng,test])=>{
+    const ls=clientLines.filter(l=>!usadas.has(l)&&test(l.key||''));
+    if(!ls.length) return;
+    filas.push({grupo:en?eng:es});
+    ls.forEach(l=>{usadas.add(l);filas.push({l});});
+  });
+  // Paginación: la primera hoja lleva los datos de la propuesta
+  const CAP1=17, CAPN=30;
+  const hojas=[[]];
+  filas.forEach(f=>{
+    const h=hojas[hojas.length-1], cap=hojas.length===1?CAP1:CAPN;
+    if(h.length>=cap||(f.grupo&&h.length>=cap-1)) hojas.push([]);   // un título de grupo no queda solo al pie
+    hojas[hojas.length-1].push(f);
+  });
+  const ops=datosOperativos(q,q.entrada!==undefined?q.entrada:capturarEntrada(),en);
+  const numero=q.numero||L.borrador;
+  const totalHojas=hojas.length+1;
+  const LOGO=new URL('dpw/assets/dpworld-logo-fondo-claro.png',location.href).href;
+
+  const head=(n)=>`<div class="hdr"><img src="${LOGO}" alt="DP World"><div class="hdr-r"><div class="t">${L.titulo}</div><div>${esc(numero)} · ${fecha}</div></div></div>`;
+  const pie=(n)=>`<div class="foot"><div><strong>DP World Panamá</strong> · DAL Colón Logistics Park · Colón, Panamá</div><div>${esc(numero)} · ${L.pagina} ${n} ${L.de} ${totalHojas}</div></div>`;
+  const tabla=(fs,ultima)=>{
+    const th=std?`<tr><th>${L.cServ}</th><th>${L.cUnid}</th><th class="r">${L.cTarifa}</th></tr>`
+      :`<tr><th>${L.cServ}</th><th>${L.cUnid}</th><th class="r">${L.cTarifa}</th><th class="r">${L.cVol}</th><th class="r">${L.cMes}</th></tr>`;
+    const tb=fs.map(f=>f.grupo?`<tr class="grp"><td colspan="${std?3:5}">${f.grupo}</td></tr>`
+      :std?`<tr><td>${esc(nombre(f.l))}</td><td class="u">${esc(unidad(f.l))}</td><td class="r">$${fr(f.l.rate)}</td></tr>`
+      :`<tr><td>${esc(nombre(f.l))}</td><td class="u">${esc(unidad(f.l))}</td><td class="r">$${fr(f.l.rate)}</td><td class="r">${(+f.l.qty).toLocaleString('en-US')}</td><td class="r b">$${fm(f.l.sub)}</td></tr>`).join('');
+    const tf=ultima&&!std?`<tfoot><tr><td colspan="4">${L.total}</td><td class="r">$${fm(q.totT)}</td></tr></tfoot>`:'';
+    return `<table class="tar"><thead>${th}</thead><tbody>${tb}</tbody>${tf}</table>`+(ultima?`<p class="nota">${std?L.notaStd:L.notaTotal}</p>`:'');
+  };
+  const atencion=[q.contactName,q.contactEmail,q.contactPhone].filter(Boolean).map(esc).join('<br>');
+  const servicio=ops.find(o=>o[0]===(en?'Operation type':'Tipo de operación'))?.[1]||'';
+  const merc=ops.find(o=>o[0]===(en?'Cargo type':'Tipo de mercancía'))?.[1]||'';
+  const datos=`<div class="sec">${L.datos}</div>
+    <div class="datos">
+      <div><span>${L.cliente}</span><b>${esc(q.client)}</b></div>
+      <div><span>${L.numero}</span><b>${esc(numero)}</b></div>
+      <div><span>${L.atencion}</span><b>${atencion||'—'}</b></div>
+      <div><span>${L.fecha}</span><b>${fecha}</b></div>
+      <div><span>${L.servicio}</span><b>${esc(std?L.tarifasStd:servicio+(merc?' · '+merc:''))}</b></div>
+      <div><span>${L.vigencia}</span><b>${vigenciaFin} (${q.vigencia} ${en?'days':'días'})</b></div>
+      <div><span>${L.comercial}</span><b>${esc(q.seller||'—')}</b></div>
+    </div>`;
+  const disclaimers=(en?PDF_DISCLAIMERS_EN:PDF_DISCLAIMERS).map(d=>d.replace('VIGENCIA_DIAS',q.vigencia).replace('FECHA_HOY',fecha).replace('FECHA_FIN',vigenciaFin));
+
+  let paginas=hojas.map((fs,i)=>`<div class="page">${head()}
+    ${i===0?datos+`<div class="sec">${std?L.tarifasStd:L.tarifas}</div>`:`<div class="sec">${L.tarifas} ${L.cont}</div>`}
+    ${tabla(fs,i===hojas.length-1)}
+    ${pie(i+1)}</div>`).join('');
+  paginas+=`<div class="page">${head()}
+    ${ops.length&&!std?`<div class="sec">${L.ops}</div><div class="ops">${ops.map(o=>`<div><span>${esc(o[0])}</span><b>${esc(o[1])}</b></div>`).join('')}</div>`:''}
+    <div class="sec">${L.cond}</div>
+    <ol class="cond">${disclaimers.map(d=>`<li>${esc(d)}</li>`).join('')}</ol>
+    <div class="sec">${L.acept}</div>
+    <p class="acept">${L.aceptTxt}</p>
+    <div class="firmas">
+      <div><div class="linea"></div>${L.nombre}</div><div><div class="linea"></div>${L.cargo}</div>
+      <div><div class="linea"></div>${L.firma}</div><div><div class="linea"></div>${L.fechaF}</div>
+    </div>
+    ${pie(totalHojas)}</div>`;
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${L.titulo} — ${esc(q.client)}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Barlow',sans-serif;font-size:12px;color:#1B1B2F;background:#fff}
-    .page{padding:26px 32px}
-    .page{break-before:page;page-break-before:always}
-    .page:first-child{break-before:auto;page-break-before:auto}
-    .hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:3px solid #1A1060;margin-bottom:20px}
-    .hdr img{height:auto;max-height:36px;max-width:140px;object-fit:contain}
-    .hdr-r{text-align:right;font-size:10px;color:#64748B;line-height:1.7}
-    .hdr-r strong{display:block;color:#1A1060;font-size:11px;font-weight:700}
-    .cover{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;padding:48px 0}
-    .cov-bar{width:56px;height:4px;background:#00C389;border-radius:2px}
-    .cov-tag{font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:.12em;font-weight:700}
-    .cov-client{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:44px;color:#1A1060;line-height:1;margin-top:6px}
-    .cov-type{font-size:13px;color:#64748B;margin-top:4px}
-    .cov-num{font-size:12px;background:#1A1060;color:#fff;padding:6px 18px;border-radius:20px;font-weight:700;letter-spacing:.05em}
-    .cov-meta{font-size:11px;color:#64748B;line-height:2.2}
-    .sec-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;color:#1A1060;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 8px;padding-bottom:4px;border-bottom:2px solid #1A1060}
-    .vbullets{list-style:none;display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
-    .vbullets li{display:flex;align-items:flex-start;gap:8px;padding:9px 12px;background:#F0FDF4;border-radius:7px;border-left:3px solid #00C389;font-size:11.5px;line-height:1.5}
-    .vbullets li::before{content:'–';color:#00C389;font-weight:900;flex-shrink:0;margin-top:1px}
-    table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:16px}
-    thead tr{background:#1A1060}
-    thead th{padding:7px 9px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.07em;text-align:left}
-    thead th.r{text-align:right}
-    tbody tr:nth-child(even){background:#F8F9FC}
-    tbody td{padding:7px 9px;border-bottom:1px solid #E2E8F0;vertical-align:top}
-    tbody td.r{text-align:right;font-weight:600;color:#1A1060}
-    tfoot td{background:#1A1060;color:#fff;padding:9px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px}
-    tfoot td.r{text-align:right;color:#00C389;font-size:15px}
-    .adv-box{background:#1A1060;color:#fff;border-radius:8px;padding:14px 18px;margin-bottom:16px}
-    .adv-ttl{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#00C389;margin-bottom:10px}
-    .adv-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .adv-item{display:flex;align-items:flex-start;gap:7px;font-size:.76rem;line-height:1.5}
-    .adv-dot{width:6px;height:6px;border-radius:50%;background:#00C389;flex-shrink:0;margin-top:4px}
-    .profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px}
-    .pi{padding:8px 10px;background:#F8F9FC;border-radius:6px;border:1px solid #E2E8F0}
-    .pi-l{font-size:.58rem;color:#94A3B8;text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:2px}
-    .pi-v{font-size:.78rem;color:#1B1B2F;font-weight:600}
-    .d-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:.07em;margin:14px 0 8px}
-    .disclaimers{display:flex;flex-direction:column;gap:5px;margin-bottom:16px}
-    .d-item{display:flex;gap:8px;font-size:10px;color:#64748B;line-height:1.5}
-    .d-num{font-weight:700;color:#1A1060;flex-shrink:0;min-width:14px}
-    .foot{margin-top:20px;padding-top:10px;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;font-size:9.5px;color:#94A3B8}
-    .foot img{height:18px;opacity:.55;max-width:80px;object-fit:contain}
-    @media print{.page{padding:14px 18px}@page{margin:.6cm;size:letter}}
-  </style></head><body>
-
-  <!-- PAGE 1: PORTADA -->
-  <div class="page">
-    <div class="hdr"><img src="${LOGO}" alt="DP World"><div class="hdr-r"><strong>DP World Panamá · DAL Colón Logistics Park</strong>Área Portuaria de Colón, Panamá · BASC Certified</div></div>
-    <div class="cover">
-      <div class="cov-bar"></div>
-      <div>
-        <div class="cov-tag">${L.tag}</div>
-        <div class="cov-client">${q.client}</div>
-        <div class="cov-type">${L.tnames[q.type]||q.type}${q.tipoMerc?' · '+q.tipoMerc:''}</div>
-      </div>
-      <div class="cov-num">${q.numero||'BORRADOR'}</div>
-      <div class="cov-meta">${L.dateLabel} <strong>${q.today}</strong> &nbsp;·&nbsp; ${L.validLabel} <strong>${vigenciaFin}</strong><br>${L.repLabel} <strong>${q.seller||'—'}</strong></div>
-      <div class="cov-bar"></div>
-    </div>
-    <div class="foot"><div>${L.confidential}</div><div>DP World Panamá · ${q.today}</div></div>
-  </div>
-
-  <!-- PAGE 2: COTIZACIÓN — tabla de servicios -->
-  <div class="page">
-    <div class="hdr"><img src="${LOGO}" alt="DP World"><div class="hdr-r"><strong>${L.pg2Header} — ${q.client}</strong>${q.numero||'Borrador'} · ${q.today}</div></div>
-    <div class="sec-title">${L.servicesTitle}</div>
-    <table>
-      <thead><tr><th>${L.colDesc}</th><th>${L.colUnit}</th><th class="r">${L.colVol}</th><th class="r">${L.colRate}</th><th class="r">${L.colSub}</th></tr></thead>
-      <tbody>${clientLines.map(l=>{var nm=lang==='en'?traducirServicio(l.name,SVCNAMES_EN):l.name;var un=lang==='en'?(SVCUNITS_EN[l.unit]||l.unit):l.unit;return'<tr><td>'+nm+'</td><td style="color:#64748B">'+un+'</td><td class="r">'+l.qty+'</td><td class="r">$'+parseFloat(l.rate||0).toFixed(2)+'</td><td class="r">$'+fm(l.sub)+'</td></tr>';}).join('')}</tbody>
-      <tfoot><tr><td colspan="4">${L.totalLabel}</td><td class="r">$${fm(q.totT)}</td></tr></tfoot>
-    </table>
-    <div class="foot"><div>${L.footerPage}</div><div>${q.numero||''} · ${q.today}</div></div>
-  </div>
-
-  <!-- PAGE 3: PROPUESTA DE VALOR + VENTAJA DAL + CONDICIONES -->
-  <div class="page">
-    <div class="hdr"><img src="${LOGO}" alt="DP World"><div class="hdr-r"><strong>${L.pg3Header} — ${q.client}</strong>${q.numero||'Borrador'} · ${q.today}</div></div>
-    <div class="sec-title">${L.valueTitle}</div>
-    <ul class="vbullets">${bullets.map(b=>'<li>'+b+'</li>').join('')}</ul>
-    <div class="adv-box">
-      <div class="adv-ttl">${L.advantageTitle}</div>
-      <div class="adv-grid">
-        ${advItems.map(a=>'<div class="adv-item"><div class="adv-dot"></div><div>'+a+'</div></div>').join('')}
-      </div>
-    </div>
-    ${(q.posPromedio&&q.posPromedio!=='—')||(q.totalSkus&&q.totalSkus!=='—')?'<div class="sec-title">'+L.profileTitle+'</div><div class="profile-grid">'+
-      (q.posPromedio&&q.posPromedio!=='—'?'<div class="pi"><div class="pi-l">'+L.plabels.posAvg+'</div><div class="pi-v">'+q.posPromedio+'</div></div>':'')+
-      (q.posPico&&q.posPico!=='—'?'<div class="pi"><div class="pi-l">'+L.plabels.posPeak+'</div><div class="pi-v">'+q.posPico+'</div></div>':'')+
-      (q.totalSkus&&q.totalSkus!=='—'?'<div class="pi"><div class="pi-l">'+L.plabels.skus+'</div><div class="pi-v">'+q.totalSkus+'</div></div>':'')+
-      (q.rotacion&&q.rotacion!=='—'?'<div class="pi"><div class="pi-l">'+L.plabels.rot+'</div><div class="pi-v">'+q.rotacion+'</div></div>':'')+
-      (q.storageFmt?'<div class="pi"><div class="pi-l">'+L.plabels.sfmt+'</div><div class="pi-v">'+q.storageFmt+'</div></div>':'')+
-    '</div>':''}
-    <div class="d-title">${L.conditionsTitle}</div>
-    <div class="disclaimers">
-      ${disclaimers.map(function(d,i){var txt=d.replace('VIGENCIA_DIAS',q.vigencia).replace('FECHA_HOY',q.today).replace('FECHA_FIN',vigenciaFin);return'<div class="d-item"><div class="d-num">'+(i+1)+'.</div><div>'+txt+'</div></div>';}).join('')}
-    </div>
-    <div class="foot"><div><strong>DP World Panamá</strong> · DAL Colón Logistics Park · dpworld.com/panama</div><img src="${LOGO}" alt="DP World"></div>
-  </div>
+    body{font-family:'Barlow',sans-serif;font-size:11px;color:#1B1B2F;background:#fff}
+    .page{position:relative;width:8.5in;height:11in;padding:.55in .6in .9in;overflow:hidden;background:#fff}
+    .hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:3px solid #1A1060;margin-bottom:18px}
+    .hdr img{height:40px}
+    .hdr-r{text-align:right;font-size:10px;color:#64748B;line-height:1.6}
+    .hdr-r .t{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;color:#1A1060;text-transform:uppercase;letter-spacing:.03em}
+    .sec{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12.5px;color:#1A1060;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 8px;padding-bottom:4px;border-bottom:2px solid #00C389}
+    .datos,.ops{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}
+    .datos div,.ops div{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid #E2E8F0}
+    .datos span,.ops span{color:#64748B;flex-shrink:0}
+    .datos b,.ops b{text-align:right;font-weight:600}
+    table.tar{width:100%;border-collapse:collapse;margin-top:2px}
+    .tar th{background:#1A1060;color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.06em;text-align:left;padding:7px 8px}
+    .tar td{padding:6px 8px;border-bottom:1px solid #E2E8F0}
+    .tar .r{text-align:right;white-space:nowrap}
+    .tar .b{font-weight:700;color:#1A1060}
+    .tar .u{color:#64748B;white-space:nowrap}
+    .tar tr.grp td{background:#F1F5F9;font-weight:700;color:#1A1060;font-size:10px;text-transform:uppercase;letter-spacing:.05em;padding:5px 8px}
+    .tar tfoot td{background:#1A1060;color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;padding:9px 8px;text-transform:uppercase}
+    .tar tfoot td.r{color:#00C389;font-size:15px}
+    .nota{font-size:9.5px;color:#64748B;margin-top:8px}
+    ol.cond{padding-left:18px;color:#334155;font-size:10px;line-height:1.55}
+    ol.cond li{margin-bottom:4px}
+    .acept{font-size:10.5px;color:#334155;margin-bottom:30px}
+    .firmas{display:grid;grid-template-columns:1fr 1fr;gap:34px 40px;font-size:10px;color:#64748B}
+    .firmas .linea{border-bottom:1px solid #1B1B2F;height:26px;margin-bottom:4px}
+    .foot{position:absolute;left:.6in;right:.6in;bottom:.45in;padding-top:8px;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;font-size:9px;color:#94A3B8}
+    @page{size:letter;margin:0}
+    @media print{.page{page-break-after:always;break-after:page}}
+  </style></head><body>${paginas}
   <script>window.onload=function(){window.print();}<\/script>
   </body></html>`;
 
   showDocPreview(html,{
-    title:(lang==='en'?'Quote — ':'Cotización — ')+q.client,
+    title:(en?'Proposal - ':'Propuesta - ')+q.client,
     context:S._previewContext||'paso5'
   });
 }
@@ -3193,11 +3259,11 @@ function downloadQuote(){
   </div>
   <div class="stitle">Perfil de la operación</div>
   <table><tbody>
-    <tr><td><strong>Tipo de operación</strong></td><td>${TNAMES[q.type]||q.type}</td><td><strong>Tipo mercancía</strong></td><td>${q.tipoMerc||'—'}</td></tr>
+    <tr><td><strong>Tipo de operación</strong></td><td>${TNAMES[q.type]||q.type}</td><td><strong>Tipo mercancía</strong></td><td>${textoOpcion('tipoMercancia',q.tipoMerc)||'—'}</td></tr>
     <tr><td><strong>Temperatura</strong></td><td>${q.temperatura||'Ambiente'}</td><td><strong>UoM</strong></td><td>${q.uom||'—'}</td></tr>
     <tr><td><strong>Rotación</strong></td><td>${q.rotacion||'—'}</td><td><strong>Trazabilidad</strong></td><td>${q.trazabilidad||'—'}</td></tr>
     <tr><td><strong>Total SKUs</strong></td><td>${q.totalSkus||'—'}</td><td><strong>Posiciones promedio</strong></td><td>${q.posPromedio||'—'}</td></tr>
-    <tr><td><strong>Posiciones pico</strong></td><td>${q.posPico||'—'}</td><td><strong>Formato almacenaje</strong></td><td>${q.storageFmt||'—'}</td></tr>
+    <tr><td><strong>Posiciones pico</strong></td><td>${q.posPico||'—'}</td><td><strong>Formato almacenaje</strong></td><td>${FMT_ES[q.storageFmt]||q.storageFmt||'—'}</td></tr>
     <tr><td><strong>Vendedor</strong></td><td>${q.seller||'—'}</td><td><strong>Vigencia</strong></td><td>${q.vigencia} días</td></tr>
   </tbody></table>
   ${q.contactName?'<div class="stitle">Contacto del cliente</div><table><tbody><tr><td><strong>Nombre</strong></td><td>'+q.contactName+'</td><td><strong>Email</strong></td><td>'+(q.contactEmail||'—')+'</td></tr><tr><td><strong>Teléfono</strong></td><td>'+(q.contactPhone||'—')+'</td><td><strong>Inicio estimado</strong></td><td>'+(q.startDate||'—')+'</td></tr></tbody></table>':''}
@@ -3248,13 +3314,13 @@ async function generarPDF(html){
   document.body.appendChild(frame);
   try{
     const doc=frame.contentDocument;
-    doc.open(); doc.write(html.replace(/<script>[\s\S]*?<\/script>/gi,'')); doc.close();
+    doc.open(); doc.write(docCarta(html)); doc.close();
     await new Promise(r=>{ if(doc.readyState==='complete') r(); else frame.onload=r; setTimeout(r,4000); });
     try{ await Promise.race([doc.fonts.ready,new Promise(r=>setTimeout(r,3000))]); }catch(e){}
     await Promise.all([...doc.images].map(img=>img.complete?0:new Promise(r=>{img.onload=img.onerror=r;})));
     const {jsPDF}=window.jspdf;
     const pdf=new jsPDF({unit:'pt',format:'letter'});
-    const W=pdf.internal.pageSize.getWidth(), H=pdf.internal.pageSize.getHeight(), M=18;
+    const W=pdf.internal.pageSize.getWidth(), H=pdf.internal.pageSize.getHeight(), M=0;
     const anchoUtil=W-2*M, altoUtil=H-2*M;
     const bloques=[...doc.querySelectorAll('.page')];
     if(!bloques.length) bloques.push(doc.body);
@@ -3325,16 +3391,42 @@ function showDocPreview(printHTML, opts){
     else if(S._previewContext==='liq') backBtn.textContent='← Volver a la liquidación';
     else backBtn.textContent='← Volver a la cotización';
   }
-  const bodyMatch=printHTML.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-  const content=bodyMatch?bodyMatch[1]:printHTML;
-  const clean=content.replace(/<script>[\s\S]*?<\/script>/gi,'');
   const preview=document.getElementById('previewContent');
   const overlay=document.getElementById('previewOverlay');
   if(preview&&overlay){
-    preview.innerHTML=clean;
+    // La vista previa muestra el documento completo (con sus estilos) en hojas carta, igual que el PDF
+    preview.innerHTML='';
+    preview.classList.add('doc');
+    const fr=document.createElement('iframe');
+    fr.title='Vista previa';
+    fr.style.cssText='border:0;width:816px;display:block;transform-origin:0 0;background:transparent';
+    fr.srcdoc=docCarta(printHTML,{pantalla:true});
+    preview.appendChild(fr);
+    const ajustar=()=>{
+      const d=fr.contentDocument; if(!d||!d.body) return;
+      const h=d.documentElement.scrollHeight, k=Math.min(1,preview.clientWidth/816);
+      fr.style.height=h+'px'; fr.style.transform='scale('+k+')'; preview.style.height=Math.ceil(h*k)+'px';
+    };
+    fr.onload=()=>{ajustar();setTimeout(ajustar,600);};
+    window._ajustarPreview=ajustar;
     history.pushState({previewOpen:true},'','');
     overlay.classList.add('show');
   }
+}
+window.addEventListener('resize',()=>window._ajustarPreview&&window._ajustarPreview());
+
+// Normaliza cualquier documento a hojas carta (8.5 × 11 in). Si no trae bloques .page, todo el
+// contenido va en una hoja. pantalla: fondo gris y hojas separadas para la vista previa.
+function docCarta(html,op){
+  op=op||{};
+  let h=op.conScripts?html:html.replace(/<script>[\s\S]*?<\/script>/gi,'');
+  if(!/class="page/.test(h)) h=h.replace(/<body([^>]*)>([\s\S]*)<\/body>/i,'<body$1><div class="page auto">$2</div></body>');
+  const css='<style>.page{width:8.5in;min-height:11in;background:#fff;box-sizing:border-box}'+
+    '.page.auto{padding:.45in .5in}body{margin:0!important;padding:0!important}'+
+    '@page{size:letter;margin:0}@media print{.page{page-break-after:always;break-after:page}}'+
+    (op.pantalla?'html,body{background:#D9DDE3!important}body{padding:12px 0!important}.page{margin:0 auto 12px;box-shadow:0 2px 12px rgba(0,0,0,.2)}':'')+
+    '</style>';
+  return h.replace(/<\/head>/i,css+'</head>');
 }
 
 function closePreview(){
@@ -3353,7 +3445,7 @@ function closePreview(){
 function printFromPreview(){
   if(!S._lastPrintHTML) return;
   try{
-    const blob=new Blob([S._lastPrintHTML],{type:'text/html;charset=utf-8'});
+    const blob=new Blob([docCarta(S._lastPrintHTML,{conScripts:true})],{type:'text/html;charset=utf-8'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
     a.href=url; a.target='_blank'; a.rel='noopener';
@@ -5500,6 +5592,8 @@ async function compartirCot(id,lang){
     contactEmail:cot.cliente_email||'',
     contactPhone:cot.cliente_telefono||'',
     startDate:cot.fecha_inicio_estimada||'',
+    fechaISO:cot.creado_en,
+    entrada:(typeof cot.entrada==='string'?JSON.parse(cot.entrada||'null'):cot.entrada)||null,
   };
   S._previewContext='listado';
   downloadQuoteCliente(lang); // arma la vista previa; el PDF se baja o comparte desde su barra

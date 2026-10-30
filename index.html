@@ -486,6 +486,9 @@ input:checked + .toggle-slider::before{transform:translateX(18px)}
 .preview-toolbar-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.9rem;color:#fff;text-transform:uppercase;letter-spacing:.05em}
 .preview-frame{flex:1;overflow-y:auto;background:#E8E8E8;padding:16px}
 .preview-page{background:#fff;max-width:750px;margin:0 auto;padding:32px;box-shadow:0 4px 20px rgba(0,0,0,.2);border-radius:4px;font-family:'Barlow',sans-serif;font-size:12px;color:#1B1B1B;line-height:1.5}
+.admin-solo .ash-arrow{display:none}
+.admin-solo .admin-sec-hdr{cursor:default!important;pointer-events:none}
+.admin-solo .admin-sec-hdr .ash-actions{pointer-events:auto}
 .preview-page.doc{max-width:816px;padding:0;background:transparent;box-shadow:none;border-radius:0;overflow:hidden}
 .preview-frame:has(.preview-page.doc){padding:0;background:#D9DDE3}
 
@@ -1765,8 +1768,8 @@ html[data-theme="dark"] [style*=";border:1.5px solid #E2E8F0"]:not(.preview-page
 <div class="app hidden" id="adminWrap">
   <div class="main" style="max-width:780px;margin:0 auto;padding:24px 16px 80px">
     <div style="margin-bottom:20px">
-      <div class="step-eyebrow" style="font-size:.65rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Administración</div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.8rem;color:var(--blue-t);text-transform:uppercase">Insights</div>
+      <div class="step-eyebrow" id="adminEyebrow" style="font-size:.65rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Administración</div>
+      <div id="adminTitulo" style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.8rem;color:var(--blue-t);text-transform:uppercase">Insights</div>
     </div>
     <!-- KPI SUMMARY -->
     <div class="kpi-summary" id="adminKpis"></div>
@@ -2198,8 +2201,43 @@ function pintarMenu(){
     {id:'appWrap',label:'Cotizador',on:showCotizador},
     {id:'cotWrap',label:isAdmin?'Cotizaciones':'Mis cotizaciones',on:showMisCotizaciones},
     {id:'liqWrap',label:'Liquidación',on:showLiquidacion},
-    {id:'adminWrap',label:'Insights',group:'Administración',hidden:!isAdmin,on:showInsights}
+    ...Object.entries(ADMIN_VISTAS).map(([id,v])=>({id:'adm-'+id,label:v.label,group:v.grupo,hidden:!isAdmin,on:()=>showAdmin(id)}))
   ],_panel==='homeWrap'?'appWrap':_panel);
+}
+
+// Administración: cada configuración de Insights es una fila propia del menú.
+// secs = secciones de renderAdminSections() que muestra cada vista.
+const ADMIN_VISTAS={
+  insights:  {label:'Insights',               grupo:'Administración', titulo:'Insights',                secs:['pipeline','rep'], kpis:true},
+  tarifas:   {label:'Tarifas',                grupo:'Configuración',  titulo:'Tarifas',                 secs:['tarifas']},
+  clientes:  {label:'Clientes',               grupo:'Configuración',  titulo:'Clientes',                secs:['cuentas']},
+  usuarios:  {label:'Usuarios',               grupo:'Configuración',  titulo:'Usuarios',                secs:['users']},
+  costos:    {label:'Costos fijos',           grupo:'Configuración',  titulo:'Costos fijos',            secs:['costos']},
+  prod:      {label:'Productividades',        grupo:'Configuración',  titulo:'Productividades',         secs:['prod']},
+  vehiculos: {label:'Costos de vehículos',    grupo:'Configuración',  titulo:'Costos de vehículos',     secs:['veh']},
+  pdf:       {label:'Textos del PDF',         grupo:'Configuración',  titulo:'Textos del PDF',          secs:['condpdf','pdftexts']},
+  liq:       {label:'Tarifas de liquidación', grupo:'Configuración',  titulo:'Tarifas de liquidación',  secs:['liq']},
+};
+let _adminListo=false;
+function showAdmin(vista){
+  const v=ADMIN_VISTAS[vista]||ADMIN_VISTAS.insights;
+  showPanel('adminWrap');
+  if(!_adminListo){ renderAdmin(); _adminListo=true; }
+  document.getElementById('adminEyebrow').textContent=v.grupo;
+  document.getElementById('adminTitulo').textContent=v.titulo;
+  document.getElementById('adminKpis').style.display=v.kpis?'':'none';
+  if(v.kpis) renderAdminKpis();
+  document.querySelectorAll('#adminSections .admin-section').forEach(sec=>{
+    const id=(sec.querySelector('.admin-sec-hdr')?.id||'').replace('ash-','');
+    const visible=v.secs.includes(id);
+    sec.style.display=visible?'':'none';
+    sec.classList.toggle('admin-solo',visible&&v.secs.length===1);
+    // abierta y con datos al día
+    if(visible&&document.getElementById('asb-'+id)?.classList.contains('collapsed')) toggleAdminSec(id);
+    else if(visible&&id==='pipeline') renderPipeline();
+  });
+  _panel='adm-'+vista; pintarMenu();
+  window.scrollTo({top:0});
 }
 
 function showCotizador(){
@@ -2218,10 +2256,7 @@ function showMisCotizaciones(){
   filterCotizaciones();
 }
 
-function showInsights(){
-  showPanel('adminWrap');
-  renderAdmin();
-}
+function showInsights(){ showAdmin('insights'); }
 
 // ── STEP NAVIGATION ──────────────────────────────────────────
 function goTo(n){
@@ -4459,7 +4494,7 @@ function renderCuentas(){
       <td>
         <div style="display:flex;align-items:center;gap:8px">
           <div style="width:12px;height:12px;border-radius:3px;background:${c.color};flex-shrink:0"></div>
-          <input class="ainput" value="${c.nombre}" placeholder="Nombre de cuenta" style="flex:1"
+          <input class="ainput" value="${c.nombre}" placeholder="Nombre del cliente" style="flex:1;min-width:110px"
             onchange="ADMIN.cuentas.find(x=>x.id===${c.id}).nombre=this.value;renderDistrib()">
         </div>
       </td>
@@ -4898,7 +4933,7 @@ function renderAdminSections(){
     <div class="admin-section">
       <div class="admin-sec-hdr" id="ash-cuentas" onclick="toggleAdminSec('cuentas')" style="cursor:pointer">
         
-        <span class="ash-title">Cuentas Activas & Reparto</span>
+        <span class="ash-title">Clientes — posiciones y reparto</span>
         <div class="ash-actions">
           <button class="btn-sm green" onclick="saveInsights()">Guardar</button>
           <span class="ash-arrow" onclick="toggleAdminSec('cuentas')">▼</span>

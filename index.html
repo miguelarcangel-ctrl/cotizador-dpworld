@@ -1210,7 +1210,7 @@ html[data-theme="dark"] [style*=";border:1.5px solid #E2E8F0"]:not(.preview-page
             <div class="card-body">
               <div class="toggle-row">
                 <div class="toggle-info">
-                  <div class="toggle-label">Manejo de entrada — <span id="lblManejoIn"></span>/mes</div>
+                  <div class="toggle-label">Manejo de entrada — <span id="lblManejoIn"></span>/contenedor</div>
                   <div class="toggle-desc">Coordinación de recepciones, pre-alertas y control documental inbound</div>
                 </div>
                 <label class="toggle-switch">
@@ -1220,7 +1220,7 @@ html[data-theme="dark"] [style*=";border:1.5px solid #E2E8F0"]:not(.preview-page
               </div>
               <div class="toggle-row">
                 <div class="toggle-info">
-                  <div class="toggle-label">Manejo de salida — <span id="lblManejoOut"></span>/mes</div>
+                  <div class="toggle-label">Manejo de salida — <span id="lblManejoOut"></span>/contenedor</div>
                   <div class="toggle-desc">Coordinación de despachos, pick tickets y control documental outbound</div>
                 </div>
                 <label class="toggle-switch">
@@ -1811,43 +1811,45 @@ let supa;
 try { supa = supabase.createClient(SUPA_URL, SUPA_KEY); } catch(e) { console.error('Supabase init failed:',e); }
 // TARIFAS = costo base (MO only) × (1 + margen 30%)
 // FK/equipos NO incluidos — cubiertos por costos fijos admin o OPEX exclusivo
+// Valores de respaldo: la tarifa vigente es la de Tarifas Base en Insights (Supabase).
+// Fuente: Benchmark y Tarifas Base DP World (30-oct-2026), Fuente C.
 let TARIFAS={
   // INBOUND
-  desc40p:  {label:"Descarga 40' paletizado",   unit:'/contenedor', cost:11.74},
-  desc20p:  {label:"Descarga 20' paletizado",   unit:'/contenedor', cost:5.87},
-  desc40g:  {label:"Descarga 40' a granel",     unit:'/contenedor', cost:15.84},
-  desc20g:  {label:"Descarga 20' a granel",     unit:'/contenedor', cost:7.92},
-  recepPal: {label:'Recepción y registro',      unit:'/pallet',     cost:0.59},
-  recepBul: {label:'Recepción y registro',      unit:'/bulto',      cost:0.11},
+  desc40p:  {label:"Descarga 40' paletizado",   unit:'/contenedor', cost:200.00},
+  desc20p:  {label:"Descarga 20' paletizado",   unit:'/contenedor', cost:150.00},
+  desc40g:  {label:"Descarga 40' a granel",     unit:'/contenedor', cost:325.00},
+  desc20g:  {label:"Descarga 20' a granel",     unit:'/contenedor', cost:275.00},
+  recepPal: {label:'Pallet IN',                 unit:'/pallet',     cost:4.50},
+  recepBul: {label:'Recepción y registro',      unit:'/bulto',      cost:0.90},
   // STORAGE (por formato)
-  almacPos: {label:'Almacenaje',                unit:'/pallet pos/mes', cost:12.67},
-  almacM2:  {label:'Almacenaje',                unit:'/m²/mes',     cost:6.50},
-  almacCBM: {label:'Almacenaje',                unit:'/CBM/día',    cost:0.70},
-  almacBul: {label:'Almacenaje',                unit:'/bulto pico', cost:0.52},
+  almacPos: {label:'Almacenaje',                unit:'/pallet pos/mes', cost:21.00},
+  almacM2:  {label:'Almacenaje',                unit:'/m²/mes',     cost:15.00},
+  almacCBM: {label:'Almacenaje',                unit:'/CBM/día',    cost:0.50},
+  almacBul: {label:'Almacenaje',                unit:'/bulto pico', cost:0.25},
   // PUTAWAY
-  putaway:  {label:'Putaway a rack',            unit:'/pallet',     cost:0.42},
+  putaway:  {label:'Putaway a rack',            unit:'/pallet',     cost:4.00},
   // OUTBOUND
-  pickBul:  {label:'Picking por bulto',         unit:'/bulto',      cost:0.21},
-  pickUni:  {label:'Picking por unidad',        unit:'/unidad',     cost:0.08},
-  prepOrd:  {label:'Preparación orden salida',  unit:'/orden',      cost:1.06},
-  carga40p: {label:"Carga 40' paletizado",      unit:'/contenedor', cost:4.23},
-  carga20p: {label:"Carga 20' paletizado",      unit:'/contenedor', cost:2.11},
-  carga40g: {label:"Carga 40' a granel",        unit:'/contenedor', cost:5.7},
-  carga20g: {label:"Carga 20' a granel",        unit:'/contenedor', cost:2.85},
+  pickBul:  {label:'Picking por bulto',         unit:'/bulto',      cost:0.65},
+  pickUni:  {label:'Picking por unidad',        unit:'/unidad',     cost:0.25},
+  prepOrd:  {label:'Preparación orden salida',  unit:'/orden',      cost:2.00},
+  carga40p: {label:"Carga 40' paletizado",      unit:'/contenedor', cost:200.00},
+  carga20p: {label:"Carga 20' paletizado",      unit:'/contenedor', cost:150.00},
+  carga40g: {label:"Carga 40' a granel",        unit:'/contenedor', cost:325.00},
+  carga20g: {label:"Carga 20' a granel",        unit:'/contenedor', cost:275.00},
+  palletOut:{label:'Pallet OUT',                unit:'/pallet',     cost:4.50},
   // VAS
-  paletSin: {label:'Paletizado sin esquineras', unit:'/pallet',     cost:14.00},
+  paletSin: {label:'Paletizado sin esquineras', unit:'/pallet',     cost:17.50},
   paletCon: {label:'Paletizado con esquineras', unit:'/pallet',     cost:23.00},
   etiquetado:{label:'Etiquetado',              unit:'/unidad',     cost:0.15},
   lecSerial: {label:'Lectura de seriales',      unit:'/unidad',     cost:0.05},
   // DOCS
-  dmceIn:   {label:'DMCE Entrada',              unit:'/documento',  cost:35.00},
-  dmceOut:   {label:'DMCE Salida',               unit:'/documento',  cost:25.00},
+  dmceIn:   {label:'DMCE Entrada',              unit:'/documento',  cost:55.00},
+  dmceOut:   {label:'DMCE Salida',               unit:'/documento',  cost:55.00},
   memorial:  {label:'Memorial',                  unit:'/documento',  cost:15.00},
-  tiDoc:     {label:'TI — Transporte Interno',   unit:'/documento',  cost:15.00},
-  manejoIn:  {label:'Manejo de entrada',         unit:'/mes',        cost:25.00},
-  manejoOut: {label:'Manejo de salida',          unit:'/mes',        cost:20.00},
-  etiquetado:{label:'Etiquetado',                unit:'/unidad',     cost:0.15},
-  lecSerial: {label:'Lectura de seriales',       unit:'/unidad',     cost:0.05},
+  tiDoc:     {label:'TI — Transporte Interno',   unit:'/documento',  cost:20.00},
+  docDal:    {label:'Documentación aduanera (régimen DAL)', unit:'/documento', cost:15.00},
+  manejoIn:  {label:'Manejo de entrada',         unit:'/contenedor', cost:25.00},
+  manejoOut: {label:'Manejo de salida',          unit:'/contenedor', cost:20.00},
   // VEHÍCULOS
   vehDesc:   {label:'Descargue de vehículo',     unit:'/vehículo',   cost:300.00},
   vehCarga:  {label:'Cargue de vehículo',        unit:'/vehículo',   cost:300.00},
@@ -1882,11 +1884,11 @@ const MARKET_BENCHMARK = {
 
 
 let CB={
-  desc40p:0,desc20p:0,desc40g:0,desc20g:0,recepPal:0,recepBul:0,
+  desc40p:0,desc20p:0,desc40g:0,desc20g:0,recepPal:0,recepBul:0,palletOut:0,
   almacPos:0,almacM2:0,almacCBM:0,almacBul:0,putaway:0,
   pickBul:0,pickUni:0,prepOrd:0,carga40p:0,carga20p:0,carga40g:0,carga20g:0,
   paletSin:0,paletCon:0,etiquetado:0.08,lecSerial:0.03,
-  dmceIn:25,dmceOut:18,memorial:10,tiDoc:10,manejoIn:18,manejoOut:14,
+  dmceIn:25,dmceOut:18,memorial:10,tiDoc:10,docDal:10,manejoIn:18,manejoOut:14,
   vehDesc:130,vehCarga:130,vehAlmac:2.00,vehConductor:50,vehManejo:0,vehSeguro:0.00012,
 };
 
@@ -2026,9 +2028,9 @@ const TNAMES={pallet:'Pallet In/Out',bulto:'Bulto In/Out',unit:'Unit In/Out',mix
 const TARIFA_GROUPS = [
   { label:'Inbound / Descarga',  keys:['desc40p','desc20p','desc40g','desc20g','recepPal','recepBul','putaway'] },
   { label:'Almacenaje',           keys:['almacPos','almacM2','almacCBM','almacBul'] },
-  { label:'Outbound / Despacho',  keys:['pickBul','pickUni','prepOrd','carga40p','carga20p','carga40g','carga20g'] },
+  { label:'Outbound / Despacho',  keys:['pickBul','pickUni','prepOrd','carga40p','carga20p','carga40g','carga20g','palletOut'] },
   { label:'VAS & Paletizado',     keys:['paletSin','paletCon','etiquetado','lecSerial'] },
-  { label:'Documentación',        keys:['dmceIn','dmceOut','memorial','tiDoc','manejoIn','manejoOut'] },
+  { label:'Documentación',        keys:['dmceIn','dmceOut','memorial','tiDoc','docDal','manejoIn','manejoOut'] },
   { label:'Vehículos',             keys:['vehDesc','vehCarga','vehAlmac','vehConductor','vehManejo'] },
 ];
 
@@ -2083,6 +2085,7 @@ const DOCS_CONFIG={
   dmceOut:{label:'DMCE Salida', price:42.50,desc:'Declaración de Mercancías — salida del DAL'},
   memorial:{label:'Memorial',   price:15.00,desc:'Carta Memorial — cierre aduanero por turno'},
   tiDoc:  {label:'TI — Transporte Interno',price:15.00,desc:'Documento de transporte interplanta'},
+  docDal: {label:'Documentación aduanera (régimen DAL)',price:15.00,desc:'Trámite aduanero de la operación bajo régimen DAL'},
 };
 
 // ── AUTO-SAVE ─────────────────────────────────────────────────
@@ -2362,10 +2365,14 @@ function renderForecast(){
     html+=buildVolSection('Entrada',[
       {id:'f_cont40p',label:"Contenedores 40' paletizados",unit:'cont/mes'},
       {id:'f_cont20p',label:"Contenedores 20' paletizados",unit:'cont/mes'},
+      {id:'f_palIn',label:'Pallets recibidos (Pallet IN)',unit:'pallets/mes'},
     ]);
     html+=buildVolSection('Salida',[
       {id:'f_contSal40p',label:"Contenedores salida 40' paletizados",unit:'cont/mes'},
       {id:'f_contSal20p',label:"Contenedores salida 20' paletizados",unit:'cont/mes'},
+      {id:'f_palOut',label:'Pallets despachados (Pallet OUT)',unit:'pallets/mes'},
+      {id:'f_bultosSal',label:'Bultos despachados (picking)',unit:'bultos/mes'},
+      {id:'f_ordenes',label:'Órdenes de salida',unit:'órd/mes'},
     ]);
   }else if(S.type==='bulto'){
     html+=buildVolSection('Entrada',[
@@ -2401,8 +2408,11 @@ function renderForecast(){
       {id:'f_cont20p',label:"Contenedores 20' paletizados",unit:'cont/mes'},
       {id:'f_cont40g',label:"Contenedores 40' a granel",unit:'cont/mes'},
       {id:'f_cont20g',label:"Contenedores 20' a granel",unit:'cont/mes'},
+      {id:'f_palIn',label:'Pallets recibidos (Pallet IN)',unit:'pallets/mes'},
+      {id:'f_recepBul',label:'Bultos recibidos',unit:'bultos/mes'},
     ]);
     html+=buildVolSection('Salida',[
+      {id:'f_palOut',label:'Pallets despachados (Pallet OUT)',unit:'pallets/mes'},
       {id:'f_bultosSal',label:'Bultos despachados',unit:'bultos/mes'},
       {id:'f_unidades',label:'Unidades pickeadas',unit:'un/mes'},
       {id:'f_contSal40p',label:"Contenedores salida 40' paletizados",unit:'cont/mes'},
@@ -2481,6 +2491,7 @@ let _rutasData=[
   {id:'clp-chilibre',label:'CLP → Chilibre',tarifa:100,qty:1},
   {id:'clp-pty',label:'CLP → Ciudad de Panamá',tarifa:150,qty:1},
   {id:'clp-col',label:'CLP → Colón ciudad',tarifa:40,qty:1},
+  {id:'puerto-bodega',label:"Puerto → bodega (1x40')",tarifa:250,qty:1},
 ];
 
 function toggleTransport(){
@@ -2540,7 +2551,7 @@ function addRuta(){
 //   dedicados reemplazan el costo de equipo (FK) por productividad. No se suman.
 // · El CAPEX se amortiza en el plazo del contrato, con tasa de financiamiento opcional.
 const HP_DIA=7, DIAS_MES=22;
-const LABOR_KEYS=new Set(['desc40p','desc20p','desc40g','desc20g','recepPal','recepBul','putaway','almacPos',
+const LABOR_KEYS=new Set(['desc40p','desc20p','desc40g','desc20g','recepPal','palletOut','recepBul','putaway','almacPos',
   'pickBul','pickUni','prepOrd','carga40p','carga20p','carga40g','carga20g']);
 const fmUSD=n=>'$'+(parseFloat(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const r2=n=>Math.round((n||0)*100)/100;
@@ -2730,7 +2741,7 @@ function calcularCotizacion(){
   }else{
     add('desc40p',gv('f_cont40p')); add('desc20p',gv('f_cont20p'));
     add('desc40g',gv('f_cont40g')); add('desc20g',gv('f_cont20g'));
-    add('recepBul',gv('f_recepBul'));
+    add('recepPal',gv('f_palIn')); add('recepBul',gv('f_recepBul'));
     // ALMACENAJE — posiciones para pallet position; cantidad propia para m², CBM o bulto
     const posProm=gv('posPromedio'), posPico=gv('posPico');
     posRef=posProm||posPico;
@@ -2742,6 +2753,7 @@ function calcularCotizacion(){
     add('pickBul',gv('f_bultosSal')); add('pickUni',gv('f_unidades')); add('prepOrd',gv('f_ordenes'));
     add('carga40p',gv('f_contSal40p')); add('carga20p',gv('f_contSal20p'));
     add('carga40g',gv('f_contSal40g')); add('carga20g',gv('f_contSal20g'));
+    add('palletOut',gv('f_palOut'));
     Object.entries(DOCS_CONFIG).forEach(([key,doc])=>{
       if(!document.getElementById('doc-'+key)?.classList.contains('selected')) return;
       const sel=document.getElementById('dfreq-'+key);
@@ -2749,14 +2761,15 @@ function calcularCotizacion(){
       const qty=parseFloat(document.getElementById('dqty-'+key)?.value)||1;
       add(key,qty,`${T(key).label||doc.label}${freq?' — '+freq.charAt(0).toLowerCase()+freq.slice(1):''}`);
     });
-    if(document.getElementById('manejoIn')?.checked) add('manejoIn',1);
-    if(document.getElementById('manejoOut')?.checked) add('manejoOut',1);
+    // Manejo: por contenedor de entrada y de salida
+    if(document.getElementById('manejoIn')?.checked) add('manejoIn',gv('f_cont40p')+gv('f_cont20p')+gv('f_cont40g')+gv('f_cont20g'));
+    if(document.getElementById('manejoOut')?.checked) add('manejoOut',gv('f_contSal40p')+gv('f_contSal20p')+gv('f_contSal40g')+gv('f_contSal20g'));
     if(S.transport){
       _rutasData.filter(r=>r.selected&&r.qty>0).forEach(r=>
         push('tr-'+r.id,'transport','Transporte: '+r.label,'/viaje',r.qty,r.tarifa,r.costo||0));
     }
     if(q.tipoMerc==='hazmat'){
-      const hk=['manejoIn','manejoOut','recepPal','recepBul','desc40p','desc20p','desc40g','desc20g','carga40p','carga20p','carga40g','carga20g'];
+      const hk=['manejoIn','manejoOut','recepPal','palletOut','recepBul','desc40p','desc20p','desc40g','desc20g','carga40p','carga20p','carga40g','carga20g'];
       const hl=lines.filter(l=>hk.includes(l.key));
       const base=hl.reduce((s,l)=>s+l.sub,0), baseC=hl.reduce((s,l)=>s+l.costoB,0);
       if(base>0) push('hazmat','hazmat','Recargo HAZMAT (25% handling)','/mes',1,r2(base*0.25),r2(baseC*0.25));
@@ -2980,6 +2993,8 @@ const VOL_LABELS={
   f_cont20p:["Contenedores 20' paletizados — entrada","20' palletized containers — inbound",'cont/mes'],
   f_cont40g:["Contenedores 40' a granel — entrada","40' floor-loaded containers — inbound",'cont/mes'],
   f_cont20g:["Contenedores 20' a granel — entrada","20' floor-loaded containers — inbound",'cont/mes'],
+  f_palIn:['Pallets recibidos','Pallets received','pallets/mes'],
+  f_palOut:['Pallets despachados','Pallets dispatched','pallets/mes'],
   f_recepBul:['Bultos recibidos','Cartons received','bultos/mes'],
   f_bultosSal:['Bultos despachados','Cartons dispatched','bultos/mes'],
   f_unidades:['Unidades pickeadas','Units picked','un/mes'],
@@ -3011,8 +3026,8 @@ const FMT_ES={pallet_pos:'Por posición de pallet / mes',m2:'Por m² / mes',cbm:
 const GRUPOS_SERVICIO=[
   ['Entrada','Inbound',k=>/^(desc|recep|putaway)/.test(k)],
   ['Almacenaje','Storage',k=>/^almac/.test(k)],
-  ['Salida','Outbound',k=>/^(pick|prepOrd|carga)/.test(k)],
-  ['Documentación y manejo','Documentation & handling',k=>/^(dmce|memorial|tiDoc|manejo)/.test(k)],
+  ['Salida','Outbound',k=>/^(pick|prepOrd|carga|palletOut)/.test(k)],
+  ['Documentación y manejo','Documentation & handling',k=>/^(dmce|memorial|tiDoc|docDal|manejo)/.test(k)],
   ['Vehículos','Vehicles',k=>/^veh/.test(k)],
   ['Transporte','Transport',k=>k==='transport'],
   ['Otros servicios','Other services',()=>true],
@@ -3083,7 +3098,7 @@ function downloadQuoteCliente(lang){
     ops:'Datos operativos considerados',cond:'Condiciones de la propuesta',acept:'Aceptación',aceptTxt:'Firmo en conformidad con las tarifas y condiciones de esta propuesta.',
     nombre:'Nombre',cargo:'Cargo',firma:'Firma',fechaF:'Fecha',pagina:'Página',de:'de',borrador:'BORRADOR',cont:'(continuación)',
   };
-  const SVCNAMES_EN={"Descarga 40' paletizado":"Unloading 40' palletized","Descarga 20' paletizado":"Unloading 20' palletized","Descarga 40' a granel":"Unloading 40' floor-loaded","Descarga 20' a granel":"Unloading 20' floor-loaded","Recepción y registro":"Reception & registration","Almacenaje":"Storage","Putaway a rack":"Rack putaway","Picking por bulto":"Carton picking","Picking por unidad":"Unit picking","Preparación orden salida":"Outbound order preparation","Carga 40' paletizado":"Loading 40' palletized","Carga 20' paletizado":"Loading 20' palletized","Carga 40' a granel":"Loading 40' floor-loaded","Carga 20' a granel":"Loading 20' floor-loaded","Paletizado sin esquineras":"Palletizing (no corner boards)","Paletizado con esquineras":"Palletizing (with corner boards)","Etiquetado":"Labeling","Lectura de seriales":"Serial number scanning","DMCE Entrada":"Entry customs declaration (DMCE)","DMCE Salida":"Exit customs declaration (DMCE)","Memorial":"Customs memorial","TI — Transporte Interno":"Internal transit document (TI)","Manejo de entrada":"Inbound handling","Manejo de salida":"Outbound handling","Descargue de vehículo":"Vehicle unloading","Cargue de vehículo":"Vehicle loading","Almacenaje en patio":"Yard storage","Conductor CLP → Chilibre":"Driver CLP → Chilibre","Manejo por contenedor":"Handling per container","Recargo HAZMAT (25% handling)":"HAZMAT surcharge (25% of handling)"};
+  const SVCNAMES_EN={"Descarga 40' paletizado":"Unloading 40' palletized","Descarga 20' paletizado":"Unloading 20' palletized","Descarga 40' a granel":"Unloading 40' floor-loaded","Descarga 20' a granel":"Unloading 20' floor-loaded","Recepción y registro":"Reception & registration","Pallet IN":"Pallet IN","Pallet OUT":"Pallet OUT","Documentación aduanera (régimen DAL)":"Customs documentation (DAL regime)","Almacenaje":"Storage","Putaway a rack":"Rack putaway","Picking por bulto":"Carton picking","Picking por unidad":"Unit picking","Preparación orden salida":"Outbound order preparation","Carga 40' paletizado":"Loading 40' palletized","Carga 20' paletizado":"Loading 20' palletized","Carga 40' a granel":"Loading 40' floor-loaded","Carga 20' a granel":"Loading 20' floor-loaded","Paletizado sin esquineras":"Palletizing (no corner boards)","Paletizado con esquineras":"Palletizing (with corner boards)","Etiquetado":"Labeling","Lectura de seriales":"Serial number scanning","DMCE Entrada":"Entry customs declaration (DMCE)","DMCE Salida":"Exit customs declaration (DMCE)","Memorial":"Customs memorial","TI — Transporte Interno":"Internal transit document (TI)","Manejo de entrada":"Inbound handling","Manejo de salida":"Outbound handling","Descargue de vehículo":"Vehicle unloading","Cargue de vehículo":"Vehicle loading","Almacenaje en patio":"Yard storage","Conductor CLP → Chilibre":"Driver CLP → Chilibre","Manejo por contenedor":"Handling per container","Recargo HAZMAT (25% handling)":"HAZMAT surcharge (25% of handling)"};
   const SVCUNITS_EN={"/contenedor":"/container","/pallet":"/pallet","/bulto":"/carton","/unidad":"/unit","/orden":"/order","/mes":"/month","/pallet pos/mes":"/pallet position/month","/m²/mes":"/m²/month","/CBM/día":"/CBM/day","/bulto pico":"/peak carton","/documento":"/document","/vehículo":"/vehicle","/vehículo/día":"/vehicle/day","/veh/día":"/vehicle/day","/ruta":"/route","/viaje":"/trip"};
   const nombre=l=>en?traducirServicio(l.name,SVCNAMES_EN):l.name;
   const unidad=l=>en?(SVCUNITS_EN[l.unit]||l.unit):l.unit;
@@ -4595,6 +4610,7 @@ function syncProdToTarifas(){
   set('desc40p',entPal,20); set('desc20p',entPal,10); set('desc40g',entPal,27); set('desc20g',entPal,13.5);
   set('recepPal',entPal,1); set('putaway',almPal,1); set('almacPos',almPal,1);
   set('recepBul',pick('entrada','bulto'),1);
+  set('palletOut',salPal,1);
   set('carga40p',salPal,20); set('carga20p',salPal,10); set('carga40g',salPal,27); set('carga20g',salPal,13.5);
   set('pickBul',pick('salida','bulto'),1);
   set('pickUni',pick('salida','unidad'),1);
